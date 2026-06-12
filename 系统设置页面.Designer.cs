@@ -29,7 +29,9 @@ namespace 自动测试
             this.其它模块页 = new System.Windows.Forms.TabPage();
             this.平台视觉页 = new System.Windows.Forms.TabPage();
             this.MESS设置页 = new System.Windows.Forms.TabPage();
+            this.MESS设置控件1 = new MESS设置控件();
             this.其他设置页 = new System.Windows.Forms.TabPage();
+            this.其他设置控件1 = new 其他设置控件();
             this.保存按钮 = new System.Windows.Forms.Button();
             this.取消按钮 = new System.Windows.Forms.Button();
             this.SuspendLayout();
@@ -165,21 +167,42 @@ namespace 自动测试
             // 
             // MESS设置页
             // 
-            MESS设置页.Location = new Point(4, 24);
-            MESS设置页.Name = "MESS设置页";
-            MESS设置页.Size = new Size(1192, 622);
-            MESS设置页.TabIndex = 9;
-            MESS设置页.Text = "MESS设置";
-            MESS设置页.UseVisualStyleBackColor = true;
-            MESS设置页.AutoScroll = true;
+            this.MESS设置页.Controls.Add(this.MESS设置控件1);
+            this.MESS设置页.Location = new System.Drawing.Point(4, 24);
+            this.MESS设置页.Name = "MESS设置页";
+            this.MESS设置页.Size = new System.Drawing.Size(1192, 622);
+            this.MESS设置页.TabIndex = 9;
+            this.MESS设置页.Text = "MESS设置";
+            this.MESS设置页.UseVisualStyleBackColor = true;
+            this.MESS设置页.AutoScroll = true;
+            // 
+            // MESS设置控件1
+            // 
+            this.MESS设置控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.MESS设置控件1.Location = new System.Drawing.Point(0, 0);
+            this.MESS设置控件1.Name = "MESS设置控件1";
+            this.MESS设置控件1.Size = new System.Drawing.Size(1192, 622);
+            this.MESS设置控件1.TabIndex = 0;
             // 
             // 其他设置页
             // 
-            其他设置页.Location = new Point(4, 24);
-            其他设置页.Name = "其他设置页";
-            其他设置页.Size = new Size(1192, 622);
-            其他设置页.TabIndex = 10;
-            其他设置页.Text = "其他设置";
+            this.其他设置页.Controls.Add(this.其他设置控件1);
+            this.其他设置页.Location = new System.Drawing.Point(4, 24);
+            this.其他设置页.Name = "其他设置页";
+            this.其他设置页.Size = new System.Drawing.Size(1192, 622);
+            this.其他设置页.TabIndex = 10;
+            this.其他设置页.Text = "其他设置";
+            this.其他设置页.UseVisualStyleBackColor = true;
+            this.其他设置页.AutoScroll = true;
+            // 
+            // 其他设置控件1
+            // 
+            this.其他设置控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.其他设置控件1.Location = new System.Drawing.Point(0, 0);
+            this.其他设置控件1.Name = "其他设置控件1";
+            this.其他设置控件1.Size = new System.Drawing.Size(1192, 622);
+            this.其他设置控件1.TabIndex = 0;
+            //
             其他设置页.UseVisualStyleBackColor = true;
             其他设置页.AutoScroll = true;
             // 
@@ -232,7 +255,9 @@ namespace 自动测试
         private System.Windows.Forms.TabPage 其它模块页;
         private System.Windows.Forms.TabPage 平台视觉页;
         private System.Windows.Forms.TabPage MESS设置页;
+        private MESS设置控件 MESS设置控件1;
         private System.Windows.Forms.TabPage 其他设置页;
+        private 其他设置控件 其他设置控件1;
         private System.Windows.Forms.Button 保存按钮;
         private System.Windows.Forms.Button 取消按钮;
     }

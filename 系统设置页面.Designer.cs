@@ -22,12 +22,19 @@ namespace 自动测试
             this.检测设置页 = new System.Windows.Forms.TabPage();
             this.检测设置控件1 = new 检测设置控件();
             this.运动控制页 = new System.Windows.Forms.TabPage();
+            this.运动控制控件1 = new 运动控制控件();
             this.电压模块页 = new System.Windows.Forms.TabPage();
+            this.电压模块控件1 = new 电压模块控件();
             this.电流模块页 = new System.Windows.Forms.TabPage();
+            this.电流模块控件1 = new 电流模块控件();
             this.IO模块页 = new System.Windows.Forms.TabPage();
+            this.IO模块控件1 = new IO模块控件();
             this.PWM模块页 = new System.Windows.Forms.TabPage();
+            this.PWM模块控件1 = new PWM模块控件();
             this.其它模块页 = new System.Windows.Forms.TabPage();
+            this.其它模块控件1 = new 其它模块控件();
             this.平台视觉页 = new System.Windows.Forms.TabPage();
+            this.平台视觉控件1 = new 平台视觉控件();
             this.MESS设置页 = new System.Windows.Forms.TabPage();
             this.MESS设置控件1 = new MESS设置控件();
             this.其他设置页 = new System.Windows.Forms.TabPage();
@@ -78,13 +85,22 @@ namespace 自动测试
             // 
             // 运动控制页
             // 
-            运动控制页.Location = new Point(4, 24);
-            运动控制页.Name = "运动控制页";
-            运动控制页.Size = new Size(1192, 622);
-            运动控制页.TabIndex = 1;
-            运动控制页.Text = "运动控制";
-            运动控制页.UseVisualStyleBackColor = true;
-            运动控制页.AutoScroll = true;
+            this.运动控制页.Controls.Add(this.运动控制控件1);
+            this.运动控制页.Location = new System.Drawing.Point(4, 24);
+            this.运动控制页.Name = "运动控制页";
+            this.运动控制页.Size = new System.Drawing.Size(1192, 622);
+            this.运动控制页.TabIndex = 1;
+            this.运动控制页.Text = "运动控制";
+            this.运动控制页.UseVisualStyleBackColor = true;
+            this.运动控制页.AutoScroll = true;
+            // 
+            // 运动控制控件1
+            // 
+            this.运动控制控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.运动控制控件1.Location = new System.Drawing.Point(0, 0);
+            this.运动控制控件1.Name = "运动控制控件1";
+            this.运动控制控件1.Size = new System.Drawing.Size(1192, 622);
+            this.运动控制控件1.TabIndex = 0;
             // 
             // 检测设置页
             // 
@@ -107,63 +123,117 @@ namespace 自动测试
             // 
             // 电压模块页
             // 
-            电压模块页.Location = new Point(4, 24);
-            电压模块页.Name = "电压模块页";
-            电压模块页.Size = new Size(1192, 622);
-            电压模块页.TabIndex = 3;
-            电压模块页.Text = "电压模块";
-            电压模块页.UseVisualStyleBackColor = true;
-            电压模块页.AutoScroll = true;
+            this.电压模块页.Controls.Add(this.电压模块控件1);
+            this.电压模块页.Location = new System.Drawing.Point(4, 24);
+            this.电压模块页.Name = "电压模块页";
+            this.电压模块页.Size = new System.Drawing.Size(1192, 622);
+            this.电压模块页.TabIndex = 3;
+            this.电压模块页.Text = "电压模块";
+            this.电压模块页.UseVisualStyleBackColor = true;
+            this.电压模块页.AutoScroll = true;
+            // 
+            // 电压模块控件1
+            // 
+            this.电压模块控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.电压模块控件1.Location = new System.Drawing.Point(0, 0);
+            this.电压模块控件1.Name = "电压模块控件1";
+            this.电压模块控件1.Size = new System.Drawing.Size(1192, 622);
+            this.电压模块控件1.TabIndex = 0;
             // 
             // 电流模块页
             // 
-            电流模块页.Location = new Point(4, 24);
-            电流模块页.Name = "电流模块页";
-            电流模块页.Size = new Size(1192, 622);
-            电流模块页.TabIndex = 4;
-            电流模块页.Text = "电流模块";
-            电流模块页.UseVisualStyleBackColor = true;
-            电流模块页.AutoScroll = true;
+            this.电流模块页.Controls.Add(this.电流模块控件1);
+            this.电流模块页.Location = new System.Drawing.Point(4, 24);
+            this.电流模块页.Name = "电流模块页";
+            this.电流模块页.Size = new System.Drawing.Size(1192, 622);
+            this.电流模块页.TabIndex = 4;
+            this.电流模块页.Text = "电流模块";
+            this.电流模块页.UseVisualStyleBackColor = true;
+            this.电流模块页.AutoScroll = true;
+            // 
+            // 电流模块控件1
+            // 
+            this.电流模块控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.电流模块控件1.Location = new System.Drawing.Point(0, 0);
+            this.电流模块控件1.Name = "电流模块控件1";
+            this.电流模块控件1.Size = new System.Drawing.Size(1192, 622);
+            this.电流模块控件1.TabIndex = 0;
             // 
             // IO模块页
             // 
-            IO模块页.Location = new Point(4, 24);
-            IO模块页.Name = "IO模块页";
-            IO模块页.Size = new Size(1192, 622);
-            IO模块页.TabIndex = 5;
-            IO模块页.Text = "IO模块参数";
-            IO模块页.UseVisualStyleBackColor = true;
-            IO模块页.AutoScroll = true;
+            this.IO模块页.Controls.Add(this.IO模块控件1);
+            this.IO模块页.Location = new System.Drawing.Point(4, 24);
+            this.IO模块页.Name = "IO模块页";
+            this.IO模块页.Size = new System.Drawing.Size(1192, 622);
+            this.IO模块页.TabIndex = 5;
+            this.IO模块页.Text = "IO模块参数";
+            this.IO模块页.UseVisualStyleBackColor = true;
+            this.IO模块页.AutoScroll = true;
+            // 
+            // IO模块控件1
+            // 
+            this.IO模块控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.IO模块控件1.Location = new System.Drawing.Point(0, 0);
+            this.IO模块控件1.Name = "IO模块控件1";
+            this.IO模块控件1.Size = new System.Drawing.Size(1192, 622);
+            this.IO模块控件1.TabIndex = 0;
             // 
             // PWM模块页
             // 
-            PWM模块页.Location = new Point(4, 24);
-            PWM模块页.Name = "PWM模块页";
-            PWM模块页.Size = new Size(1192, 622);
-            PWM模块页.TabIndex = 6;
-            PWM模块页.Text = "PWM模块";
-            PWM模块页.UseVisualStyleBackColor = true;
-            PWM模块页.AutoScroll = true;
+            this.PWM模块页.Controls.Add(this.PWM模块控件1);
+            this.PWM模块页.Location = new System.Drawing.Point(4, 24);
+            this.PWM模块页.Name = "PWM模块页";
+            this.PWM模块页.Size = new System.Drawing.Size(1192, 622);
+            this.PWM模块页.TabIndex = 6;
+            this.PWM模块页.Text = "PWM模块";
+            this.PWM模块页.UseVisualStyleBackColor = true;
+            this.PWM模块页.AutoScroll = true;
+            // 
+            // PWM模块控件1
+            // 
+            this.PWM模块控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.PWM模块控件1.Location = new System.Drawing.Point(0, 0);
+            this.PWM模块控件1.Name = "PWM模块控件1";
+            this.PWM模块控件1.Size = new System.Drawing.Size(1192, 622);
+            this.PWM模块控件1.TabIndex = 0;
             // 
             // 其它模块页
             // 
-            其它模块页.Location = new Point(4, 24);
-            其它模块页.Name = "其它模块页";
-            其它模块页.Size = new Size(1192, 622);
-            其它模块页.TabIndex = 7;
-            其它模块页.Text = "其它模块参数";
-            其它模块页.UseVisualStyleBackColor = true;
-            其它模块页.AutoScroll = true;
+            this.其它模块页.Controls.Add(this.其它模块控件1);
+            this.其它模块页.Location = new System.Drawing.Point(4, 24);
+            this.其它模块页.Name = "其它模块页";
+            this.其它模块页.Size = new System.Drawing.Size(1192, 622);
+            this.其它模块页.TabIndex = 7;
+            this.其它模块页.Text = "其它模块参数";
+            this.其它模块页.UseVisualStyleBackColor = true;
+            this.其它模块页.AutoScroll = true;
+            // 
+            // 其它模块控件1
+            // 
+            this.其它模块控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.其它模块控件1.Location = new System.Drawing.Point(0, 0);
+            this.其它模块控件1.Name = "其它模块控件1";
+            this.其它模块控件1.Size = new System.Drawing.Size(1192, 622);
+            this.其它模块控件1.TabIndex = 0;
             // 
             // 平台视觉页
             // 
-            平台视觉页.Location = new Point(4, 24);
-            平台视觉页.Name = "平台视觉页";
-            平台视觉页.Size = new Size(1192, 622);
-            平台视觉页.TabIndex = 8;
-            平台视觉页.Text = "平台视觉参数";
-            平台视觉页.UseVisualStyleBackColor = true;
-            平台视觉页.AutoScroll = true;
+            this.平台视觉页.Controls.Add(this.平台视觉控件1);
+            this.平台视觉页.Location = new System.Drawing.Point(4, 24);
+            this.平台视觉页.Name = "平台视觉页";
+            this.平台视觉页.Size = new System.Drawing.Size(1192, 622);
+            this.平台视觉页.TabIndex = 8;
+            this.平台视觉页.Text = "平台视觉参数";
+            this.平台视觉页.UseVisualStyleBackColor = true;
+            this.平台视觉页.AutoScroll = true;
+            // 
+            // 平台视觉控件1
+            // 
+            this.平台视觉控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.平台视觉控件1.Location = new System.Drawing.Point(0, 0);
+            this.平台视觉控件1.Name = "平台视觉控件1";
+            this.平台视觉控件1.Size = new System.Drawing.Size(1192, 622);
+            this.平台视觉控件1.TabIndex = 0;
             // 
             // MESS设置页
             // 
@@ -248,12 +318,19 @@ namespace 自动测试
         private System.Windows.Forms.TabPage 检测设置页;
         private 检测设置控件 检测设置控件1;
         private System.Windows.Forms.TabPage 运动控制页;
+        private 运动控制控件 运动控制控件1;
         private System.Windows.Forms.TabPage 电压模块页;
+        private 电压模块控件 电压模块控件1;
         private System.Windows.Forms.TabPage 电流模块页;
+        private 电流模块控件 电流模块控件1;
         private System.Windows.Forms.TabPage IO模块页;
+        private IO模块控件 IO模块控件1;
         private System.Windows.Forms.TabPage PWM模块页;
+        private PWM模块控件 PWM模块控件1;
         private System.Windows.Forms.TabPage 其它模块页;
+        private 其它模块控件 其它模块控件1;
         private System.Windows.Forms.TabPage 平台视觉页;
+        private 平台视觉控件 平台视觉控件1;
         private System.Windows.Forms.TabPage MESS设置页;
         private MESS设置控件 MESS设置控件1;
         private System.Windows.Forms.TabPage 其他设置页;

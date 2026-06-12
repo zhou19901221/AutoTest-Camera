@@ -15,53 +15,62 @@ namespace 自动测试
 
         private void InitializeComponent()
         {
-            标签导航 = new TabControl();
-            基础参数页 = new TabPage();
-            检测设置页 = new TabPage();
-            运动控制页 = new TabPage();
-            电压模块页 = new TabPage();
-            电流模块页 = new TabPage();
-            IO模块页 = new TabPage();
-            PWM模块页 = new TabPage();
-            其它模块页 = new TabPage();
-            平台视觉页 = new TabPage();
-            MESS设置页 = new TabPage();
-            其他设置页 = new TabPage();
-            保存按钮 = new Button();
-            取消按钮 = new Button();
-
-            SuspendLayout();
+            this.components = new System.ComponentModel.Container();
+            this.标签导航 = new System.Windows.Forms.TabControl();
+            this.基础参数页 = new System.Windows.Forms.TabPage();
+            this.基础参数控件1 = new 基础参数控件();
+            this.检测设置页 = new System.Windows.Forms.TabPage();
+            this.运动控制页 = new System.Windows.Forms.TabPage();
+            this.电压模块页 = new System.Windows.Forms.TabPage();
+            this.电流模块页 = new System.Windows.Forms.TabPage();
+            this.IO模块页 = new System.Windows.Forms.TabPage();
+            this.PWM模块页 = new System.Windows.Forms.TabPage();
+            this.其它模块页 = new System.Windows.Forms.TabPage();
+            this.平台视觉页 = new System.Windows.Forms.TabPage();
+            this.MESS设置页 = new System.Windows.Forms.TabPage();
+            this.其他设置页 = new System.Windows.Forms.TabPage();
+            this.保存按钮 = new System.Windows.Forms.Button();
+            this.取消按钮 = new System.Windows.Forms.Button();
+            this.SuspendLayout();
             // 
             // 标签导航
             // 
-            标签导航.Controls.Add(基础参数页);
-            标签导航.Controls.Add(检测设置页);
-            标签导航.Controls.Add(运动控制页);
-            标签导航.Controls.Add(电压模块页);
-            标签导航.Controls.Add(电流模块页);
-            标签导航.Controls.Add(IO模块页);
-            标签导航.Controls.Add(PWM模块页);
-            标签导航.Controls.Add(其它模块页);
-            标签导航.Controls.Add(平台视觉页);
-            标签导航.Controls.Add(MESS设置页);
-            标签导航.Controls.Add(其他设置页);
-            标签导航.Dock = DockStyle.Top;
-            标签导航.Location = new Point(0, 0);
-            标签导航.Name = "标签导航";
-            标签导航.SelectedIndex = 0;
-            标签导航.Size = new Size(1200, 650);
-            标签导航.TabIndex = 0;
+            this.标签导航.Controls.Add(this.基础参数页);
+            this.标签导航.Controls.Add(this.检测设置页);
+            this.标签导航.Controls.Add(this.运动控制页);
+            this.标签导航.Controls.Add(this.电压模块页);
+            this.标签导航.Controls.Add(this.电流模块页);
+            this.标签导航.Controls.Add(this.IO模块页);
+            this.标签导航.Controls.Add(this.PWM模块页);
+            this.标签导航.Controls.Add(this.其它模块页);
+            this.标签导航.Controls.Add(this.平台视觉页);
+            this.标签导航.Controls.Add(this.MESS设置页);
+            this.标签导航.Controls.Add(this.其他设置页);
+            this.标签导航.Dock = System.Windows.Forms.DockStyle.Top;
+            this.标签导航.Location = new System.Drawing.Point(0, 0);
+            this.标签导航.Name = "标签导航";
+            this.标签导航.SelectedIndex = 0;
+            this.标签导航.Size = new System.Drawing.Size(1200, 650);
+            this.标签导航.TabIndex = 0;
             // 
             // 基础参数页
             // 
-            基础参数页.Location = new Point(4, 24);
-            基础参数页.Name = "基础参数页";
-            基础参数页.Padding = new Padding(3);
-            基础参数页.Size = new Size(1192, 622);
-            基础参数页.TabIndex = 0;
-            基础参数页.Text = "基础参数";
-            基础参数页.UseVisualStyleBackColor = true;
-            基础参数页.AutoScroll = true;
+            this.基础参数页.Controls.Add(this.基础参数控件1);
+            this.基础参数页.Location = new System.Drawing.Point(4, 24);
+            this.基础参数页.Name = "基础参数页";
+            this.基础参数页.Padding = new System.Windows.Forms.Padding(3);
+            this.基础参数页.Size = new System.Drawing.Size(1192, 622);
+            this.基础参数页.TabIndex = 0;
+            this.基础参数页.Text = "基础参数";
+            this.基础参数页.UseVisualStyleBackColor = true;
+            this.基础参数页.AutoScroll = true;
+            // 
+            // 基础参数控件1
+            // 
+            this.基础参数控件1.Location = new System.Drawing.Point(0, 0);
+            this.基础参数控件1.Name = "基础参数控件1";
+            this.基础参数控件1.Size = new System.Drawing.Size(1192, 622);
+            this.基础参数控件1.TabIndex = 0;
             // 
             // 运动控制页
             // 
@@ -199,19 +208,20 @@ namespace 自动测试
             ResumeLayout(false);
         }
 
-        private TabControl 标签导航;
-        private TabPage 基础参数页;
-        private TabPage 检测设置页;
-        private TabPage 运动控制页;
-        private TabPage 电压模块页;
-        private TabPage 电流模块页;
-        private TabPage IO模块页;
-        private TabPage PWM模块页;
-        private TabPage 其它模块页;
-        private TabPage 平台视觉页;
-        private TabPage MESS设置页;
-        private TabPage 其他设置页;
-        private Button 保存按钮;
-        private Button 取消按钮;
+        private System.Windows.Forms.TabControl 标签导航;
+        private System.Windows.Forms.TabPage 基础参数页;
+        private 基础参数控件 基础参数控件1;
+        private System.Windows.Forms.TabPage 检测设置页;
+        private System.Windows.Forms.TabPage 运动控制页;
+        private System.Windows.Forms.TabPage 电压模块页;
+        private System.Windows.Forms.TabPage 电流模块页;
+        private System.Windows.Forms.TabPage IO模块页;
+        private System.Windows.Forms.TabPage PWM模块页;
+        private System.Windows.Forms.TabPage 其它模块页;
+        private System.Windows.Forms.TabPage 平台视觉页;
+        private System.Windows.Forms.TabPage MESS设置页;
+        private System.Windows.Forms.TabPage 其他设置页;
+        private System.Windows.Forms.Button 保存按钮;
+        private System.Windows.Forms.Button 取消按钮;
     }
 }

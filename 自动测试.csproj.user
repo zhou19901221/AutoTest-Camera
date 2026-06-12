@@ -7,6 +7,9 @@
     <Compile Update="基础参数控件.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="检测设置控件.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="相机属性.cs">
       <SubType>UserControl</SubType>
     </Compile>

@@ -20,6 +20,7 @@ namespace 自动测试
             this.基础参数页 = new System.Windows.Forms.TabPage();
             this.基础参数控件1 = new 基础参数控件();
             this.检测设置页 = new System.Windows.Forms.TabPage();
+            this.检测设置控件1 = new 检测设置控件();
             this.运动控制页 = new System.Windows.Forms.TabPage();
             this.电压模块页 = new System.Windows.Forms.TabPage();
             this.电流模块页 = new System.Windows.Forms.TabPage();
@@ -85,13 +86,22 @@ namespace 自动测试
             // 
             // 检测设置页
             // 
-            检测设置页.Location = new Point(4, 24);
-            检测设置页.Name = "检测设置页";
-            检测设置页.Size = new Size(1192, 622);
-            检测设置页.TabIndex = 2;
-            检测设置页.Text = "检测设置";
-            检测设置页.UseVisualStyleBackColor = true;
-            检测设置页.AutoScroll = true;
+            this.检测设置页.Controls.Add(this.检测设置控件1);
+            this.检测设置页.Location = new System.Drawing.Point(4, 24);
+            this.检测设置页.Name = "检测设置页";
+            this.检测设置页.Size = new System.Drawing.Size(1192, 622);
+            this.检测设置页.TabIndex = 2;
+            this.检测设置页.Text = "检测设置";
+            this.检测设置页.UseVisualStyleBackColor = true;
+            this.检测设置页.AutoScroll = true;
+            // 
+            // 检测设置控件1
+            // 
+            this.检测设置控件1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.检测设置控件1.Location = new System.Drawing.Point(0, 0);
+            this.检测设置控件1.Name = "检测设置控件1";
+            this.检测设置控件1.Size = new System.Drawing.Size(1192, 622);
+            this.检测设置控件1.TabIndex = 0;
             // 
             // 电压模块页
             // 
@@ -213,6 +223,7 @@ namespace 自动测试
         private System.Windows.Forms.TabPage 基础参数页;
         private 基础参数控件 基础参数控件1;
         private System.Windows.Forms.TabPage 检测设置页;
+        private 检测设置控件 检测设置控件1;
         private System.Windows.Forms.TabPage 运动控制页;
         private System.Windows.Forms.TabPage 电压模块页;
         private System.Windows.Forms.TabPage 电流模块页;

@@ -12,8 +12,14 @@
 
   <ItemGroup>
     <Reference Include="MvCameraControl.Net">
-      <HintPath>D:\MVS\Development\DotNet\AnyCpu\netstandard2.0\MvCameraControl.Net.dll</HintPath>
+      <HintPath>Libs\MvCameraControl.Net.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Libs\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

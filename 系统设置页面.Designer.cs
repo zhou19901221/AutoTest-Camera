@@ -28,7 +28,7 @@ namespace 自动测试
             其他设置页 = new TabPage();
             保存按钮 = new Button();
             取消按钮 = new Button();
-            ((System.ComponentModel.ISupportInitialize)标签导航).BeginInit();
+
             SuspendLayout();
             // 
             // 标签导航
@@ -173,7 +173,7 @@ namespace 自动测试
             Controls.Add(标签导航);
             Name = "系统设置页面";
             Text = "高级系统设置";
-            ((System.ComponentModel.ISupportInitialize)标签导航).EndInit();
+
             ResumeLayout(false);
         }
 

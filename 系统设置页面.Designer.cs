@@ -67,6 +67,7 @@ namespace 自动测试
             // 
             // 基础参数控件1
             // 
+            this.基础参数控件1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.基础参数控件1.Location = new System.Drawing.Point(0, 0);
             this.基础参数控件1.Name = "基础参数控件1";
             this.基础参数控件1.Size = new System.Drawing.Size(1192, 622);

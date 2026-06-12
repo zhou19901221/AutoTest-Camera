@@ -485,6 +485,7 @@ namespace 自动测试
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScroll = true;
             this.Controls.Add(this.基础设置组);
             this.Controls.Add(this.程控电源组);
             this.Controls.Add(this.串口设置组);

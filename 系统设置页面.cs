@@ -357,7 +357,9 @@ namespace 自动测试
 
         private NumericUpDown 创建数字框(decimal 默认值, decimal 最大值, decimal 步进, int x, int y)
         {
-            return new NumericUpDown { Value = 默认值, Maximum = 最大值, Increment = 步进, Location = new Point(x, y), Size = new Size(80, 23) };
+            var 控件 = new NumericUpDown { Maximum = 最大值, Increment = 步进, Location = new Point(x, y), Size = new Size(80, 23) };
+            控件.Value = 默认值;
+            return 控件;
         }
 
         private ComboBox 创建下拉框(string[] 选项, int x, int y, int 宽度)

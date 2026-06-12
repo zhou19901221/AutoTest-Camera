@@ -78,7 +78,7 @@ namespace 自动测试
         {
             string 时间戳 = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             操作日志内容 += $"[{时间戳}] {日志文本}\r\n";
-            
+
             if (当前操作日志 != null && 当前操作日志.IsHandleCreated)
             {
                 当前操作日志.Invoke(new Action(() =>
@@ -167,6 +167,12 @@ namespace 自动测试
 
             var 属性页面 = new 相机属性页面(相机对象);
             属性页面.Show();
+        }
+
+        private void 端口测试_Click(object sender, EventArgs e)
+        {
+            var visualDebug = new 系统设置页面();
+            visualDebug.Show();
         }
     }
 }

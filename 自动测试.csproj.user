@@ -10,6 +10,12 @@
     <Compile Update="相机属性页面.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="系统设置.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="系统设置页面.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="视觉调试页面.cs">
       <SubType>Form</SubType>
     </Compile>

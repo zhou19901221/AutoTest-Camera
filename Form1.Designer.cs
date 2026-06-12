@@ -33,7 +33,7 @@
         {
             components = new System.ComponentModel.Container();
             文件 = new Label();
-            操作 = new Label();
+            设置 = new Label();
             label1 = new Label();
             文件菜单 = new ContextMenuStrip(components);
             新建ToolStripMenuItem = new ToolStripMenuItem();
@@ -70,16 +70,16 @@
             文件.Text = "文件";
             文件.Click += 文件_Click;
             // 
-            // 操作
+            // 设置
             // 
-            操作.AutoSize = true;
-            操作.Font = new Font("Microsoft YaHei UI", 15F);
-            操作.Location = new Point(83, 9);
-            操作.Name = "操作";
-            操作.Size = new Size(52, 27);
-            操作.TabIndex = 1;
-            操作.Text = "操作";
-            操作.Click += label1_Click;
+            设置.AutoSize = true;
+            设置.Font = new Font("Microsoft YaHei UI", 15F);
+            设置.Location = new Point(83, 9);
+            设置.Name = "设置";
+            设置.Size = new Size(52, 27);
+            设置.TabIndex = 1;
+            设置.Text = "设置";
+            设置.Click += label1_Click;
             // 
             // label1
             // 
@@ -165,6 +165,7 @@
             端口测试.TabIndex = 0;
             端口测试.Text = "端口测试";
             端口测试.UseVisualStyleBackColor = true;
+            端口测试.Click += 端口测试_Click;
             // 
             // 日志
             // 
@@ -277,7 +278,7 @@
             Controls.Add(当前配置信息);
             Controls.Add(flowLayoutPanel1);
             Controls.Add(label1);
-            Controls.Add(操作);
+            Controls.Add(设置);
             Controls.Add(文件);
             Name = "Form1";
             Text = "杭州诺斯科技有限公司";
@@ -293,7 +294,7 @@
         #endregion
 
         private Label 文件;
-        private Label 操作;
+        private Label 设置;
         private Label label1;
         private ContextMenuStrip 文件菜单;
         private ToolStripMenuItem 新建ToolStripMenuItem;

@@ -121,14 +121,14 @@
             // 
             // flowLayoutPanel1
             // 
+            flowLayoutPanel1.BackColor = Color.FromArgb(91, 155, 213);
             flowLayoutPanel1.Controls.Add(编辑配置);
             flowLayoutPanel1.Controls.Add(视觉测试);
             flowLayoutPanel1.Controls.Add(端口测试);
             flowLayoutPanel1.Controls.Add(日志);
-            flowLayoutPanel1.Controls.Add(状态提示);
-            flowLayoutPanel1.Location = new Point(12, 39);
+            flowLayoutPanel1.Location = new Point(20, 50);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(1326, 92);
+            flowLayoutPanel1.Size = new Size(480, 80);
             flowLayoutPanel1.TabIndex = 2;
             // 
             // 编辑配置
@@ -191,12 +191,13 @@
             // 
             // 当前配置信息
             // 
+            当前配置信息.BackColor = Color.White;
             当前配置信息.Controls.Add(选着配置);
             当前配置信息.Controls.Add(配置信息);
             当前配置信息.Controls.Add(label2);
-            当前配置信息.Location = new Point(13, 147);
+            当前配置信息.Location = new Point(20, 50);
             当前配置信息.Name = "当前配置信息";
-            当前配置信息.Size = new Size(449, 112);
+            当前配置信息.Size = new Size(480, 130);
             当前配置信息.TabIndex = 3;
             当前配置信息.TabStop = false;
             当前配置信息.Text = "当前配置";
@@ -232,17 +233,18 @@
             // 
             当前配置显示.FormattingEnabled = true;
             当前配置显示.ItemHeight = 17;
-            当前配置显示.Location = new Point(12, 270);
+            当前配置显示.Location = new Point(20, 200);
             当前配置显示.Name = "当前配置显示";
-            当前配置显示.Size = new Size(450, 446);
+            当前配置显示.Size = new Size(480, 680);
             当前配置显示.TabIndex = 4;
             // 
             // 当前操作日志
             // 
+            当前操作日志.BackColor = Color.White;
             当前操作日志.Controls.Add(操作日志文本框);
-            当前操作日志.Location = new Point(943, 147);
+            当前操作日志.Location = new Point(1000, 50);
             当前操作日志.Name = "当前操作日志";
-            当前操作日志.Size = new Size(396, 569);
+            当前操作日志.Size = new Size(420, 830);
             当前操作日志.TabIndex = 5;
             当前操作日志.TabStop = false;
             当前操作日志.Text = "当前操作日志";
@@ -250,28 +252,33 @@
             // 操作日志文本框
             // 
             操作日志文本框.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            操作日志文本框.Location = new Point(-1, 23);
+            操作日志文本框.Location = new Point(6, 22);
             操作日志文本框.Multiline = true;
             操作日志文本框.Name = "操作日志文本框";
             操作日志文本框.ReadOnly = true;
             操作日志文本框.ScrollBars = ScrollBars.Vertical;
-            操作日志文本框.Size = new Size(396, 547);
+            操作日志文本框.Size = new Size(408, 802);
             操作日志文本框.TabIndex = 0;
             // 
             // 进入自动测试
             // 
-            进入自动测试.Location = new Point(540, 349);
+            进入自动测试.BackColor = Color.FromArgb(43, 87, 154);
+            进入自动测试.FlatStyle = FlatStyle.Flat;
+            进入自动测试.ForeColor = Color.White;
+            进入自动测试.Font = new Font("Microsoft YaHei UI", 14F);
+            进入自动测试.Location = new Point(540, 350);
             进入自动测试.Name = "进入自动测试";
-            进入自动测试.Size = new Size(307, 156);
+            进入自动测试.Size = new Size(420, 180);
             进入自动测试.TabIndex = 6;
-            进入自动测试.Text = "进去自动测试";
-            进入自动测试.UseVisualStyleBackColor = true;
+            进入自动测试.Text = "进入自动测试";
+            进入自动测试.UseVisualStyleBackColor = false;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1350, 729);
+            BackColor = Color.FromArgb(240, 240, 240);
+            ClientSize = new Size(1440, 900);
             Controls.Add(进入自动测试);
             Controls.Add(当前操作日志);
             Controls.Add(当前配置显示);
@@ -281,6 +288,7 @@
             Controls.Add(设置);
             Controls.Add(文件);
             Name = "Form1";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "杭州诺斯科技有限公司";
             文件菜单.ResumeLayout(false);
             flowLayoutPanel1.ResumeLayout(false);

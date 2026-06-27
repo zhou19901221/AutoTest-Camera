@@ -195,7 +195,7 @@
             当前配置信息.Controls.Add(选着配置);
             当前配置信息.Controls.Add(配置信息);
             当前配置信息.Controls.Add(label2);
-            当前配置信息.Location = new Point(20, 50);
+            当前配置信息.Location = new Point(20, 150);
             当前配置信息.Name = "当前配置信息";
             当前配置信息.Size = new Size(480, 130);
             当前配置信息.TabIndex = 3;
@@ -233,9 +233,9 @@
             // 
             当前配置显示.FormattingEnabled = true;
             当前配置显示.ItemHeight = 17;
-            当前配置显示.Location = new Point(20, 200);
+            当前配置显示.Location = new Point(20, 300);
             当前配置显示.Name = "当前配置显示";
-            当前配置显示.Size = new Size(480, 680);
+            当前配置显示.Size = new Size(480, 580);
             当前配置显示.TabIndex = 4;
             // 
             // 当前操作日志
@@ -266,9 +266,9 @@
             进入自动测试.FlatStyle = FlatStyle.Flat;
             进入自动测试.ForeColor = Color.White;
             进入自动测试.Font = new Font("Microsoft YaHei UI", 14F);
-            进入自动测试.Location = new Point(540, 350);
+            进入自动测试.Location = new Point(540, 300);
             进入自动测试.Name = "进入自动测试";
-            进入自动测试.Size = new Size(420, 180);
+            进入自动测试.Size = new Size(420, 200);
             进入自动测试.TabIndex = 6;
             进入自动测试.Text = "进入自动测试";
             进入自动测试.UseVisualStyleBackColor = false;

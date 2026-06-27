@@ -15,31 +15,17 @@ namespace 自动测试
 
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            
             左侧面板 = new Panel();
             拼板数标签 = new Label();
             拼板数框 = new NumericUpDown();
-            排版按钮 = new Button();
-            保存配置按钮 = new Button();
             搜索框 = new TextBox();
             配置名列表 = new ListBox();
             增加配置按钮 = new Button();
             复制配置按钮 = new Button();
             导出配置按钮 = new Button();
-            导出Excel按钮 = new Button();
             删除配置按钮 = new Button();
             导入配置按钮 = new Button();
-            
             右侧面板 = new Panel();
-            测试功能开启组 = new GroupBox();
-            测试功能1框 = new CheckBox();
-            测试功能2框 = new CheckBox();
-            测试功能3框 = new CheckBox();
-            测试功能4框 = new CheckBox();
-            测试功能5框 = new CheckBox();
-            测试功能6框 = new CheckBox();
-            
             当前板选择组 = new GroupBox();
             当前板1框 = new RadioButton();
             当前板2框 = new RadioButton();
@@ -47,7 +33,6 @@ namespace 自动测试
             当前板4框 = new RadioButton();
             当前板5框 = new RadioButton();
             当前板6框 = new RadioButton();
-            
             标签导航 = new TabControl();
             检测项页 = new TabPage();
             检测项表格 = new DataGridView();
@@ -56,7 +41,6 @@ namespace 自动测试
             类型列 = new DataGridViewComboBoxColumn();
             延时列 = new DataGridViewTextBoxColumn();
             启用列 = new DataGridViewCheckBoxColumn();
-            
             增加项按钮 = new Button();
             插入项按钮 = new Button();
             保存项按钮 = new Button();
@@ -66,17 +50,14 @@ namespace 自动测试
             启用所有按钮 = new Button();
             停用所有按钮 = new Button();
             偏移校正按钮 = new Button();
-            
             检测设置页 = new TabPage();
             检测设置表格 = new DataGridView();
-            
             复制参数框 = new CheckBox();
             复制区块按钮 = new Button();
             增加子项按钮 = new Button();
             保存子项按钮 = new Button();
             删除子项按钮 = new Button();
             删除所有子项按钮 = new Button();
-            
             参数设置组 = new GroupBox();
             类型标签 = new Label();
             类型框 = new ComboBox();
@@ -88,7 +69,6 @@ namespace 自动测试
             持续时间框 = new NumericUpDown();
             极性检测标签 = new Label();
             极性检测框 = new ComboBox();
-            
             OK跳转标签 = new Label();
             OK跳转框 = new TextBox();
             OK循环标签 = new Label();
@@ -97,11 +77,9 @@ namespace 自动测试
             NG跳转框 = new TextBox();
             NG循环标签 = new Label();
             NG循环框 = new NumericUpDown();
-            
             全局坐标管理按钮 = new Button();
             输出按钮 = new Button();
             保存项参数按钮 = new Button();
-            
             配置信息组 = new GroupBox();
             配置名称标签 = new Label();
             配置名称框 = new TextBox();
@@ -110,14 +88,12 @@ namespace 自动测试
             当前配置标签 = new Label();
             当前配置框 = new TextBox();
             选为当前按钮 = new Button();
-            
             关闭并保存按钮 = new Button();
             关闭按钮 = new Button();
-
+            button1 = new Button();
             左侧面板.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)拼板数框).BeginInit();
             右侧面板.SuspendLayout();
-            测试功能开启组.SuspendLayout();
             当前板选择组.SuspendLayout();
             标签导航.SuspendLayout();
             检测项页.SuspendLayout();
@@ -132,112 +108,108 @@ namespace 自动测试
             ((System.ComponentModel.ISupportInitialize)NG循环框).BeginInit();
             配置信息组.SuspendLayout();
             SuspendLayout();
-
+            // 
+            // 左侧面板
+            // 
             左侧面板.Controls.Add(拼板数标签);
             左侧面板.Controls.Add(拼板数框);
-            左侧面板.Controls.Add(排版按钮);
-            左侧面板.Controls.Add(保存配置按钮);
             左侧面板.Controls.Add(搜索框);
             左侧面板.Controls.Add(配置名列表);
             左侧面板.Controls.Add(增加配置按钮);
+            左侧面板.Controls.Add(button1);
             左侧面板.Controls.Add(复制配置按钮);
             左侧面板.Controls.Add(导出配置按钮);
-            左侧面板.Controls.Add(导出Excel按钮);
             左侧面板.Controls.Add(删除配置按钮);
             左侧面板.Controls.Add(导入配置按钮);
             左侧面板.Location = new Point(0, 0);
             左侧面板.Name = "左侧面板";
             左侧面板.Size = new Size(220, 850);
             左侧面板.TabIndex = 0;
-
+            // 
+            // 拼板数标签
+            // 
             拼板数标签.Location = new Point(10, 10);
             拼板数标签.Name = "拼板数标签";
             拼板数标签.Size = new Size(50, 23);
             拼板数标签.TabIndex = 0;
             拼板数标签.Text = "拼板数：";
-
+            // 
+            // 拼板数框
+            // 
             拼板数框.Location = new Point(60, 10);
             拼板数框.Name = "拼板数框";
             拼板数框.Size = new Size(60, 23);
             拼板数框.TabIndex = 1;
             拼板数框.Value = new decimal(new int[] { 6, 0, 0, 0 });
-
-            排版按钮.Location = new Point(10, 40);
-            排版按钮.Name = "排版按钮";
-            排版按钮.Size = new Size(85, 30);
-            排版按钮.TabIndex = 2;
-            排版按钮.Text = "排版";
-            排版按钮.UseVisualStyleBackColor = true;
-            排版按钮.Click += 排版按钮_Click;
-
-            保存配置按钮.Location = new Point(100, 40);
-            保存配置按钮.Name = "保存配置按钮";
-            保存配置按钮.Size = new Size(85, 30);
-            保存配置按钮.TabIndex = 3;
-            保存配置按钮.Text = "保存配置";
-            保存配置按钮.UseVisualStyleBackColor = true;
-            保存配置按钮.Click += 保存配置按钮_Click;
-
-            搜索框.Location = new Point(10, 80);
+            // 
+            // 搜索框
+            // 
+            搜索框.Location = new Point(10, 39);
             搜索框.Name = "搜索框";
             搜索框.Size = new Size(175, 23);
             搜索框.TabIndex = 4;
             搜索框.Text = "搜索...";
-
-            配置名列表.Location = new Point(10, 110);
+            // 
+            // 配置名列表
+            // 
+            配置名列表.ItemHeight = 17;
+            配置名列表.Location = new Point(10, 76);
             配置名列表.Name = "配置名列表";
-            配置名列表.Size = new Size(195, 450);
+            配置名列表.Size = new Size(195, 480);
             配置名列表.TabIndex = 5;
-
-            增加配置按钮.Location = new Point(10, 570);
+            // 
+            // 增加配置按钮
+            // 
+            增加配置按钮.Location = new Point(12, 580);
             增加配置按钮.Name = "增加配置按钮";
             增加配置按钮.Size = new Size(195, 30);
             增加配置按钮.TabIndex = 6;
             增加配置按钮.Text = "增加配置";
             增加配置按钮.UseVisualStyleBackColor = true;
             增加配置按钮.Click += 增加配置按钮_Click;
-
-            复制配置按钮.Location = new Point(10, 605);
+            // 
+            // 复制配置按钮
+            // 
+            复制配置按钮.Location = new Point(12, 652);
             复制配置按钮.Name = "复制配置按钮";
             复制配置按钮.Size = new Size(195, 30);
             复制配置按钮.TabIndex = 7;
             复制配置按钮.Text = "复制配置";
             复制配置按钮.UseVisualStyleBackColor = true;
             复制配置按钮.Click += 复制配置按钮_Click;
-
-            导出配置按钮.Location = new Point(10, 640);
+            // 
+            // 导出配置按钮
+            // 
+            导出配置按钮.Location = new Point(12, 758);
             导出配置按钮.Name = "导出配置按钮";
             导出配置按钮.Size = new Size(195, 30);
             导出配置按钮.TabIndex = 8;
             导出配置按钮.Text = "导出配置";
             导出配置按钮.UseVisualStyleBackColor = true;
             导出配置按钮.Click += 导出配置按钮_Click;
-
-            导出Excel按钮.Location = new Point(10, 675);
-            导出Excel按钮.Name = "导出Excel按钮";
-            导出Excel按钮.Size = new Size(195, 30);
-            导出Excel按钮.TabIndex = 9;
-            导出Excel按钮.Text = "导出Excel";
-            导出Excel按钮.UseVisualStyleBackColor = true;
-            导出Excel按钮.Click += 导出Excel按钮_Click;
-
-            删除配置按钮.Location = new Point(10, 710);
+            // 
+            // 删除配置按钮
+            // 
+            删除配置按钮.Location = new Point(12, 616);
             删除配置按钮.Name = "删除配置按钮";
             删除配置按钮.Size = new Size(195, 30);
             删除配置按钮.TabIndex = 10;
             删除配置按钮.Text = "删除配置";
             删除配置按钮.UseVisualStyleBackColor = true;
             删除配置按钮.Click += 删除配置按钮_Click;
-
-            导入配置按钮.Location = new Point(10, 745);
+            // 
+            // 导入配置按钮
+            // 
+            导入配置按钮.Location = new Point(10, 794);
             导入配置按钮.Name = "导入配置按钮";
             导入配置按钮.Size = new Size(195, 30);
             导入配置按钮.TabIndex = 11;
             导入配置按钮.Text = "导入配置";
             导入配置按钮.UseVisualStyleBackColor = true;
             导入配置按钮.Click += 导入配置按钮_Click;
-
-            右侧面板.Controls.Add(测试功能开启组);
+            // 
+            // 右侧面板
+            // 
             右侧面板.Controls.Add(当前板选择组);
             右侧面板.Controls.Add(标签导航);
             右侧面板.Controls.Add(复制参数框);
@@ -257,107 +229,74 @@ namespace 自动测试
             右侧面板.Name = "右侧面板";
             右侧面板.Size = new Size(1180, 850);
             右侧面板.TabIndex = 1;
-
-            测试功能开启组.Controls.Add(测试功能1框);
-            测试功能开启组.Controls.Add(测试功能2框);
-            测试功能开启组.Controls.Add(测试功能3框);
-            测试功能开启组.Controls.Add(测试功能4框);
-            测试功能开启组.Controls.Add(测试功能5框);
-            测试功能开启组.Controls.Add(测试功能6框);
-            测试功能开启组.Location = new Point(10, 10);
-            测试功能开启组.Name = "测试功能开启组";
-            测试功能开启组.Size = new Size(470, 50);
-            测试功能开启组.TabIndex = 0;
-            测试功能开启组.TabStop = false;
-            测试功能开启组.Text = "测试功能开启";
-
-            测试功能1框.Location = new Point(20, 20);
-            测试功能1框.Name = "测试功能1框";
-            测试功能1框.Size = new Size(30, 24);
-            测试功能1框.TabIndex = 0;
-            测试功能1框.Text = "1";
-            测试功能1框.Checked = true;
-
-            测试功能2框.Location = new Point(60, 20);
-            测试功能2框.Name = "测试功能2框";
-            测试功能2框.Size = new Size(30, 24);
-            测试功能2框.TabIndex = 1;
-            测试功能2框.Text = "2";
-
-            测试功能3框.Location = new Point(100, 20);
-            测试功能3框.Name = "测试功能3框";
-            测试功能3框.Size = new Size(30, 24);
-            测试功能3框.TabIndex = 2;
-            测试功能3框.Text = "3";
-
-            测试功能4框.Location = new Point(140, 20);
-            测试功能4框.Name = "测试功能4框";
-            测试功能4框.Size = new Size(30, 24);
-            测试功能4框.TabIndex = 3;
-            测试功能4框.Text = "4";
-
-            测试功能5框.Location = new Point(180, 20);
-            测试功能5框.Name = "测试功能5框";
-            测试功能5框.Size = new Size(30, 24);
-            测试功能5框.TabIndex = 4;
-            测试功能5框.Text = "5";
-
-            测试功能6框.Location = new Point(220, 20);
-            测试功能6框.Name = "测试功能6框";
-            测试功能6框.Size = new Size(30, 24);
-            测试功能6框.TabIndex = 5;
-            测试功能6框.Text = "6";
-
+            // 
+            // 当前板选择组
+            // 
             当前板选择组.Controls.Add(当前板1框);
             当前板选择组.Controls.Add(当前板2框);
             当前板选择组.Controls.Add(当前板3框);
             当前板选择组.Controls.Add(当前板4框);
             当前板选择组.Controls.Add(当前板5框);
             当前板选择组.Controls.Add(当前板6框);
-            当前板选择组.Location = new Point(490, 10);
+            当前板选择组.Location = new Point(10, 10);
             当前板选择组.Name = "当前板选择组";
-            当前板选择组.Size = new Size(490, 50);
+            当前板选择组.Size = new Size(1150, 50);
             当前板选择组.TabIndex = 1;
             当前板选择组.TabStop = false;
             当前板选择组.Text = "当前板选择";
-
+            // 
+            // 当前板1框
+            // 
+            当前板1框.Checked = true;
             当前板1框.Location = new Point(20, 20);
             当前板1框.Name = "当前板1框";
             当前板1框.Size = new Size(40, 24);
             当前板1框.TabIndex = 0;
+            当前板1框.TabStop = true;
             当前板1框.Text = "1";
-            当前板1框.Checked = true;
-
+            // 
+            // 当前板2框
+            // 
             当前板2框.Location = new Point(70, 20);
             当前板2框.Name = "当前板2框";
             当前板2框.Size = new Size(40, 24);
             当前板2框.TabIndex = 1;
             当前板2框.Text = "2";
-
+            // 
+            // 当前板3框
+            // 
             当前板3框.Location = new Point(120, 20);
             当前板3框.Name = "当前板3框";
             当前板3框.Size = new Size(40, 24);
             当前板3框.TabIndex = 2;
             当前板3框.Text = "3";
-
+            // 
+            // 当前板4框
+            // 
             当前板4框.Location = new Point(170, 20);
             当前板4框.Name = "当前板4框";
             当前板4框.Size = new Size(40, 24);
             当前板4框.TabIndex = 3;
             当前板4框.Text = "4";
-
+            // 
+            // 当前板5框
+            // 
             当前板5框.Location = new Point(220, 20);
             当前板5框.Name = "当前板5框";
             当前板5框.Size = new Size(40, 24);
             当前板5框.TabIndex = 4;
             当前板5框.Text = "5";
-
+            // 
+            // 当前板6框
+            // 
             当前板6框.Location = new Point(270, 20);
             当前板6框.Name = "当前板6框";
             当前板6框.Size = new Size(40, 24);
             当前板6框.TabIndex = 5;
             当前板6框.Text = "6";
-
+            // 
+            // 标签导航
+            // 
             标签导航.Controls.Add(检测项页);
             标签导航.Controls.Add(检测设置页);
             标签导航.Location = new Point(10, 70);
@@ -365,7 +304,9 @@ namespace 自动测试
             标签导航.SelectedIndex = 0;
             标签导航.Size = new Size(1150, 300);
             标签导航.TabIndex = 2;
-
+            // 
+            // 检测项页
+            // 
             检测项页.Controls.Add(检测项表格);
             检测项页.Controls.Add(增加项按钮);
             检测项页.Controls.Add(插入项按钮);
@@ -382,34 +323,47 @@ namespace 自动测试
             检测项页.TabIndex = 0;
             检测项页.Text = "检测项";
             检测项页.UseVisualStyleBackColor = true;
-
+            // 
+            // 检测项表格
+            // 
             检测项表格.Columns.AddRange(new DataGridViewColumn[] { 名称列, 排序列, 类型列, 延时列, 启用列 });
             检测项表格.Location = new Point(3, 3);
             检测项表格.Name = "检测项表格";
             检测项表格.Size = new Size(1136, 200);
             检测项表格.TabIndex = 0;
-
+            // 
+            // 名称列
+            // 
             名称列.HeaderText = "名称";
             名称列.Name = "名称列";
             名称列.Width = 150;
-
+            // 
+            // 排序列
+            // 
             排序列.HeaderText = "排序";
             排序列.Name = "排序列";
             排序列.Width = 60;
-
+            // 
+            // 类型列
+            // 
             类型列.HeaderText = "类型";
-            类型列.Name = "类型列";
             类型列.Items.AddRange(new object[] { "电压采集", "电流采集", "IO检测", "PWM检测" });
-            类型列.Width = 100;
-
+            类型列.Name = "类型列";
+            // 
+            // 延时列
+            // 
             延时列.HeaderText = "延时";
             延时列.Name = "延时列";
             延时列.Width = 80;
-
+            // 
+            // 启用列
+            // 
             启用列.HeaderText = "启用";
             启用列.Name = "启用列";
             启用列.Width = 60;
-
+            // 
+            // 增加项按钮
+            // 
             增加项按钮.Location = new Point(3, 160);
             增加项按钮.Name = "增加项按钮";
             增加项按钮.Size = new Size(75, 25);
@@ -417,7 +371,9 @@ namespace 自动测试
             增加项按钮.Text = "增加项";
             增加项按钮.UseVisualStyleBackColor = true;
             增加项按钮.Click += 增加项按钮_Click;
-
+            // 
+            // 插入项按钮
+            // 
             插入项按钮.Location = new Point(84, 160);
             插入项按钮.Name = "插入项按钮";
             插入项按钮.Size = new Size(75, 25);
@@ -425,7 +381,9 @@ namespace 自动测试
             插入项按钮.Text = "插入项";
             插入项按钮.UseVisualStyleBackColor = true;
             插入项按钮.Click += 插入项按钮_Click;
-
+            // 
+            // 保存项按钮
+            // 
             保存项按钮.Location = new Point(165, 160);
             保存项按钮.Name = "保存项按钮";
             保存项按钮.Size = new Size(75, 25);
@@ -433,7 +391,9 @@ namespace 自动测试
             保存项按钮.Text = "保存项";
             保存项按钮.UseVisualStyleBackColor = true;
             保存项按钮.Click += 保存项按钮_Click;
-
+            // 
+            // 复制项按钮
+            // 
             复制项按钮.Location = new Point(246, 160);
             复制项按钮.Name = "复制项按钮";
             复制项按钮.Size = new Size(75, 25);
@@ -441,7 +401,9 @@ namespace 自动测试
             复制项按钮.Text = "复制项";
             复制项按钮.UseVisualStyleBackColor = true;
             复制项按钮.Click += 复制项按钮_Click;
-
+            // 
+            // 粘贴项按钮
+            // 
             粘贴项按钮.Location = new Point(327, 160);
             粘贴项按钮.Name = "粘贴项按钮";
             粘贴项按钮.Size = new Size(75, 25);
@@ -449,7 +411,9 @@ namespace 自动测试
             粘贴项按钮.Text = "粘贴项";
             粘贴项按钮.UseVisualStyleBackColor = true;
             粘贴项按钮.Click += 粘贴项按钮_Click;
-
+            // 
+            // 删除项按钮
+            // 
             删除项按钮.Location = new Point(408, 160);
             删除项按钮.Name = "删除项按钮";
             删除项按钮.Size = new Size(75, 25);
@@ -457,7 +421,9 @@ namespace 自动测试
             删除项按钮.Text = "删除项";
             删除项按钮.UseVisualStyleBackColor = true;
             删除项按钮.Click += 删除项按钮_Click;
-
+            // 
+            // 启用所有按钮
+            // 
             启用所有按钮.Location = new Point(489, 160);
             启用所有按钮.Name = "启用所有按钮";
             启用所有按钮.Size = new Size(75, 25);
@@ -465,7 +431,9 @@ namespace 自动测试
             启用所有按钮.Text = "启用所有";
             启用所有按钮.UseVisualStyleBackColor = true;
             启用所有按钮.Click += 启用所有按钮_Click;
-
+            // 
+            // 停用所有按钮
+            // 
             停用所有按钮.Location = new Point(570, 160);
             停用所有按钮.Name = "停用所有按钮";
             停用所有按钮.Size = new Size(75, 25);
@@ -473,7 +441,9 @@ namespace 自动测试
             停用所有按钮.Text = "停用所有";
             停用所有按钮.UseVisualStyleBackColor = true;
             停用所有按钮.Click += 停用所有按钮_Click;
-
+            // 
+            // 偏移校正按钮
+            // 
             偏移校正按钮.Location = new Point(651, 160);
             偏移校正按钮.Name = "偏移校正按钮";
             偏移校正按钮.Size = new Size(75, 25);
@@ -481,7 +451,9 @@ namespace 自动测试
             偏移校正按钮.Text = "偏移校正";
             偏移校正按钮.UseVisualStyleBackColor = true;
             偏移校正按钮.Click += 偏移校正按钮_Click;
-
+            // 
+            // 检测设置页
+            // 
             检测设置页.Controls.Add(检测设置表格);
             检测设置页.Location = new Point(4, 26);
             检测设置页.Name = "检测设置页";
@@ -489,18 +461,24 @@ namespace 自动测试
             检测设置页.TabIndex = 1;
             检测设置页.Text = "检测设置";
             检测设置页.UseVisualStyleBackColor = true;
-
+            // 
+            // 检测设置表格
+            // 
             检测设置表格.Location = new Point(3, 3);
             检测设置表格.Name = "检测设置表格";
             检测设置表格.Size = new Size(1136, 230);
             检测设置表格.TabIndex = 0;
-
+            // 
+            // 复制参数框
+            // 
             复制参数框.Location = new Point(10, 380);
             复制参数框.Name = "复制参数框";
             复制参数框.Size = new Size(100, 24);
             复制参数框.TabIndex = 3;
             复制参数框.Text = "复制参数";
-
+            // 
+            // 复制区块按钮
+            // 
             复制区块按钮.Location = new Point(120, 380);
             复制区块按钮.Name = "复制区块按钮";
             复制区块按钮.Size = new Size(85, 25);
@@ -508,7 +486,9 @@ namespace 自动测试
             复制区块按钮.Text = "复制区块";
             复制区块按钮.UseVisualStyleBackColor = true;
             复制区块按钮.Click += 复制区块按钮_Click;
-
+            // 
+            // 增加子项按钮
+            // 
             增加子项按钮.Location = new Point(215, 380);
             增加子项按钮.Name = "增加子项按钮";
             增加子项按钮.Size = new Size(85, 25);
@@ -516,7 +496,9 @@ namespace 自动测试
             增加子项按钮.Text = "增加子项";
             增加子项按钮.UseVisualStyleBackColor = true;
             增加子项按钮.Click += 增加子项按钮_Click;
-
+            // 
+            // 保存子项按钮
+            // 
             保存子项按钮.Location = new Point(310, 380);
             保存子项按钮.Name = "保存子项按钮";
             保存子项按钮.Size = new Size(85, 25);
@@ -524,7 +506,9 @@ namespace 自动测试
             保存子项按钮.Text = "保存子项";
             保存子项按钮.UseVisualStyleBackColor = true;
             保存子项按钮.Click += 保存子项按钮_Click;
-
+            // 
+            // 删除子项按钮
+            // 
             删除子项按钮.Location = new Point(405, 380);
             删除子项按钮.Name = "删除子项按钮";
             删除子项按钮.Size = new Size(85, 25);
@@ -532,7 +516,9 @@ namespace 自动测试
             删除子项按钮.Text = "删除子项";
             删除子项按钮.UseVisualStyleBackColor = true;
             删除子项按钮.Click += 删除子项按钮_Click;
-
+            // 
+            // 删除所有子项按钮
+            // 
             删除所有子项按钮.Location = new Point(500, 380);
             删除所有子项按钮.Name = "删除所有子项按钮";
             删除所有子项按钮.Size = new Size(100, 25);
@@ -540,7 +526,9 @@ namespace 自动测试
             删除所有子项按钮.Text = "删除所有子项";
             删除所有子项按钮.UseVisualStyleBackColor = true;
             删除所有子项按钮.Click += 删除所有子项按钮_Click;
-
+            // 
+            // 参数设置组
+            // 
             参数设置组.Controls.Add(类型标签);
             参数设置组.Controls.Add(类型框);
             参数设置组.Controls.Add(读取时间标签);
@@ -565,117 +553,155 @@ namespace 自动测试
             参数设置组.TabIndex = 9;
             参数设置组.TabStop = false;
             参数设置组.Text = "参数设置";
-
+            // 
+            // 类型标签
+            // 
             类型标签.Location = new Point(20, 25);
             类型标签.Name = "类型标签";
             类型标签.Size = new Size(50, 23);
             类型标签.TabIndex = 0;
             类型标签.Text = "类型：";
             类型标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // 类型框
+            // 
             类型框.Items.AddRange(new object[] { "恒定比对", "范围比对", "动态比对" });
             类型框.Location = new Point(70, 25);
             类型框.Name = "类型框";
             类型框.Size = new Size(100, 25);
             类型框.TabIndex = 1;
-
+            // 
+            // 读取时间标签
+            // 
             读取时间标签.Location = new Point(180, 25);
             读取时间标签.Name = "读取时间标签";
             读取时间标签.Size = new Size(70, 23);
             读取时间标签.TabIndex = 2;
             读取时间标签.Text = "读取时间：";
             读取时间标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // 读取时间框
+            // 
             读取时间框.Location = new Point(250, 25);
             读取时间框.Name = "读取时间框";
             读取时间框.Size = new Size(80, 23);
             读取时间框.TabIndex = 3;
-
+            // 
+            // 读取间隔标签
+            // 
             读取间隔标签.Location = new Point(340, 25);
             读取间隔标签.Name = "读取间隔标签";
             读取间隔标签.Size = new Size(70, 23);
             读取间隔标签.TabIndex = 4;
             读取间隔标签.Text = "读取间隔：";
             读取间隔标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // 读取间隔框
+            // 
             读取间隔框.Location = new Point(410, 25);
             读取间隔框.Name = "读取间隔框";
             读取间隔框.Size = new Size(80, 23);
             读取间隔框.TabIndex = 5;
-
+            // 
+            // 持续时间标签
+            // 
             持续时间标签.Location = new Point(500, 25);
             持续时间标签.Name = "持续时间标签";
             持续时间标签.Size = new Size(70, 23);
             持续时间标签.TabIndex = 6;
             持续时间标签.Text = "持续时间：";
             持续时间标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // 持续时间框
+            // 
             持续时间框.Location = new Point(570, 25);
             持续时间框.Name = "持续时间框";
             持续时间框.Size = new Size(80, 23);
             持续时间框.TabIndex = 7;
-
+            // 
+            // 极性检测标签
+            // 
             极性检测标签.Location = new Point(660, 25);
             极性检测标签.Name = "极性检测标签";
             极性检测标签.Size = new Size(70, 23);
             极性检测标签.TabIndex = 8;
             极性检测标签.Text = "极性检测：";
             极性检测标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // 极性检测框
+            // 
             极性检测框.Items.AddRange(new object[] { "正向", "反向", "双向" });
             极性检测框.Location = new Point(730, 25);
             极性检测框.Name = "极性检测框";
             极性检测框.Size = new Size(80, 25);
             极性检测框.TabIndex = 9;
-
+            // 
+            // OK跳转标签
+            // 
             OK跳转标签.Location = new Point(20, 60);
             OK跳转标签.Name = "OK跳转标签";
             OK跳转标签.Size = new Size(80, 23);
             OK跳转标签.TabIndex = 10;
             OK跳转标签.Text = "OK跳转：";
             OK跳转标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // OK跳转框
+            // 
             OK跳转框.Location = new Point(100, 60);
             OK跳转框.Name = "OK跳转框";
             OK跳转框.Size = new Size(80, 23);
             OK跳转框.TabIndex = 11;
-
+            // 
+            // OK循环标签
+            // 
             OK循环标签.Location = new Point(190, 60);
             OK循环标签.Name = "OK循环标签";
             OK循环标签.Size = new Size(70, 23);
             OK循环标签.TabIndex = 12;
             OK循环标签.Text = "循环次数：";
             OK循环标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // OK循环框
+            // 
             OK循环框.Location = new Point(260, 60);
             OK循环框.Name = "OK循环框";
             OK循环框.Size = new Size(80, 23);
             OK循环框.TabIndex = 13;
-
+            // 
+            // NG跳转标签
+            // 
             NG跳转标签.Location = new Point(360, 60);
             NG跳转标签.Name = "NG跳转标签";
             NG跳转标签.Size = new Size(80, 23);
             NG跳转标签.TabIndex = 14;
             NG跳转标签.Text = "NG跳转：";
             NG跳转标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // NG跳转框
+            // 
             NG跳转框.Location = new Point(440, 60);
             NG跳转框.Name = "NG跳转框";
             NG跳转框.Size = new Size(80, 23);
             NG跳转框.TabIndex = 15;
-
+            // 
+            // NG循环标签
+            // 
             NG循环标签.Location = new Point(530, 60);
             NG循环标签.Name = "NG循环标签";
             NG循环标签.Size = new Size(70, 23);
             NG循环标签.TabIndex = 16;
             NG循环标签.Text = "循环次数：";
             NG循环标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // NG循环框
+            // 
             NG循环框.Location = new Point(600, 60);
             NG循环框.Name = "NG循环框";
             NG循环框.Size = new Size(80, 23);
             NG循环框.TabIndex = 17;
-
+            // 
+            // 全局坐标管理按钮
+            // 
             全局坐标管理按钮.Location = new Point(10, 540);
             全局坐标管理按钮.Name = "全局坐标管理按钮";
             全局坐标管理按钮.Size = new Size(120, 30);
@@ -683,7 +709,9 @@ namespace 自动测试
             全局坐标管理按钮.Text = "全局坐标管理";
             全局坐标管理按钮.UseVisualStyleBackColor = true;
             全局坐标管理按钮.Click += 全局坐标管理按钮_Click;
-
+            // 
+            // 输出按钮
+            // 
             输出按钮.Location = new Point(140, 540);
             输出按钮.Name = "输出按钮";
             输出按钮.Size = new Size(100, 30);
@@ -691,7 +719,9 @@ namespace 自动测试
             输出按钮.Text = "(X/K)输出";
             输出按钮.UseVisualStyleBackColor = true;
             输出按钮.Click += 输出按钮_Click;
-
+            // 
+            // 保存项参数按钮
+            // 
             保存项参数按钮.Location = new Point(250, 540);
             保存项参数按钮.Name = "保存项参数按钮";
             保存项参数按钮.Size = new Size(100, 30);
@@ -699,7 +729,9 @@ namespace 自动测试
             保存项参数按钮.Text = "保存项参数";
             保存项参数按钮.UseVisualStyleBackColor = true;
             保存项参数按钮.Click += 保存项参数按钮_Click;
-
+            // 
+            // 配置信息组
+            // 
             配置信息组.Controls.Add(配置名称标签);
             配置信息组.Controls.Add(配置名称框);
             配置信息组.Controls.Add(日期标签);
@@ -713,43 +745,57 @@ namespace 自动测试
             配置信息组.TabIndex = 13;
             配置信息组.TabStop = false;
             配置信息组.Text = "配置信息";
-
+            // 
+            // 配置名称标签
+            // 
             配置名称标签.Location = new Point(20, 25);
             配置名称标签.Name = "配置名称标签";
             配置名称标签.Size = new Size(70, 23);
             配置名称标签.TabIndex = 0;
             配置名称标签.Text = "配置名称：";
             配置名称标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // 配置名称框
+            // 
             配置名称框.Location = new Point(90, 25);
             配置名称框.Name = "配置名称框";
             配置名称框.Size = new Size(120, 23);
             配置名称框.TabIndex = 1;
-
+            // 
+            // 日期标签
+            // 
             日期标签.Location = new Point(220, 25);
             日期标签.Name = "日期标签";
             日期标签.Size = new Size(50, 23);
             日期标签.TabIndex = 2;
             日期标签.Text = "日期：";
             日期标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // 日期框
+            // 
             日期框.Location = new Point(270, 25);
             日期框.Name = "日期框";
             日期框.Size = new Size(100, 23);
             日期框.TabIndex = 3;
-
+            // 
+            // 当前配置标签
+            // 
             当前配置标签.Location = new Point(380, 25);
             当前配置标签.Name = "当前配置标签";
             当前配置标签.Size = new Size(70, 23);
             当前配置标签.TabIndex = 4;
             当前配置标签.Text = "当前配置：";
             当前配置标签.TextAlign = ContentAlignment.MiddleRight;
-
+            // 
+            // 当前配置框
+            // 
             当前配置框.Location = new Point(450, 25);
             当前配置框.Name = "当前配置框";
             当前配置框.Size = new Size(120, 23);
             当前配置框.TabIndex = 5;
-
+            // 
+            // 选为当前按钮
+            // 
             选为当前按钮.Location = new Point(520, 25);
             选为当前按钮.Name = "选为当前按钮";
             选为当前按钮.Size = new Size(75, 25);
@@ -757,7 +803,9 @@ namespace 自动测试
             选为当前按钮.Text = "选为当前";
             选为当前按钮.UseVisualStyleBackColor = true;
             选为当前按钮.Click += 选为当前按钮_Click;
-
+            // 
+            // 关闭并保存按钮
+            // 
             关闭并保存按钮.Location = new Point(970, 810);
             关闭并保存按钮.Name = "关闭并保存按钮";
             关闭并保存按钮.Size = new Size(100, 30);
@@ -765,7 +813,9 @@ namespace 自动测试
             关闭并保存按钮.Text = "关闭并保存";
             关闭并保存按钮.UseVisualStyleBackColor = true;
             关闭并保存按钮.Click += 关闭并保存按钮_Click;
-
+            // 
+            // 关闭按钮
+            // 
             关闭按钮.Location = new Point(1080, 810);
             关闭按钮.Name = "关闭按钮";
             关闭按钮.Size = new Size(100, 30);
@@ -773,7 +823,19 @@ namespace 自动测试
             关闭按钮.Text = "关闭";
             关闭按钮.UseVisualStyleBackColor = true;
             关闭按钮.Click += 关闭按钮_Click;
-
+            // 
+            // button1
+            // 
+            button1.Location = new Point(12, 688);
+            button1.Name = "button1";
+            button1.Size = new Size(195, 30);
+            button1.TabIndex = 7;
+            button1.Text = "粘贴配置";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += 复制配置按钮_Click;
+            // 
+            // 编辑配置窗体
+            // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1400, 850);
@@ -786,11 +848,7 @@ namespace 自动测试
             左侧面板.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)拼板数框).EndInit();
             右侧面板.ResumeLayout(false);
-            右侧面板.PerformLayout();
-            测试功能开启组.ResumeLayout(false);
-            测试功能开启组.PerformLayout();
             当前板选择组.ResumeLayout(false);
-            当前板选择组.PerformLayout();
             标签导航.ResumeLayout(false);
             检测项页.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)检测项表格).EndInit();
@@ -811,25 +869,15 @@ namespace 自动测试
         private Panel 左侧面板;
         private Label 拼板数标签;
         private NumericUpDown 拼板数框;
-        private Button 排版按钮;
-        private Button 保存配置按钮;
         private TextBox 搜索框;
         private ListBox 配置名列表;
         private Button 增加配置按钮;
         private Button 复制配置按钮;
         private Button 导出配置按钮;
-        private Button 导出Excel按钮;
         private Button 删除配置按钮;
         private Button 导入配置按钮;
 
         private Panel 右侧面板;
-        private GroupBox 测试功能开启组;
-        private CheckBox 测试功能1框;
-        private CheckBox 测试功能2框;
-        private CheckBox 测试功能3框;
-        private CheckBox 测试功能4框;
-        private CheckBox 测试功能5框;
-        private CheckBox 测试功能6框;
 
         private GroupBox 当前板选择组;
         private RadioButton 当前板1框;
@@ -903,5 +951,6 @@ namespace 自动测试
 
         private Button 关闭并保存按钮;
         private Button 关闭按钮;
+        private Button button1;
     }
 }

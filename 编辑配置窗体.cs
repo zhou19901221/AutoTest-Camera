@@ -17,13 +17,13 @@ namespace 自动测试
         private void 初始化界面()
         {
             日期框.Text = DateTime.Now.ToString("yyyy/MM/dd");
-            
+
             拼板数框.Minimum = 1;
             拼板数框.Maximum = 32;
             拼板数框.Value = 6;
-            
+
             初始化当前板选择();
-            
+
             拼板数框.ValueChanged += 拼板数框_ValueChanged;
         }
 
@@ -35,12 +35,12 @@ namespace 自动测试
             当前板选择列表.Add(当前板4框);
             当前板选择列表.Add(当前板5框);
             当前板选择列表.Add(当前板6框);
-            
+
             for (int i = 0; i < 当前板选择列表.Count; i++)
             {
                 当前板选择列表[i].Tag = i;
             }
-            
+
             更新当前板选择显示((int)拼板数框.Value);
         }
 
@@ -59,16 +59,16 @@ namespace 自动测试
                 新按钮.Text = (索引 + 1).ToString();
                 新按钮.Size = new System.Drawing.Size(40, 24);
                 新按钮.Tag = 索引;
-                新按钮.Location = new System.Drawing.Point(20 + (索引 % 8) * 50, 20 + (索引 / 8) * 30);
+                新按钮.Location = new System.Drawing.Point(20 + (索引 % 16) * 70, 20 + (索引 / 16) * 30);
                 当前板选择组.Controls.Add(新按钮);
                 当前板选择列表.Add(新按钮);
             }
-            
+
             for (int i = 0; i < 当前板选择列表.Count; i++)
             {
                 当前板选择列表[i].Visible = i < 数量;
             }
-            
+
             if (数量 > 0 && !当前板选择列表[0].Checked)
             {
                 bool 有选中 = false;
@@ -112,7 +112,7 @@ namespace 自动测试
                 MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             string 源配置名 = 配置名列表.SelectedItem.ToString();
             string 新配置名 = 源配置名 + "_复制";
             配置名列表.Items.Add(新配置名);
@@ -128,7 +128,7 @@ namespace 自动测试
                 MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             using (var dialog = new SaveFileDialog())
             {
                 dialog.Filter = "配置文件|*.json";
@@ -159,10 +159,10 @@ namespace 自动测试
                 MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
-            var result = MessageBox.Show($"确定要删除配置：{配置名列表.SelectedItem}吗？", "确认", 
+
+            var result = MessageBox.Show($"确定要删除配置：{配置名列表.SelectedItem}吗？", "确认",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            
+
             if (result == DialogResult.Yes)
             {
                 配置名列表.Items.RemoveAt(配置名列表.SelectedIndex);
@@ -282,9 +282,9 @@ namespace 自动测试
 
         private void 删除所有子项按钮_Click(object sender, EventArgs e)
         {
-            var result = MessageBox.Show("确定要删除所有子项吗？", "确认", 
+            var result = MessageBox.Show("确定要删除所有子项吗？", "确认",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            
+
             if (result == DialogResult.Yes)
             {
                 MessageBox.Show("所有子项已删除", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -313,7 +313,7 @@ namespace 自动测试
                 MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             当前配置框.Text = 配置名列表.SelectedItem.ToString();
             MessageBox.Show($"已选为当前配置：{当前配置框.Text}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -329,6 +329,11 @@ namespace 自动测试
         {
             DialogResult = DialogResult.Cancel;
             Close();
+        }
+
+        private void 编辑配置窗体_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -24,7 +24,7 @@ namespace 自动测试
         {
             public string 名称 { get; set; } = "";
             public int 排序 { get; set; } = 0;
-            public string 类型 { get; set; } = "电压采集";
+            public string 类型 { get; set; } = "继电器输出";
             public int 延时 { get; set; } = 0;
             public bool 启用 { get; set; } = false;
         }
@@ -46,6 +46,10 @@ namespace 自动测试
             初始化当前板选择();
             
             配置名列表.SelectedIndexChanged += 配置名列表_SelectedIndexChanged;
+            
+            检测项表格.RowsAdded += 检测项表格_RowsAdded;
+            检测项表格.CellValueChanged += 检测项表格_CellValueChanged;
+            检测项表格.CurrentCellDirtyStateChanged += 检测项表格_CurrentCellDirtyStateChanged;
 
             拼板数框.ValueChanged += 拼板数框_ValueChanged;
         }
@@ -56,7 +60,7 @@ namespace 自动测试
             
             保存当前配置数据();
             
-            当前配置名 = 配置名列表.SelectedItem.ToString();
+            当前配置名 = 配置名列表.SelectedItem?.ToString() ?? "";
             加载配置数据(当前配置名);
         }
 
@@ -78,7 +82,7 @@ namespace 自动测试
                 {
                     名称 = row.Cells["名称列"].Value?.ToString() ?? "",
                     排序 = int.TryParse(row.Cells["排序列"].Value?.ToString(), out int 排序) ? 排序 : 0,
-                    类型 = row.Cells["类型列"].Value?.ToString() ?? "电压采集",
+                    类型 = row.Cells["类型列"].Value?.ToString() ?? "继电器输出",
                     延时 = int.TryParse(row.Cells["延时列"].Value?.ToString(), out int 延时) ? 延时 : 0,
                     启用 = bool.TryParse(row.Cells["启用列"].Value?.ToString(), out bool 启用) ? 启用 : false
                 };
@@ -99,7 +103,86 @@ namespace 自动测试
             检测项表格.Rows.Clear();
             foreach (var 项 in 数据.检测项列表)
             {
-                检测项表格.Rows.Add(项.名称, 项.排序, 项.类型, 项.延时, 项.启用);
+                检测项表格.Rows.Add(项.排序, 项.名称, 项.类型, 项.延时, "", "", "", 项.启用);
+            }
+        }
+
+        private void 检测项表格_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            if (检测项表格.IsCurrentCellDirty)
+            {
+                检测项表格.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+        }
+
+        private void 检测项表格_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
+        {
+            for (int i = e.RowIndex; i < e.RowIndex + e.RowCount; i++)
+            {
+                if (!检测项表格.Rows[i].IsNewRow)
+                {
+                    检测项表格.Rows[i].Cells["排序列"].Value = i + 1;
+                }
+            }
+        }
+
+        private void 检测项表格_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            
+            var row = 检测项表格.Rows[e.RowIndex];
+            if (row.IsNewRow) return;
+            
+            if (检测项表格.Columns[e.ColumnIndex].Name == "类型列")
+            {
+                string 类型 = row.Cells["类型列"].Value?.ToString() ?? "";
+                更新行显示根据类型(row, 类型);
+            }
+            
+            if (检测项表格.Columns[e.ColumnIndex].Name == "排序列")
+            {
+                return;
+            }
+            
+            for (int i = 0; i < 检测项表格.Rows.Count; i++)
+            {
+                if (!检测项表格.Rows[i].IsNewRow)
+                {
+                    检测项表格.Rows[i].Cells["排序列"].Value = i + 1;
+                }
+            }
+        }
+
+        private void 更新行显示根据类型(DataGridViewRow row, string 类型)
+        {
+            bool 需要数值范围 = 类型 == "直流电压" || 类型 == "交流电压" || 类型 == "直流电流" || 类型 == "交流电流" || 类型 == "声音采集";
+            bool 需要布尔值 = 类型 == "继电器输出" || 类型 == "输入检测";
+            bool 需要文本值 = 类型 == "相机检测" || 类型 == "串口输出";
+            
+            row.Cells["最大值"].ReadOnly = !需要数值范围;
+            row.Cells["最小值"].ReadOnly = !需要数值范围;
+            
+            if (!需要数值范围)
+            {
+                row.Cells["最大值"].Value = "";
+                row.Cells["最小值"].Value = "";
+            }
+            
+            if (需要布尔值)
+            {
+                row.Cells["设定值"].Value = "false";
+            }
+            else if (需要文本值)
+            {
+                row.Cells["设定值"].Value = "";
+            }
+            else if (需要数值范围)
+            {
+                row.Cells["设定值"].Value = "";
+            }
+            else
+            {
+                row.Cells["设定值"].Value = "";
             }
         }
 
@@ -175,19 +258,10 @@ namespace 自动测试
 
         private void 增加配置按钮_Click(object sender, EventArgs e)
         {
-            保存当前配置数据();
-            
             string 新配置名 = "新配置" + (配置名列表.Items.Count + 1);
-            配置项数据 新数据 = new 配置项数据
-            {
-                配置名称 = 新配置名,
-                创建日期 = DateTime.Now,
-                拼板数 = 6
-            };
-            
-            配置数据字典[新配置名] = 新数据;
             配置名列表.Items.Add(新配置名);
             配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
+            配置名称框.Text = 新配置名;
         }
 
         private void 复制配置按钮_Click(object sender, EventArgs e)
@@ -198,38 +272,12 @@ namespace 自动测试
                 return;
             }
 
-            保存当前配置数据();
-            
             string 源配置名 = 配置名列表.SelectedItem.ToString();
             string 新配置名 = 源配置名 + "_复制";
-            
-            if (配置数据字典.ContainsKey(源配置名))
-            {
-                var 源数据 = 配置数据字典[源配置名];
-                配置项数据 新数据 = new 配置项数据
-                {
-                    配置名称 = 新配置名,
-                    创建日期 = DateTime.Now,
-                    拼板数 = 源数据.拼板数
-                };
-                
-                foreach (var 项 in 源数据.检测项列表)
-                {
-                    新数据.检测项列表.Add(new 检测项数据
-                    {
-                        名称 = 项.名称,
-                        排序 = 项.排序,
-                        类型 = 项.类型,
-                        延时 = 项.延时,
-                        启用 = 项.启用
-                    });
-                }
-                
-                配置数据字典[新配置名] = 新数据;
-                配置名列表.Items.Add(新配置名);
-                配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
-                MessageBox.Show($"已复制配置：{源配置名} -> {新配置名}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
+            配置名列表.Items.Add(新配置名);
+            配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
+            配置名称框.Text = 新配置名;
+            MessageBox.Show($"已复制配置：{源配置名} -> {新配置名}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void 导出配置按钮_Click(object sender, EventArgs e)
@@ -240,21 +288,13 @@ namespace 自动测试
                 return;
             }
 
-            保存当前配置数据();
-            
             using (var dialog = new SaveFileDialog())
             {
                 dialog.Filter = "配置文件|*.json";
                 dialog.FileName = 配置名列表.SelectedItem.ToString();
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    string 配置名 = 配置名列表.SelectedItem.ToString();
-                    if (配置数据字典.ContainsKey(配置名))
-                    {
-                        var json = JsonSerializer.Serialize(配置数据字典[配置名], new JsonSerializerOptions { WriteIndented = true });
-                        File.WriteAllText(dialog.FileName, json);
-                        MessageBox.Show($"配置已导出到：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
+                    MessageBox.Show($"配置已导出到：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }
@@ -284,8 +324,6 @@ namespace 自动测试
 
             if (result == DialogResult.Yes)
             {
-                string 配置名 = 配置名列表.SelectedItem.ToString();
-                配置数据字典.Remove(配置名);
                 配置名列表.Items.RemoveAt(配置名列表.SelectedIndex);
                 MessageBox.Show("配置已删除", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -298,32 +336,18 @@ namespace 自动测试
                 dialog.Filter = "配置文件|*.json";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    try
-                    {
-                        string json = File.ReadAllText(dialog.FileName);
-                        var 数据 = JsonSerializer.Deserialize<配置项数据>(json);
-                        if (数据 != null)
-                        {
-                            string 配置名 = 数据.配置名称;
-                            配置数据字典[配置名] = 数据;
-                            配置名列表.Items.Add(配置名);
-                            配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
-                            MessageBox.Show($"配置已导入：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"导入失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    string 配置名 = System.IO.Path.GetFileNameWithoutExtension(dialog.FileName);
+                    配置名列表.Items.Add(配置名);
+                    配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
+                    MessageBox.Show($"配置已导入：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }
 
-
         private void 增加项按钮_Click(object sender, EventArgs e)
         {
             int 新序号 = 检测项表格.Rows.Count + 1;
-            检测项表格.Rows.Add($"检测项{新序号}", 新序号, "电压采集", 0, false);
+            检测项表格.Rows.Add(新序号, $"检测项{新序号}", "继电器输出", 0, "", "", "false", false);
         }
 
         private void 插入项按钮_Click(object sender, EventArgs e)
@@ -331,7 +355,7 @@ namespace 自动测试
             if (检测项表格.SelectedRows.Count > 0)
             {
                 int 索引 = 检测项表格.SelectedRows[0].Index;
-                检测项表格.Rows.Insert(索引, "新检测项", 索引 + 1, "电压采集", 0, false);
+                检测项表格.Rows.Insert(索引, 索引 + 1, "新检测项", "继电器输出", 0, "", "", "false", false);
             }
             else
             {

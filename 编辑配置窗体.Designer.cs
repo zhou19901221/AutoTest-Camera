@@ -37,11 +37,6 @@ namespace 自动测试
             标签导航 = new TabControl();
             检测项页 = new TabPage();
             检测项表格 = new DataGridView();
-            名称列 = new DataGridViewTextBoxColumn();
-            排序列 = new DataGridViewTextBoxColumn();
-            类型列 = new DataGridViewComboBoxColumn();
-            延时列 = new DataGridViewTextBoxColumn();
-            启用列 = new DataGridViewCheckBoxColumn();
             增加项按钮 = new Button();
             插入项按钮 = new Button();
             保存项按钮 = new Button();
@@ -91,6 +86,14 @@ namespace 自动测试
             选为当前按钮 = new Button();
             关闭并保存按钮 = new Button();
             关闭按钮 = new Button();
+            排序列 = new DataGridViewTextBoxColumn();
+            名称列 = new DataGridViewTextBoxColumn();
+            类型列 = new DataGridViewComboBoxColumn();
+            延时列 = new DataGridViewTextBoxColumn();
+            最大值 = new DataGridViewTextBoxColumn();
+            最小值 = new DataGridViewTextBoxColumn();
+            设定值 = new DataGridViewTextBoxColumn();
+            启用列 = new DataGridViewCheckBoxColumn();
             左侧面板.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)拼板数框).BeginInit();
             右侧面板.SuspendLayout();
@@ -250,7 +253,7 @@ namespace 自动测试
             当前板选择组.Controls.Add(当前板6框);
             当前板选择组.Location = new Point(10, 10);
             当前板选择组.Name = "当前板选择组";
-            当前板选择组.Size = new Size(1150, 120);
+            当前板选择组.Size = new Size(1150, 86);
             当前板选择组.TabIndex = 1;
             当前板选择组.TabStop = false;
             当前板选择组.Text = "当前板选择";
@@ -309,10 +312,10 @@ namespace 自动测试
             // 
             标签导航.Controls.Add(检测项页);
             标签导航.Controls.Add(检测设置页);
-            标签导航.Location = new Point(10, 102);
+            标签导航.Location = new Point(10, 146);
             标签导航.Name = "标签导航";
             标签导航.SelectedIndex = 0;
-            标签导航.Size = new Size(1150, 300);
+            标签导航.Size = new Size(1150, 410);
             标签导航.TabIndex = 2;
             // 
             // 检测项页
@@ -329,52 +332,22 @@ namespace 自动测试
             检测项页.Controls.Add(偏移校正按钮);
             检测项页.Location = new Point(4, 26);
             检测项页.Name = "检测项页";
-            检测项页.Size = new Size(1142, 270);
+            检测项页.Size = new Size(1142, 380);
             检测项页.TabIndex = 0;
             检测项页.Text = "检测项";
             检测项页.UseVisualStyleBackColor = true;
             // 
             // 检测项表格
             // 
-            检测项表格.Columns.AddRange(new DataGridViewColumn[] { 名称列, 排序列, 类型列, 延时列, 启用列 });
-            检测项表格.Location = new Point(3, 3);
+            检测项表格.Columns.AddRange(new DataGridViewColumn[] { 排序列, 名称列, 类型列, 延时列, 最大值, 最小值, 设定值, 启用列 });
+            检测项表格.Location = new Point(6, 8);
             检测项表格.Name = "检测项表格";
             检测项表格.Size = new Size(1136, 200);
             检测项表格.TabIndex = 0;
             // 
-            // 名称列
-            // 
-            名称列.HeaderText = "名称";
-            名称列.Name = "名称列";
-            名称列.Width = 150;
-            // 
-            // 排序列
-            // 
-            排序列.HeaderText = "排序";
-            排序列.Name = "排序列";
-            排序列.Width = 60;
-            // 
-            // 类型列
-            // 
-            类型列.HeaderText = "类型";
-            类型列.Items.AddRange(new object[] { "电压采集", "电流采集", "IO检测", "PWM检测" });
-            类型列.Name = "类型列";
-            // 
-            // 延时列
-            // 
-            延时列.HeaderText = "延时";
-            延时列.Name = "延时列";
-            延时列.Width = 80;
-            // 
-            // 启用列
-            // 
-            启用列.HeaderText = "启用";
-            启用列.Name = "启用列";
-            启用列.Width = 60;
-            // 
             // 增加项按钮
             // 
-            增加项按钮.Location = new Point(3, 160);
+            增加项按钮.Location = new Point(16, 209);
             增加项按钮.Name = "增加项按钮";
             增加项按钮.Size = new Size(75, 25);
             增加项按钮.TabIndex = 1;
@@ -384,7 +357,7 @@ namespace 自动测试
             // 
             // 插入项按钮
             // 
-            插入项按钮.Location = new Point(84, 160);
+            插入项按钮.Location = new Point(97, 209);
             插入项按钮.Name = "插入项按钮";
             插入项按钮.Size = new Size(75, 25);
             插入项按钮.TabIndex = 2;
@@ -394,7 +367,7 @@ namespace 自动测试
             // 
             // 保存项按钮
             // 
-            保存项按钮.Location = new Point(165, 160);
+            保存项按钮.Location = new Point(178, 209);
             保存项按钮.Name = "保存项按钮";
             保存项按钮.Size = new Size(75, 25);
             保存项按钮.TabIndex = 3;
@@ -404,7 +377,7 @@ namespace 自动测试
             // 
             // 复制项按钮
             // 
-            复制项按钮.Location = new Point(246, 160);
+            复制项按钮.Location = new Point(259, 209);
             复制项按钮.Name = "复制项按钮";
             复制项按钮.Size = new Size(75, 25);
             复制项按钮.TabIndex = 4;
@@ -414,7 +387,7 @@ namespace 自动测试
             // 
             // 粘贴项按钮
             // 
-            粘贴项按钮.Location = new Point(327, 160);
+            粘贴项按钮.Location = new Point(340, 209);
             粘贴项按钮.Name = "粘贴项按钮";
             粘贴项按钮.Size = new Size(75, 25);
             粘贴项按钮.TabIndex = 5;
@@ -424,7 +397,7 @@ namespace 自动测试
             // 
             // 删除项按钮
             // 
-            删除项按钮.Location = new Point(408, 160);
+            删除项按钮.Location = new Point(421, 209);
             删除项按钮.Name = "删除项按钮";
             删除项按钮.Size = new Size(75, 25);
             删除项按钮.TabIndex = 6;
@@ -434,7 +407,7 @@ namespace 自动测试
             // 
             // 启用所有按钮
             // 
-            启用所有按钮.Location = new Point(489, 160);
+            启用所有按钮.Location = new Point(502, 209);
             启用所有按钮.Name = "启用所有按钮";
             启用所有按钮.Size = new Size(75, 25);
             启用所有按钮.TabIndex = 7;
@@ -444,7 +417,7 @@ namespace 自动测试
             // 
             // 停用所有按钮
             // 
-            停用所有按钮.Location = new Point(570, 160);
+            停用所有按钮.Location = new Point(583, 209);
             停用所有按钮.Name = "停用所有按钮";
             停用所有按钮.Size = new Size(75, 25);
             停用所有按钮.TabIndex = 8;
@@ -454,7 +427,7 @@ namespace 自动测试
             // 
             // 偏移校正按钮
             // 
-            偏移校正按钮.Location = new Point(651, 160);
+            偏移校正按钮.Location = new Point(664, 209);
             偏移校正按钮.Name = "偏移校正按钮";
             偏移校正按钮.Size = new Size(75, 25);
             偏移校正按钮.TabIndex = 9;
@@ -467,7 +440,7 @@ namespace 自动测试
             检测设置页.Controls.Add(检测设置表格);
             检测设置页.Location = new Point(4, 26);
             检测设置页.Name = "检测设置页";
-            检测设置页.Size = new Size(1142, 270);
+            检测设置页.Size = new Size(1142, 380);
             检测设置页.TabIndex = 1;
             检测设置页.Text = "检测设置";
             检测设置页.UseVisualStyleBackColor = true;
@@ -481,7 +454,7 @@ namespace 自动测试
             // 
             // 复制参数框
             // 
-            复制参数框.Location = new Point(13, 508);
+            复制参数框.Location = new Point(10, 569);
             复制参数框.Name = "复制参数框";
             复制参数框.Size = new Size(100, 24);
             复制参数框.TabIndex = 3;
@@ -489,7 +462,7 @@ namespace 自动测试
             // 
             // 复制区块按钮
             // 
-            复制区块按钮.Location = new Point(123, 508);
+            复制区块按钮.Location = new Point(120, 569);
             复制区块按钮.Name = "复制区块按钮";
             复制区块按钮.Size = new Size(85, 25);
             复制区块按钮.TabIndex = 4;
@@ -499,7 +472,7 @@ namespace 自动测试
             // 
             // 增加子项按钮
             // 
-            增加子项按钮.Location = new Point(218, 508);
+            增加子项按钮.Location = new Point(215, 569);
             增加子项按钮.Name = "增加子项按钮";
             增加子项按钮.Size = new Size(85, 25);
             增加子项按钮.TabIndex = 5;
@@ -509,7 +482,7 @@ namespace 自动测试
             // 
             // 保存子项按钮
             // 
-            保存子项按钮.Location = new Point(313, 508);
+            保存子项按钮.Location = new Point(310, 569);
             保存子项按钮.Name = "保存子项按钮";
             保存子项按钮.Size = new Size(85, 25);
             保存子项按钮.TabIndex = 6;
@@ -519,7 +492,7 @@ namespace 自动测试
             // 
             // 删除子项按钮
             // 
-            删除子项按钮.Location = new Point(408, 508);
+            删除子项按钮.Location = new Point(405, 569);
             删除子项按钮.Name = "删除子项按钮";
             删除子项按钮.Size = new Size(85, 25);
             删除子项按钮.TabIndex = 7;
@@ -529,7 +502,7 @@ namespace 自动测试
             // 
             // 删除所有子项按钮
             // 
-            删除所有子项按钮.Location = new Point(503, 508);
+            删除所有子项按钮.Location = new Point(500, 569);
             删除所有子项按钮.Name = "删除所有子项按钮";
             删除所有子项按钮.Size = new Size(100, 25);
             删除所有子项按钮.TabIndex = 8;
@@ -557,7 +530,7 @@ namespace 自动测试
             参数设置组.Controls.Add(NG跳转框);
             参数设置组.Controls.Add(NG循环标签);
             参数设置组.Controls.Add(NG循环框);
-            参数设置组.Location = new Point(10, 539);
+            参数设置组.Location = new Point(7, 600);
             参数设置组.Name = "参数设置组";
             参数设置组.Size = new Size(1150, 120);
             参数设置组.TabIndex = 9;
@@ -712,7 +685,7 @@ namespace 自动测试
             // 
             // 全局坐标管理按钮
             // 
-            全局坐标管理按钮.Location = new Point(10, 665);
+            全局坐标管理按钮.Location = new Point(7, 726);
             全局坐标管理按钮.Name = "全局坐标管理按钮";
             全局坐标管理按钮.Size = new Size(120, 30);
             全局坐标管理按钮.TabIndex = 10;
@@ -722,7 +695,7 @@ namespace 自动测试
             // 
             // 输出按钮
             // 
-            输出按钮.Location = new Point(140, 665);
+            输出按钮.Location = new Point(137, 726);
             输出按钮.Name = "输出按钮";
             输出按钮.Size = new Size(100, 30);
             输出按钮.TabIndex = 11;
@@ -732,7 +705,7 @@ namespace 自动测试
             // 
             // 保存项参数按钮
             // 
-            保存项参数按钮.Location = new Point(250, 665);
+            保存项参数按钮.Location = new Point(247, 726);
             保存项参数按钮.Name = "保存项参数按钮";
             保存项参数按钮.Size = new Size(100, 30);
             保存项参数按钮.TabIndex = 12;
@@ -749,7 +722,7 @@ namespace 自动测试
             配置信息组.Controls.Add(当前配置标签);
             配置信息组.Controls.Add(当前配置框);
             配置信息组.Controls.Add(选为当前按钮);
-            配置信息组.Location = new Point(370, 665);
+            配置信息组.Location = new Point(367, 726);
             配置信息组.Name = "配置信息组";
             配置信息组.Size = new Size(790, 70);
             配置信息组.TabIndex = 13;
@@ -834,6 +807,51 @@ namespace 自动测试
             关闭按钮.UseVisualStyleBackColor = true;
             关闭按钮.Click += 关闭按钮_Click;
             // 
+            // 排序列
+            // 
+            排序列.HeaderText = "排序";
+            排序列.Name = "排序列";
+            排序列.Width = 60;
+            // 
+            // 名称列
+            // 
+            名称列.HeaderText = "名称";
+            名称列.Name = "名称列";
+            名称列.Width = 150;
+            // 
+            // 类型列
+            // 
+            类型列.HeaderText = "类型";
+            类型列.Items.AddRange(new object[] { "继电器输出", "输入检测", "直流电压", "交流电压", "直流电流", "交流电流", "声音采集", "相机检测", "串口输出" });
+            类型列.Name = "类型列";
+            // 
+            // 延时列
+            // 
+            延时列.HeaderText = "延时";
+            延时列.Name = "延时列";
+            延时列.Width = 80;
+            // 
+            // 最大值
+            // 
+            最大值.HeaderText = "最大值";
+            最大值.Name = "最大值";
+            // 
+            // 最小值
+            // 
+            最小值.HeaderText = "最小值";
+            最小值.Name = "最小值";
+            // 
+            // 设定值
+            // 
+            设定值.HeaderText = "设定值";
+            设定值.Name = "设定值";
+            // 
+            // 启用列
+            // 
+            启用列.HeaderText = "启用";
+            启用列.Name = "启用列";
+            启用列.Width = 60;
+            // 
             // 编辑配置窗体
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
@@ -891,11 +909,6 @@ namespace 自动测试
         private TabControl 标签导航;
         private TabPage 检测项页;
         private DataGridView 检测项表格;
-        private DataGridViewTextBoxColumn 名称列;
-        private DataGridViewTextBoxColumn 排序列;
-        private DataGridViewComboBoxColumn 类型列;
-        private DataGridViewTextBoxColumn 延时列;
-        private DataGridViewCheckBoxColumn 启用列;
         private Button 增加项按钮;
         private Button 插入项按钮;
         private Button 保存项按钮;
@@ -953,5 +966,13 @@ namespace 自动测试
         private Button 关闭并保存按钮;
         private Button 关闭按钮;
         private Button button1;
+        private DataGridViewTextBoxColumn 排序列;
+        private DataGridViewTextBoxColumn 名称列;
+        private DataGridViewComboBoxColumn 类型列;
+        private DataGridViewTextBoxColumn 延时列;
+        private DataGridViewTextBoxColumn 最大值;
+        private DataGridViewTextBoxColumn 最小值;
+        private DataGridViewTextBoxColumn 设定值;
+        private DataGridViewCheckBoxColumn 启用列;
     }
 }

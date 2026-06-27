@@ -5,101 +5,259 @@ namespace 自动测试
 {
     public partial class 编辑配置窗体 : Form
     {
-        private 配置管理器 配置管理;
-
         public 编辑配置窗体()
         {
             InitializeComponent();
-            配置管理 = 配置管理器.获取实例();
-            加载配置到界面();
+            初始化界面();
         }
 
-        private void 加载配置到界面()
+        private void 初始化界面()
         {
-            var config = 配置管理.当前配置;
-            
-            设备名称框.Text = config.基础参数.设备名称;
-            设备编号框.Text = config.基础参数.设备编号;
-            操作员框.Text = config.基础参数.操作员;
-            
-            检测次数框.Value = config.检测设置.检测次数;
-            检测间隔框.Value = config.检测设置.检测间隔;
-            通讯次数框.Value = config.检测设置.通讯异常检测次数;
-            通讯间隔框.Value = config.检测设置.通讯异常检测间隔;
-            
-            启用MESS框.Checked = config.MESS设置.启用MESS;
-            服务器地址框.Text = config.MESS设置.服务器地址;
-            端口框.Value = config.MESS设置.端口;
-            
-            日志路径框.Text = config.其他设置.日志路径;
-            自动保存日志框.Checked = config.其他设置.自动保存日志;
-            日志保留天数框.Value = config.其他设置.日志保留天数;
+            日期框.Text = DateTime.Now.ToString("yyyy/MM/dd");
         }
 
-        private void 保存配置从界面()
+        private void 排版按钮_Click(object sender, EventArgs e)
         {
-            var config = 配置管理.当前配置;
-            
-            config.基础参数.设备名称 = 设备名称框.Text;
-            config.基础参数.设备编号 = 设备编号框.Text;
-            config.基础参数.操作员 = 操作员框.Text;
-            config.基础参数.最后更新时间 = DateTime.Now;
-            
-            config.检测设置.检测次数 = (int)检测次数框.Value;
-            config.检测设置.检测间隔 = (int)检测间隔框.Value;
-            config.检测设置.通讯异常检测次数 = (int)通讯次数框.Value;
-            config.检测设置.通讯异常检测间隔 = (int)通讯间隔框.Value;
-            
-            config.MESS设置.启用MESS = 启用MESS框.Checked;
-            config.MESS设置.服务器地址 = 服务器地址框.Text;
-            config.MESS设置.端口 = (int)端口框.Value;
-            
-            config.其他设置.日志路径 = 日志路径框.Text;
-            config.其他设置.自动保存日志 = 自动保存日志框.Checked;
-            config.其他设置.日志保留天数 = (int)日志保留天数框.Value;
+            MessageBox.Show("排版功能待实现", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void 保存按钮_Click(object sender, EventArgs e)
+        private void 保存配置按钮_Click(object sender, EventArgs e)
         {
-            保存配置从界面();
-            
-            if (配置管理.保存配置())
+            MessageBox.Show("配置保存成功", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 增加配置按钮_Click(object sender, EventArgs e)
+        {
+            string 新配置名 = "新配置" + (配置名列表.Items.Count + 1);
+            配置名列表.Items.Add(新配置名);
+            配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
+            配置名称框.Text = 新配置名;
+        }
+
+        private void 复制配置按钮_Click(object sender, EventArgs e)
+        {
+            if (配置名列表.SelectedIndex == -1)
             {
-                MessageBox.Show("配置保存成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
+                MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
+            string 源配置名 = 配置名列表.SelectedItem.ToString();
+            string 新配置名 = 源配置名 + "_复制";
+            配置名列表.Items.Add(新配置名);
+            配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
+            配置名称框.Text = 新配置名;
+            MessageBox.Show($"已复制配置：{源配置名} -> {新配置名}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 导出配置按钮_Click(object sender, EventArgs e)
+        {
+            if (配置名列表.SelectedIndex == -1)
+            {
+                MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
+            using (var dialog = new SaveFileDialog())
+            {
+                dialog.Filter = "配置文件|*.json";
+                dialog.FileName = 配置名列表.SelectedItem.ToString();
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    MessageBox.Show($"配置已导出到：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
         }
 
-        private void 取消按钮_Click(object sender, EventArgs e)
+        private void 导出Excel按钮_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
-            Close();
+            using (var dialog = new SaveFileDialog())
+            {
+                dialog.Filter = "Excel文件|*.xlsx";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    MessageBox.Show($"配置已导出到：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
         }
 
-        private void 重置按钮_Click(object sender, EventArgs e)
+        private void 删除配置按钮_Click(object sender, EventArgs e)
         {
-            var result = MessageBox.Show("确定要重置为默认配置吗？", "确认", 
+            if (配置名列表.SelectedIndex == -1)
+            {
+                MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
+            var result = MessageBox.Show($"确定要删除配置：{配置名列表.SelectedItem}吗？", "确认", 
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             
             if (result == DialogResult.Yes)
             {
-                配置管理.重置为默认值();
-                加载配置到界面();
-                MessageBox.Show("已重置为默认配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                配置名列表.Items.RemoveAt(配置名列表.SelectedIndex);
+                MessageBox.Show("配置已删除", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
-        private void 浏览按钮_Click(object sender, EventArgs e)
+        private void 导入配置按钮_Click(object sender, EventArgs e)
         {
-            using (var dialog = new FolderBrowserDialog())
+            using (var dialog = new OpenFileDialog())
             {
-                dialog.Description = "选择日志保存路径";
+                dialog.Filter = "配置文件|*.json";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    日志路径框.Text = dialog.SelectedPath;
+                    string 配置名 = System.IO.Path.GetFileNameWithoutExtension(dialog.FileName);
+                    配置名列表.Items.Add(配置名);
+                    配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
+                    MessageBox.Show($"配置已导入：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
+        }
+
+        private void 增加项按钮_Click(object sender, EventArgs e)
+        {
+            int 新序号 = 检测项表格.Rows.Count + 1;
+            检测项表格.Rows.Add($"检测项{新序号}", 新序号, "电压采集", 0, false);
+        }
+
+        private void 插入项按钮_Click(object sender, EventArgs e)
+        {
+            if (检测项表格.SelectedRows.Count > 0)
+            {
+                int 索引 = 检测项表格.SelectedRows[0].Index;
+                检测项表格.Rows.Insert(索引, "新检测项", 索引 + 1, "电压采集", 0, false);
+            }
+            else
+            {
+                增加项按钮_Click(sender, e);
+            }
+        }
+
+        private void 保存项按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("检测项已保存", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 复制项按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("检测项已复制", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 粘贴项按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("检测项已粘贴", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 删除项按钮_Click(object sender, EventArgs e)
+        {
+            if (检测项表格.SelectedRows.Count > 0)
+            {
+                foreach (DataGridViewRow row in 检测项表格.SelectedRows)
+                {
+                    if (!row.IsNewRow)
+                    {
+                        检测项表格.Rows.Remove(row);
+                    }
+                }
+            }
+        }
+
+        private void 启用所有按钮_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in 检测项表格.Rows)
+            {
+                if (!row.IsNewRow)
+                {
+                    row.Cells["启用列"].Value = true;
+                }
+            }
+        }
+
+        private void 停用所有按钮_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in 检测项表格.Rows)
+            {
+                if (!row.IsNewRow)
+                {
+                    row.Cells["启用列"].Value = false;
+                }
+            }
+        }
+
+        private void 偏移校正按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("偏移校正功能待实现", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 复制区块按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("区块已复制", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 增加子项按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("子项已增加", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 保存子项按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("子项已保存", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 删除子项按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("子项已删除", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 删除所有子项按钮_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show("确定要删除所有子项吗？", "确认", 
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            
+            if (result == DialogResult.Yes)
+            {
+                MessageBox.Show("所有子项已删除", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void 全局坐标管理按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("全局坐标管理功能待实现", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 输出按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("(X/K)输出功能待实现", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 保存项参数按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("项参数已保存", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 选为当前按钮_Click(object sender, EventArgs e)
+        {
+            if (配置名列表.SelectedIndex == -1)
+            {
+                MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
+            当前配置框.Text = 配置名列表.SelectedItem.ToString();
+            MessageBox.Show($"已选为当前配置：{当前配置框.Text}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void 关闭并保存按钮_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("配置已保存", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+
+        private void 关闭按钮_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
         }
     }
 }

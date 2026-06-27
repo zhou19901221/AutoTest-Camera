@@ -37,6 +37,14 @@ namespace 自动测试
             标签导航 = new TabControl();
             检测项页 = new TabPage();
             检测项表格 = new DataGridView();
+            排序列 = new DataGridViewTextBoxColumn();
+            名称列 = new DataGridViewTextBoxColumn();
+            类型列 = new DataGridViewComboBoxColumn();
+            延时列 = new DataGridViewTextBoxColumn();
+            最大值 = new DataGridViewTextBoxColumn();
+            最小值 = new DataGridViewTextBoxColumn();
+            设定值 = new DataGridViewTextBoxColumn();
+            启用列 = new DataGridViewCheckBoxColumn();
             增加项按钮 = new Button();
             插入项按钮 = new Button();
             保存项按钮 = new Button();
@@ -45,7 +53,6 @@ namespace 自动测试
             删除项按钮 = new Button();
             启用所有按钮 = new Button();
             停用所有按钮 = new Button();
-            偏移校正按钮 = new Button();
             检测设置页 = new TabPage();
             检测设置表格 = new DataGridView();
             复制参数框 = new CheckBox();
@@ -86,14 +93,6 @@ namespace 自动测试
             选为当前按钮 = new Button();
             关闭并保存按钮 = new Button();
             关闭按钮 = new Button();
-            排序列 = new DataGridViewTextBoxColumn();
-            名称列 = new DataGridViewTextBoxColumn();
-            类型列 = new DataGridViewComboBoxColumn();
-            延时列 = new DataGridViewTextBoxColumn();
-            最大值 = new DataGridViewTextBoxColumn();
-            最小值 = new DataGridViewTextBoxColumn();
-            设定值 = new DataGridViewTextBoxColumn();
-            启用列 = new DataGridViewCheckBoxColumn();
             左侧面板.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)拼板数框).BeginInit();
             右侧面板.SuspendLayout();
@@ -242,6 +241,7 @@ namespace 自动测试
             右侧面板.Name = "右侧面板";
             右侧面板.Size = new Size(1180, 850);
             右侧面板.TabIndex = 1;
+            右侧面板.Paint += 右侧面板_Paint;
             // 
             // 当前板选择组
             // 
@@ -329,7 +329,6 @@ namespace 自动测试
             检测项页.Controls.Add(删除项按钮);
             检测项页.Controls.Add(启用所有按钮);
             检测项页.Controls.Add(停用所有按钮);
-            检测项页.Controls.Add(偏移校正按钮);
             检测项页.Location = new Point(4, 26);
             检测项页.Name = "检测项页";
             检测项页.Size = new Size(1142, 380);
@@ -344,6 +343,51 @@ namespace 自动测试
             检测项表格.Name = "检测项表格";
             检测项表格.Size = new Size(1136, 200);
             检测项表格.TabIndex = 0;
+            // 
+            // 排序列
+            // 
+            排序列.HeaderText = "排序";
+            排序列.Name = "排序列";
+            排序列.Width = 60;
+            // 
+            // 名称列
+            // 
+            名称列.HeaderText = "名称";
+            名称列.Name = "名称列";
+            名称列.Width = 150;
+            // 
+            // 类型列
+            // 
+            类型列.HeaderText = "类型";
+            类型列.Items.AddRange(new object[] { "电压采集", "电流采集", "IO检测", "PWM检测" });
+            类型列.Name = "类型列";
+            // 
+            // 延时列
+            // 
+            延时列.HeaderText = "延时";
+            延时列.Name = "延时列";
+            延时列.Width = 80;
+            // 
+            // 最大值
+            // 
+            最大值.HeaderText = "最大值";
+            最大值.Name = "最大值";
+            // 
+            // 最小值
+            // 
+            最小值.HeaderText = "最小值";
+            最小值.Name = "最小值";
+            // 
+            // 设定值
+            // 
+            设定值.HeaderText = "设定值";
+            设定值.Name = "设定值";
+            // 
+            // 启用列
+            // 
+            启用列.HeaderText = "启用";
+            启用列.Name = "启用列";
+            启用列.Width = 60;
             // 
             // 增加项按钮
             // 
@@ -424,16 +468,6 @@ namespace 自动测试
             停用所有按钮.Text = "停用所有";
             停用所有按钮.UseVisualStyleBackColor = true;
             停用所有按钮.Click += 停用所有按钮_Click;
-            // 
-            // 偏移校正按钮
-            // 
-            偏移校正按钮.Location = new Point(664, 209);
-            偏移校正按钮.Name = "偏移校正按钮";
-            偏移校正按钮.Size = new Size(75, 25);
-            偏移校正按钮.TabIndex = 9;
-            偏移校正按钮.Text = "偏移校正";
-            偏移校正按钮.UseVisualStyleBackColor = true;
-            偏移校正按钮.Click += 偏移校正按钮_Click;
             // 
             // 检测设置页
             // 
@@ -807,51 +841,6 @@ namespace 自动测试
             关闭按钮.UseVisualStyleBackColor = true;
             关闭按钮.Click += 关闭按钮_Click;
             // 
-            // 排序列
-            // 
-            排序列.HeaderText = "排序";
-            排序列.Name = "排序列";
-            排序列.Width = 60;
-            // 
-            // 名称列
-            // 
-            名称列.HeaderText = "名称";
-            名称列.Name = "名称列";
-            名称列.Width = 150;
-            // 
-            // 类型列
-            // 
-            类型列.HeaderText = "类型";
-            类型列.Items.AddRange(new object[] { "继电器输出", "输入检测", "直流电压", "交流电压", "直流电流", "交流电流", "声音采集", "相机检测", "串口输出" });
-            类型列.Name = "类型列";
-            // 
-            // 延时列
-            // 
-            延时列.HeaderText = "延时";
-            延时列.Name = "延时列";
-            延时列.Width = 80;
-            // 
-            // 最大值
-            // 
-            最大值.HeaderText = "最大值";
-            最大值.Name = "最大值";
-            // 
-            // 最小值
-            // 
-            最小值.HeaderText = "最小值";
-            最小值.Name = "最小值";
-            // 
-            // 设定值
-            // 
-            设定值.HeaderText = "设定值";
-            设定值.Name = "设定值";
-            // 
-            // 启用列
-            // 
-            启用列.HeaderText = "启用";
-            启用列.Name = "启用列";
-            启用列.Width = 60;
-            // 
             // 编辑配置窗体
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
@@ -917,7 +906,6 @@ namespace 自动测试
         private Button 删除项按钮;
         private Button 启用所有按钮;
         private Button 停用所有按钮;
-        private Button 偏移校正按钮;
 
         private TabPage 检测设置页;
         private DataGridView 检测设置表格;

@@ -347,7 +347,7 @@ namespace 自动测试
         private void 增加项按钮_Click(object sender, EventArgs e)
         {
             int 新序号 = 检测项表格.Rows.Count + 1;
-            检测项表格.Rows.Add(新序号, $"检测项{新序号}", "继电器输出", 0, "", "", "false", false);
+            检测项表格.Rows.Add($"检测项{新序号}", 新序号, "电压采集", 0, false);
         }
 
         private void 插入项按钮_Click(object sender, EventArgs e)
@@ -355,7 +355,7 @@ namespace 自动测试
             if (检测项表格.SelectedRows.Count > 0)
             {
                 int 索引 = 检测项表格.SelectedRows[0].Index;
-                检测项表格.Rows.Insert(索引, 索引 + 1, "新检测项", "继电器输出", 0, "", "", "false", false);
+                检测项表格.Rows.Insert(索引, "新检测项", 索引 + 1, "电压采集", 0, false);
             }
             else
             {
@@ -493,6 +493,11 @@ namespace 自动测试
         private void 编辑配置窗体_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void 右侧面板_Paint(object sender, PaintEventArgs e)
+        {
+            
         }
     }
 }

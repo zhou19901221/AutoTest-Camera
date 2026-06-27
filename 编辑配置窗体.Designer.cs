@@ -147,7 +147,7 @@ namespace 自动测试
             左侧面板.Controls.Add(导入配置按钮);
             左侧面板.Location = new Point(0, 0);
             左侧面板.Name = "左侧面板";
-            左侧面板.Size = new Size(200, 700);
+            左侧面板.Size = new Size(220, 850);
             左侧面板.TabIndex = 0;
 
             拼板数标签.Location = new Point(10, 10);
@@ -186,52 +186,52 @@ namespace 自动测试
 
             配置名列表.Location = new Point(10, 110);
             配置名列表.Name = "配置名列表";
-            配置名列表.Size = new Size(175, 350);
+            配置名列表.Size = new Size(195, 450);
             配置名列表.TabIndex = 5;
 
-            增加配置按钮.Location = new Point(10, 470);
+            增加配置按钮.Location = new Point(10, 570);
             增加配置按钮.Name = "增加配置按钮";
-            增加配置按钮.Size = new Size(175, 30);
+            增加配置按钮.Size = new Size(195, 30);
             增加配置按钮.TabIndex = 6;
             增加配置按钮.Text = "增加配置";
             增加配置按钮.UseVisualStyleBackColor = true;
             增加配置按钮.Click += 增加配置按钮_Click;
 
-            复制配置按钮.Location = new Point(10, 505);
+            复制配置按钮.Location = new Point(10, 605);
             复制配置按钮.Name = "复制配置按钮";
-            复制配置按钮.Size = new Size(175, 30);
+            复制配置按钮.Size = new Size(195, 30);
             复制配置按钮.TabIndex = 7;
             复制配置按钮.Text = "复制配置";
             复制配置按钮.UseVisualStyleBackColor = true;
             复制配置按钮.Click += 复制配置按钮_Click;
 
-            导出配置按钮.Location = new Point(10, 540);
+            导出配置按钮.Location = new Point(10, 640);
             导出配置按钮.Name = "导出配置按钮";
-            导出配置按钮.Size = new Size(175, 30);
+            导出配置按钮.Size = new Size(195, 30);
             导出配置按钮.TabIndex = 8;
             导出配置按钮.Text = "导出配置";
             导出配置按钮.UseVisualStyleBackColor = true;
             导出配置按钮.Click += 导出配置按钮_Click;
 
-            导出Excel按钮.Location = new Point(10, 575);
+            导出Excel按钮.Location = new Point(10, 675);
             导出Excel按钮.Name = "导出Excel按钮";
-            导出Excel按钮.Size = new Size(175, 30);
+            导出Excel按钮.Size = new Size(195, 30);
             导出Excel按钮.TabIndex = 9;
             导出Excel按钮.Text = "导出Excel";
             导出Excel按钮.UseVisualStyleBackColor = true;
             导出Excel按钮.Click += 导出Excel按钮_Click;
 
-            删除配置按钮.Location = new Point(10, 610);
+            删除配置按钮.Location = new Point(10, 710);
             删除配置按钮.Name = "删除配置按钮";
-            删除配置按钮.Size = new Size(175, 30);
+            删除配置按钮.Size = new Size(195, 30);
             删除配置按钮.TabIndex = 10;
             删除配置按钮.Text = "删除配置";
             删除配置按钮.UseVisualStyleBackColor = true;
             删除配置按钮.Click += 删除配置按钮_Click;
 
-            导入配置按钮.Location = new Point(10, 645);
+            导入配置按钮.Location = new Point(10, 745);
             导入配置按钮.Name = "导入配置按钮";
-            导入配置按钮.Size = new Size(175, 30);
+            导入配置按钮.Size = new Size(195, 30);
             导入配置按钮.TabIndex = 11;
             导入配置按钮.Text = "导入配置";
             导入配置按钮.UseVisualStyleBackColor = true;
@@ -253,9 +253,9 @@ namespace 自动测试
             右侧面板.Controls.Add(配置信息组);
             右侧面板.Controls.Add(关闭并保存按钮);
             右侧面板.Controls.Add(关闭按钮);
-            右侧面板.Location = new Point(200, 0);
+            右侧面板.Location = new Point(220, 0);
             右侧面板.Name = "右侧面板";
-            右侧面板.Size = new Size(1000, 700);
+            右侧面板.Size = new Size(1180, 850);
             右侧面板.TabIndex = 1;
 
             测试功能开启组.Controls.Add(测试功能1框);
@@ -363,7 +363,7 @@ namespace 自动测试
             标签导航.Location = new Point(10, 70);
             标签导航.Name = "标签导航";
             标签导航.SelectedIndex = 0;
-            标签导航.Size = new Size(970, 250);
+            标签导航.Size = new Size(1150, 300);
             标签导航.TabIndex = 2;
 
             检测项页.Controls.Add(检测项表格);
@@ -378,7 +378,7 @@ namespace 自动测试
             检测项页.Controls.Add(偏移校正按钮);
             检测项页.Location = new Point(4, 26);
             检测项页.Name = "检测项页";
-            检测项页.Size = new Size(962, 220);
+            检测项页.Size = new Size(1142, 270);
             检测项页.TabIndex = 0;
             检测项页.Text = "检测项";
             检测项页.UseVisualStyleBackColor = true;
@@ -386,7 +386,7 @@ namespace 自动测试
             检测项表格.Columns.AddRange(new DataGridViewColumn[] { 名称列, 排序列, 类型列, 延时列, 启用列 });
             检测项表格.Location = new Point(3, 3);
             检测项表格.Name = "检测项表格";
-            检测项表格.Size = new Size(956, 150);
+            检测项表格.Size = new Size(1136, 200);
             检测项表格.TabIndex = 0;
 
             名称列.HeaderText = "名称";
@@ -485,23 +485,23 @@ namespace 自动测试
             检测设置页.Controls.Add(检测设置表格);
             检测设置页.Location = new Point(4, 26);
             检测设置页.Name = "检测设置页";
-            检测设置页.Size = new Size(962, 220);
+            检测设置页.Size = new Size(1142, 270);
             检测设置页.TabIndex = 1;
             检测设置页.Text = "检测设置";
             检测设置页.UseVisualStyleBackColor = true;
 
             检测设置表格.Location = new Point(3, 3);
             检测设置表格.Name = "检测设置表格";
-            检测设置表格.Size = new Size(956, 180);
+            检测设置表格.Size = new Size(1136, 230);
             检测设置表格.TabIndex = 0;
 
-            复制参数框.Location = new Point(10, 330);
+            复制参数框.Location = new Point(10, 380);
             复制参数框.Name = "复制参数框";
             复制参数框.Size = new Size(100, 24);
             复制参数框.TabIndex = 3;
             复制参数框.Text = "复制参数";
 
-            复制区块按钮.Location = new Point(120, 330);
+            复制区块按钮.Location = new Point(120, 380);
             复制区块按钮.Name = "复制区块按钮";
             复制区块按钮.Size = new Size(85, 25);
             复制区块按钮.TabIndex = 4;
@@ -509,7 +509,7 @@ namespace 自动测试
             复制区块按钮.UseVisualStyleBackColor = true;
             复制区块按钮.Click += 复制区块按钮_Click;
 
-            增加子项按钮.Location = new Point(215, 330);
+            增加子项按钮.Location = new Point(215, 380);
             增加子项按钮.Name = "增加子项按钮";
             增加子项按钮.Size = new Size(85, 25);
             增加子项按钮.TabIndex = 5;
@@ -517,7 +517,7 @@ namespace 自动测试
             增加子项按钮.UseVisualStyleBackColor = true;
             增加子项按钮.Click += 增加子项按钮_Click;
 
-            保存子项按钮.Location = new Point(310, 330);
+            保存子项按钮.Location = new Point(310, 380);
             保存子项按钮.Name = "保存子项按钮";
             保存子项按钮.Size = new Size(85, 25);
             保存子项按钮.TabIndex = 6;
@@ -525,7 +525,7 @@ namespace 自动测试
             保存子项按钮.UseVisualStyleBackColor = true;
             保存子项按钮.Click += 保存子项按钮_Click;
 
-            删除子项按钮.Location = new Point(405, 330);
+            删除子项按钮.Location = new Point(405, 380);
             删除子项按钮.Name = "删除子项按钮";
             删除子项按钮.Size = new Size(85, 25);
             删除子项按钮.TabIndex = 7;
@@ -533,7 +533,7 @@ namespace 自动测试
             删除子项按钮.UseVisualStyleBackColor = true;
             删除子项按钮.Click += 删除子项按钮_Click;
 
-            删除所有子项按钮.Location = new Point(500, 330);
+            删除所有子项按钮.Location = new Point(500, 380);
             删除所有子项按钮.Name = "删除所有子项按钮";
             删除所有子项按钮.Size = new Size(100, 25);
             删除所有子项按钮.TabIndex = 8;
@@ -559,9 +559,9 @@ namespace 自动测试
             参数设置组.Controls.Add(NG跳转框);
             参数设置组.Controls.Add(NG循环标签);
             参数设置组.Controls.Add(NG循环框);
-            参数设置组.Location = new Point(10, 360);
+            参数设置组.Location = new Point(10, 410);
             参数设置组.Name = "参数设置组";
-            参数设置组.Size = new Size(970, 120);
+            参数设置组.Size = new Size(1150, 120);
             参数设置组.TabIndex = 9;
             参数设置组.TabStop = false;
             参数设置组.Text = "参数设置";
@@ -676,7 +676,7 @@ namespace 自动测试
             NG循环框.Size = new Size(80, 23);
             NG循环框.TabIndex = 17;
 
-            全局坐标管理按钮.Location = new Point(10, 490);
+            全局坐标管理按钮.Location = new Point(10, 540);
             全局坐标管理按钮.Name = "全局坐标管理按钮";
             全局坐标管理按钮.Size = new Size(120, 30);
             全局坐标管理按钮.TabIndex = 10;
@@ -684,7 +684,7 @@ namespace 自动测试
             全局坐标管理按钮.UseVisualStyleBackColor = true;
             全局坐标管理按钮.Click += 全局坐标管理按钮_Click;
 
-            输出按钮.Location = new Point(140, 490);
+            输出按钮.Location = new Point(140, 540);
             输出按钮.Name = "输出按钮";
             输出按钮.Size = new Size(100, 30);
             输出按钮.TabIndex = 11;
@@ -692,7 +692,7 @@ namespace 自动测试
             输出按钮.UseVisualStyleBackColor = true;
             输出按钮.Click += 输出按钮_Click;
 
-            保存项参数按钮.Location = new Point(250, 490);
+            保存项参数按钮.Location = new Point(250, 540);
             保存项参数按钮.Name = "保存项参数按钮";
             保存项参数按钮.Size = new Size(100, 30);
             保存项参数按钮.TabIndex = 12;
@@ -707,9 +707,9 @@ namespace 自动测试
             配置信息组.Controls.Add(当前配置标签);
             配置信息组.Controls.Add(当前配置框);
             配置信息组.Controls.Add(选为当前按钮);
-            配置信息组.Location = new Point(370, 490);
+            配置信息组.Location = new Point(370, 540);
             配置信息组.Name = "配置信息组";
-            配置信息组.Size = new Size(610, 70);
+            配置信息组.Size = new Size(790, 70);
             配置信息组.TabIndex = 13;
             配置信息组.TabStop = false;
             配置信息组.Text = "配置信息";
@@ -758,7 +758,7 @@ namespace 自动测试
             选为当前按钮.UseVisualStyleBackColor = true;
             选为当前按钮.Click += 选为当前按钮_Click;
 
-            关闭并保存按钮.Location = new Point(790, 660);
+            关闭并保存按钮.Location = new Point(970, 810);
             关闭并保存按钮.Name = "关闭并保存按钮";
             关闭并保存按钮.Size = new Size(100, 30);
             关闭并保存按钮.TabIndex = 14;
@@ -766,7 +766,7 @@ namespace 自动测试
             关闭并保存按钮.UseVisualStyleBackColor = true;
             关闭并保存按钮.Click += 关闭并保存按钮_Click;
 
-            关闭按钮.Location = new Point(900, 660);
+            关闭按钮.Location = new Point(1080, 810);
             关闭按钮.Name = "关闭按钮";
             关闭按钮.Size = new Size(100, 30);
             关闭按钮.TabIndex = 15;
@@ -776,7 +776,7 @@ namespace 自动测试
 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1200, 700);
+            ClientSize = new Size(1400, 850);
             Controls.Add(左侧面板);
             Controls.Add(右侧面板);
             Name = "编辑配置窗体";

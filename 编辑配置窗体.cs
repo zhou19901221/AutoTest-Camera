@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace 自动测试
 {
     public partial class 编辑配置窗体 : Form
     {
+        private List<RadioButton> 当前板选择列表 = new List<RadioButton>();
+
         public 编辑配置窗体()
         {
             InitializeComponent();
@@ -14,6 +17,74 @@ namespace 自动测试
         private void 初始化界面()
         {
             日期框.Text = DateTime.Now.ToString("yyyy/MM/dd");
+            
+            拼板数框.Minimum = 1;
+            拼板数框.Maximum = 32;
+            拼板数框.Value = 6;
+            
+            初始化当前板选择();
+            
+            拼板数框.ValueChanged += 拼板数框_ValueChanged;
+        }
+
+        private void 初始化当前板选择()
+        {
+            当前板选择列表.Add(当前板1框);
+            当前板选择列表.Add(当前板2框);
+            当前板选择列表.Add(当前板3框);
+            当前板选择列表.Add(当前板4框);
+            当前板选择列表.Add(当前板5框);
+            当前板选择列表.Add(当前板6框);
+            
+            for (int i = 0; i < 当前板选择列表.Count; i++)
+            {
+                当前板选择列表[i].Tag = i;
+            }
+            
+            更新当前板选择显示((int)拼板数框.Value);
+        }
+
+        private void 拼板数框_ValueChanged(object sender, EventArgs e)
+        {
+            int 拼板数 = (int)拼板数框.Value;
+            更新当前板选择显示(拼板数);
+        }
+
+        private void 更新当前板选择显示(int 数量)
+        {
+            while (当前板选择列表.Count < 数量)
+            {
+                int 索引 = 当前板选择列表.Count;
+                RadioButton 新按钮 = new RadioButton();
+                新按钮.Text = (索引 + 1).ToString();
+                新按钮.Size = new System.Drawing.Size(40, 24);
+                新按钮.Tag = 索引;
+                新按钮.Location = new System.Drawing.Point(20 + (索引 % 8) * 50, 20 + (索引 / 8) * 30);
+                当前板选择组.Controls.Add(新按钮);
+                当前板选择列表.Add(新按钮);
+            }
+            
+            for (int i = 0; i < 当前板选择列表.Count; i++)
+            {
+                当前板选择列表[i].Visible = i < 数量;
+            }
+            
+            if (数量 > 0 && !当前板选择列表[0].Checked)
+            {
+                bool 有选中 = false;
+                for (int i = 0; i < 数量; i++)
+                {
+                    if (当前板选择列表[i].Checked)
+                    {
+                        有选中 = true;
+                        break;
+                    }
+                }
+                if (!有选中)
+                {
+                    当前板选择列表[0].Checked = true;
+                }
+            }
         }
 
         private void 排版按钮_Click(object sender, EventArgs e)

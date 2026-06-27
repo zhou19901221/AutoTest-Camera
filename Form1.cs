@@ -21,6 +21,7 @@ namespace 自动测试
 
         private void Form1_Load(object? sender, EventArgs e)
         {
+            配置管理器.获取实例().加载配置();
             初始化相机();
         }
 
@@ -159,14 +160,8 @@ namespace 自动测试
 
         private void 编辑配置_Click(object sender, EventArgs e)
         {
-            if (!相机已连接)
-            {
-                MessageBox.Show("相机未连接");
-                return;
-            }
-
-            var 属性页面 = new 相机属性页面(相机对象);
-            属性页面.Show();
+            var 配置窗体 = new 编辑配置窗体();
+            配置窗体.ShowDialog();
         }
 
         private void 端口测试_Click(object sender, EventArgs e)

@@ -128,7 +128,7 @@
             flowLayoutPanel1.Controls.Add(日志);
             flowLayoutPanel1.Location = new Point(20, 50);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(960, 80);
+            flowLayoutPanel1.Size = new Size(1400, 80);
             flowLayoutPanel1.TabIndex = 2;
             // 
             // 编辑配置
@@ -137,7 +137,6 @@
             编辑配置.BackColor = Color.White;
             编辑配置.FlatStyle = FlatStyle.Flat;
             编辑配置.Location = new Point(3, 3);
-            编辑配置.Margin = new Padding(3, 3, 3, 3);
             编辑配置.Name = "编辑配置";
             编辑配置.Size = new Size(110, 70);
             编辑配置.TabIndex = 0;
@@ -150,8 +149,7 @@
             视觉测试.Anchor = AnchorStyles.None;
             视觉测试.BackColor = Color.White;
             视觉测试.FlatStyle = FlatStyle.Flat;
-            视觉测试.Location = new Point(122, 3);
-            视觉测试.Margin = new Padding(3, 3, 3, 3);
+            视觉测试.Location = new Point(119, 3);
             视觉测试.Name = "视觉测试";
             视觉测试.Size = new Size(110, 70);
             视觉测试.TabIndex = 0;
@@ -164,8 +162,7 @@
             端口测试.Anchor = AnchorStyles.None;
             端口测试.BackColor = Color.White;
             端口测试.FlatStyle = FlatStyle.Flat;
-            端口测试.Location = new Point(241, 3);
-            端口测试.Margin = new Padding(3, 3, 3, 3);
+            端口测试.Location = new Point(235, 3);
             端口测试.Name = "端口测试";
             端口测试.Size = new Size(110, 70);
             端口测试.TabIndex = 0;
@@ -178,8 +175,7 @@
             日志.Anchor = AnchorStyles.None;
             日志.BackColor = Color.White;
             日志.FlatStyle = FlatStyle.Flat;
-            日志.Location = new Point(360, 3);
-            日志.Margin = new Padding(3, 3, 3, 3);
+            日志.Location = new Point(351, 3);
             日志.Name = "日志";
             日志.Size = new Size(110, 70);
             日志.TabIndex = 0;
@@ -203,7 +199,7 @@
             当前配置信息.Controls.Add(选着配置);
             当前配置信息.Controls.Add(配置信息);
             当前配置信息.Controls.Add(label2);
-            当前配置信息.Location = new Point(520, 50);
+            当前配置信息.Location = new Point(518, 150);
             当前配置信息.Name = "当前配置信息";
             当前配置信息.Size = new Size(460, 130);
             当前配置信息.TabIndex = 3;
@@ -243,16 +239,16 @@
             当前配置显示.ItemHeight = 17;
             当前配置显示.Location = new Point(20, 150);
             当前配置显示.Name = "当前配置显示";
-            当前配置显示.Size = new Size(480, 730);
+            当前配置显示.Size = new Size(480, 718);
             当前配置显示.TabIndex = 4;
             // 
             // 当前操作日志
             // 
             当前操作日志.BackColor = Color.White;
             当前操作日志.Controls.Add(操作日志文本框);
-            当前操作日志.Location = new Point(1000, 50);
+            当前操作日志.Location = new Point(1000, 150);
             当前操作日志.Name = "当前操作日志";
-            当前操作日志.Size = new Size(420, 830);
+            当前操作日志.Size = new Size(420, 730);
             当前操作日志.TabIndex = 5;
             当前操作日志.TabStop = false;
             当前操作日志.Text = "当前操作日志";
@@ -265,18 +261,18 @@
             操作日志文本框.Name = "操作日志文本框";
             操作日志文本框.ReadOnly = true;
             操作日志文本框.ScrollBars = ScrollBars.Vertical;
-            操作日志文本框.Size = new Size(408, 802);
+            操作日志文本框.Size = new Size(408, 702);
             操作日志文本框.TabIndex = 0;
             // 
             // 进入自动测试
             // 
             进入自动测试.BackColor = Color.FromArgb(43, 87, 154);
             进入自动测试.FlatStyle = FlatStyle.Flat;
-            进入自动测试.ForeColor = Color.White;
             进入自动测试.Font = new Font("Microsoft YaHei UI", 16F, FontStyle.Bold);
-            进入自动测试.Location = new Point(520, 200);
+            进入自动测试.ForeColor = Color.White;
+            进入自动测试.Location = new Point(518, 350);
             进入自动测试.Name = "进入自动测试";
-            进入自动测试.Size = new Size(460, 680);
+            进入自动测试.Size = new Size(460, 198);
             进入自动测试.TabIndex = 6;
             进入自动测试.Text = "进入自动测试";
             进入自动测试.UseVisualStyleBackColor = false;

@@ -170,21 +170,25 @@ namespace 自动测试
             
             if (需要布尔值)
             {
-                row.Cells["设定值"].Value = "false";
+                var comboBoxCell = new DataGridViewComboBoxCell();
+                comboBoxCell.Items.AddRange(new object[] { "true", "false" });
+                comboBoxCell.Value = "false";
+                row.Cells["设定值"] = comboBoxCell;
             }
-            else if (需要文本值)
+            else if (需要文本值 || 需要数值范围)
             {
-                row.Cells["设定值"].Value = "";
-            }
-            else if (需要数值范围)
-            {
-                row.Cells["设定值"].Value = "";
+                var textBoxCell = new DataGridViewTextBoxCell();
+                textBoxCell.Value = "";
+                row.Cells["设定值"] = textBoxCell;
             }
             else
             {
-                row.Cells["设定值"].Value = "";
+                var textBoxCell = new DataGridViewTextBoxCell();
+                textBoxCell.Value = "";
+                row.Cells["设定值"] = textBoxCell;
             }
         }
+
 
         private void 初始化当前板选择()
         {

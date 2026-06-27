@@ -267,7 +267,7 @@ namespace 自动测试
             // 
             // 当前板2框
             // 
-            当前板2框.Location = new Point(70, 20);
+            当前板2框.Location = new Point(90, 20);
             当前板2框.Name = "当前板2框";
             当前板2框.Size = new Size(40, 24);
             当前板2框.TabIndex = 1;
@@ -275,7 +275,7 @@ namespace 自动测试
             // 
             // 当前板3框
             // 
-            当前板3框.Location = new Point(120, 20);
+            当前板3框.Location = new Point(160, 20);
             当前板3框.Name = "当前板3框";
             当前板3框.Size = new Size(40, 24);
             当前板3框.TabIndex = 2;
@@ -283,7 +283,7 @@ namespace 自动测试
             // 
             // 当前板4框
             // 
-            当前板4框.Location = new Point(170, 20);
+            当前板4框.Location = new Point(230, 20);
             当前板4框.Name = "当前板4框";
             当前板4框.Size = new Size(40, 24);
             当前板4框.TabIndex = 3;
@@ -291,7 +291,7 @@ namespace 自动测试
             // 
             // 当前板5框
             // 
-            当前板5框.Location = new Point(220, 20);
+            当前板5框.Location = new Point(300, 20);
             当前板5框.Name = "当前板5框";
             当前板5框.Size = new Size(40, 24);
             当前板5框.TabIndex = 4;
@@ -299,7 +299,7 @@ namespace 自动测试
             // 
             // 当前板6框
             // 
-            当前板6框.Location = new Point(270, 20);
+            当前板6框.Location = new Point(370, 20);
             当前板6框.Name = "当前板6框";
             当前板6框.Size = new Size(40, 24);
             当前板6框.TabIndex = 5;

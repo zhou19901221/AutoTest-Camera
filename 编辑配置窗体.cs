@@ -103,7 +103,8 @@ namespace 自动测试
             检测项表格.Rows.Clear();
             foreach (var 项 in 数据.检测项列表)
             {
-                检测项表格.Rows.Add(项.排序, 项.名称, 项.类型, 项.延时, "", "", "", 项.启用);
+                int 新索引 = 检测项表格.Rows.Add(项.排序, 项.名称, 项.类型, 项.延时, "", "", "", 项.启用);
+                更新行显示根据类型(检测项表格.Rows[新索引], 项.类型);
             }
         }
 
@@ -128,6 +129,12 @@ namespace 自动测试
 
         private void 检测项表格_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
+            if (配置名列表.SelectedIndex == -1)
+            {
+                MessageBox.Show("请先选择或创建一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
             
             var row = 检测项表格.Rows[e.RowIndex];
@@ -151,6 +158,8 @@ namespace 自动测试
                     检测项表格.Rows[i].Cells["排序列"].Value = i + 1;
                 }
             }
+            
+            保存当前配置数据();
         }
 
         private void 更新行显示根据类型(DataGridViewRow row, string 类型)
@@ -340,26 +349,51 @@ namespace 自动测试
                 dialog.Filter = "配置文件|*.json";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    string 配置名 = System.IO.Path.GetFileNameWithoutExtension(dialog.FileName);
-                    配置名列表.Items.Add(配置名);
-                    配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
-                    MessageBox.Show($"配置已导入：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    try
+                    {
+                        string json = File.ReadAllText(dialog.FileName);
+                        var 数据 = JsonSerializer.Deserialize<配置项数据>(json);
+                        if (数据 != null)
+                        {
+                            string 配置名 = 数据.配置名称;
+                            配置数据字典[配置名] = 数据;
+                            配置名列表.Items.Add(配置名);
+                            配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
+                            MessageBox.Show($"配置已导入：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"导入失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
 
         private void 增加项按钮_Click(object sender, EventArgs e)
         {
+            if (配置名列表.SelectedIndex == -1)
+            {
+                MessageBox.Show("请先选择或创建一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
             int 新序号 = 检测项表格.Rows.Count + 1;
-            检测项表格.Rows.Add($"检测项{新序号}", 新序号, "电压采集", 0, false);
+            检测项表格.Rows.Add(新序号, $"检测项{新序号}", "继电器输出", 0, "", "", "false", false);
         }
 
         private void 插入项按钮_Click(object sender, EventArgs e)
         {
+            if (配置名列表.SelectedIndex == -1)
+            {
+                MessageBox.Show("请先选择或创建一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
             if (检测项表格.SelectedRows.Count > 0)
             {
                 int 索引 = 检测项表格.SelectedRows[0].Index;
-                检测项表格.Rows.Insert(索引, "新检测项", 索引 + 1, "电压采集", 0, false);
+                检测项表格.Rows.Insert(索引, 索引 + 1, "新检测项", "继电器输出", 0, "", "", "false", false);
             }
             else
             {

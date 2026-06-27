@@ -1,12 +1,33 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.IO;
+using System.Text.Json;
 
 namespace 自动测试
 {
     public partial class 编辑配置窗体 : Form
     {
         private List<RadioButton> 当前板选择列表 = new List<RadioButton>();
+        private Dictionary<string, 配置项数据> 配置数据字典 = new Dictionary<string, 配置项数据>();
+        private string 当前配置名 = "";
+
+        public class 配置项数据
+        {
+            public string 配置名称 { get; set; } = "";
+            public DateTime 创建日期 { get; set; } = DateTime.Now;
+            public int 拼板数 { get; set; } = 6;
+            public List<检测项数据> 检测项列表 { get; set; } = new List<检测项数据>();
+        }
+
+        public class 检测项数据
+        {
+            public string 名称 { get; set; } = "";
+            public int 排序 { get; set; } = 0;
+            public string 类型 { get; set; } = "电压采集";
+            public int 延时 { get; set; } = 0;
+            public bool 启用 { get; set; } = false;
+        }
 
         public 编辑配置窗体()
         {
@@ -23,8 +44,63 @@ namespace 自动测试
             拼板数框.Value = 6;
 
             初始化当前板选择();
+            
+            配置名列表.SelectedIndexChanged += 配置名列表_SelectedIndexChanged;
 
             拼板数框.ValueChanged += 拼板数框_ValueChanged;
+        }
+
+        private void 配置名列表_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (配置名列表.SelectedIndex == -1) return;
+            
+            保存当前配置数据();
+            
+            当前配置名 = 配置名列表.SelectedItem.ToString();
+            加载配置数据(当前配置名);
+        }
+
+        private void 保存当前配置数据()
+        {
+            if (string.IsNullOrEmpty(当前配置名)) return;
+            if (!配置数据字典.ContainsKey(当前配置名)) return;
+            
+            var 数据 = 配置数据字典[当前配置名];
+            数据.配置名称 = 配置名称框.Text;
+            数据.拼板数 = (int)拼板数框.Value;
+            
+            数据.检测项列表.Clear();
+            foreach (DataGridViewRow row in 检测项表格.Rows)
+            {
+                if (row.IsNewRow) continue;
+                
+                检测项数据 项 = new 检测项数据
+                {
+                    名称 = row.Cells["名称列"].Value?.ToString() ?? "",
+                    排序 = int.TryParse(row.Cells["排序列"].Value?.ToString(), out int 排序) ? 排序 : 0,
+                    类型 = row.Cells["类型列"].Value?.ToString() ?? "电压采集",
+                    延时 = int.TryParse(row.Cells["延时列"].Value?.ToString(), out int 延时) ? 延时 : 0,
+                    启用 = bool.TryParse(row.Cells["启用列"].Value?.ToString(), out bool 启用) ? 启用 : false
+                };
+                数据.检测项列表.Add(项);
+            }
+        }
+
+        private void 加载配置数据(string 配置名)
+        {
+            if (!配置数据字典.ContainsKey(配置名)) return;
+            
+            var 数据 = 配置数据字典[配置名];
+            
+            配置名称框.Text = 数据.配置名称;
+            日期框.Text = 数据.创建日期.ToString("yyyy/MM/dd");
+            拼板数框.Value = 数据.拼板数;
+            
+            检测项表格.Rows.Clear();
+            foreach (var 项 in 数据.检测项列表)
+            {
+                检测项表格.Rows.Add(项.名称, 项.排序, 项.类型, 项.延时, 项.启用);
+            }
         }
 
         private void 初始化当前板选择()
@@ -99,10 +175,19 @@ namespace 自动测试
 
         private void 增加配置按钮_Click(object sender, EventArgs e)
         {
+            保存当前配置数据();
+            
             string 新配置名 = "新配置" + (配置名列表.Items.Count + 1);
+            配置项数据 新数据 = new 配置项数据
+            {
+                配置名称 = 新配置名,
+                创建日期 = DateTime.Now,
+                拼板数 = 6
+            };
+            
+            配置数据字典[新配置名] = 新数据;
             配置名列表.Items.Add(新配置名);
             配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
-            配置名称框.Text = 新配置名;
         }
 
         private void 复制配置按钮_Click(object sender, EventArgs e)
@@ -113,12 +198,38 @@ namespace 自动测试
                 return;
             }
 
+            保存当前配置数据();
+            
             string 源配置名 = 配置名列表.SelectedItem.ToString();
             string 新配置名 = 源配置名 + "_复制";
-            配置名列表.Items.Add(新配置名);
-            配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
-            配置名称框.Text = 新配置名;
-            MessageBox.Show($"已复制配置：{源配置名} -> {新配置名}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            
+            if (配置数据字典.ContainsKey(源配置名))
+            {
+                var 源数据 = 配置数据字典[源配置名];
+                配置项数据 新数据 = new 配置项数据
+                {
+                    配置名称 = 新配置名,
+                    创建日期 = DateTime.Now,
+                    拼板数 = 源数据.拼板数
+                };
+                
+                foreach (var 项 in 源数据.检测项列表)
+                {
+                    新数据.检测项列表.Add(new 检测项数据
+                    {
+                        名称 = 项.名称,
+                        排序 = 项.排序,
+                        类型 = 项.类型,
+                        延时 = 项.延时,
+                        启用 = 项.启用
+                    });
+                }
+                
+                配置数据字典[新配置名] = 新数据;
+                配置名列表.Items.Add(新配置名);
+                配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
+                MessageBox.Show($"已复制配置：{源配置名} -> {新配置名}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void 导出配置按钮_Click(object sender, EventArgs e)
@@ -129,13 +240,21 @@ namespace 自动测试
                 return;
             }
 
+            保存当前配置数据();
+            
             using (var dialog = new SaveFileDialog())
             {
                 dialog.Filter = "配置文件|*.json";
                 dialog.FileName = 配置名列表.SelectedItem.ToString();
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    MessageBox.Show($"配置已导出到：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    string 配置名 = 配置名列表.SelectedItem.ToString();
+                    if (配置数据字典.ContainsKey(配置名))
+                    {
+                        var json = JsonSerializer.Serialize(配置数据字典[配置名], new JsonSerializerOptions { WriteIndented = true });
+                        File.WriteAllText(dialog.FileName, json);
+                        MessageBox.Show($"配置已导出到：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
                 }
             }
         }
@@ -165,6 +284,8 @@ namespace 自动测试
 
             if (result == DialogResult.Yes)
             {
+                string 配置名 = 配置名列表.SelectedItem.ToString();
+                配置数据字典.Remove(配置名);
                 配置名列表.Items.RemoveAt(配置名列表.SelectedIndex);
                 MessageBox.Show("配置已删除", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -177,13 +298,27 @@ namespace 自动测试
                 dialog.Filter = "配置文件|*.json";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    string 配置名 = System.IO.Path.GetFileNameWithoutExtension(dialog.FileName);
-                    配置名列表.Items.Add(配置名);
-                    配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
-                    MessageBox.Show($"配置已导入：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    try
+                    {
+                        string json = File.ReadAllText(dialog.FileName);
+                        var 数据 = JsonSerializer.Deserialize<配置项数据>(json);
+                        if (数据 != null)
+                        {
+                            string 配置名 = 数据.配置名称;
+                            配置数据字典[配置名] = 数据;
+                            配置名列表.Items.Add(配置名);
+                            配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
+                            MessageBox.Show($"配置已导入：{dialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"导入失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
+
 
         private void 增加项按钮_Click(object sender, EventArgs e)
         {

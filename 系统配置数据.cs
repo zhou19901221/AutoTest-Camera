@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using System.Text.Json;
+
 namespace 自动测试
 {
     public class 系统配置数据
@@ -12,6 +16,148 @@ namespace 自动测试
         public 平台视觉类 平台视觉 = new 平台视觉类();
         public MESS设置类 MESS设置 = new MESS设置类();
         public 其他设置类 其他设置 = new 其他设置类();
+    }
+
+    public static class 系统配置管理
+    {
+        private static 系统配置数据? _实例;
+        private static readonly string 配置文件路径 = Path.Combine(Application.StartupPath, "系统配置.json");
+        private static readonly JsonSerializerOptions 序列化选项 = new JsonSerializerOptions 
+        { 
+            WriteIndented = true, 
+            IncludeFields = true 
+        };
+
+        public static 系统配置数据 实例
+        {
+            get
+            {
+                _实例 ??= 加载();
+                return _实例;
+            }
+        }
+
+        public static 系统配置数据 加载()
+        {
+            if (File.Exists(配置文件路径))
+            {
+                try
+                {
+                    string json = File.ReadAllText(配置文件路径);
+                    return JsonSerializer.Deserialize<系统配置数据>(json, 序列化选项) ?? new 系统配置数据();
+                }
+                catch { }
+            }
+            return new 系统配置数据();
+        }
+
+        public static void 保存(系统配置数据 数据)
+        {
+            try
+            {
+                string json = JsonSerializer.Serialize(数据, 序列化选项);
+                File.WriteAllText(配置文件路径, json);
+            }
+            catch { }
+        }
+
+        public static List<string> 获取可用地址列表(string 类型)
+        {
+            var 列表 = new List<string>();
+            var 配置 = 实例;
+
+            switch (类型)
+            {
+                case "输入检测":
+                {
+                    int 编号 = 1;
+                    foreach (var 模块 in 配置.电压模块.模块列表)
+                    {
+                        if (模块.模块类型 == "输入模块")
+                        {
+                            for (int i = 0; i < 模块.通道数量; i++)
+                                列表.Add($"I{编号}.{i}");
+                            编号++;
+                        }
+                    }
+                    break;
+                }
+                case "继电器输出":
+                {
+                    int 编号 = 1;
+                    foreach (var 模块 in 配置.电压模块.模块列表)
+                    {
+                        if (模块.模块类型 == "输出模块")
+                        {
+                            for (int i = 0; i < 模块.通道数量; i++)
+                                列表.Add($"Q{编号}.{i}");
+                            编号++;
+                        }
+                    }
+                    break;
+                }
+                case "电源输出":
+                {
+                    int 编号 = 1;
+                    foreach (var 通道数 in 配置.电压模块.继电器通道数)
+                    {
+                        if (通道数 > 0)
+                        {
+                            for (int i = 0; i < 通道数; i++)
+                                列表.Add($"R{编号}.{i}");
+                            编号++;
+                        }
+                    }
+                    break;
+                }
+                case "直流电压":
+                case "交流电压":
+                {
+                    int 编号 = 1;
+                    foreach (var 模块 in 配置.电压模块.模块列表)
+                    {
+                        if (模块.模块类型 == "直流电压模块")
+                        {
+                            for (int i = 0; i < 模块.通道数量; i++)
+                                列表.Add($"AI{编号}.{i}");
+                            编号++;
+                        }
+                    }
+                    break;
+                }
+                case "直流电流":
+                case "交流电流":
+                {
+                    int 编号 = 1;
+                    foreach (var 模块 in 配置.电压模块.模块列表)
+                    {
+                        if (模块.模块类型 == "直流电流模块")
+                        {
+                            for (int i = 0; i < 模块.通道数量; i++)
+                                列表.Add($"AI{编号}.{i}");
+                            编号++;
+                        }
+                    }
+                    break;
+                }
+                case "声音采集":
+                {
+                    int 编号 = 1;
+                    foreach (var 模块 in 配置.电压模块.模块列表)
+                    {
+                        if (模块.模块类型 == "声音模块")
+                        {
+                            for (int i = 0; i < 模块.通道数量; i++)
+                                列表.Add($"S{编号}.{i}");
+                            编号++;
+                        }
+                    }
+                    break;
+                }
+            }
+
+            return 列表;
+        }
     }
 
     public class 基础参数类
@@ -34,6 +180,7 @@ namespace 自动测试
         public bool 显示环境温度湿度 = false;
         public bool 开机自动运行 = false;
         public bool 全局量程 = false;
+        public bool 伺服 = false;
     }
 
     public class 运动控制类
@@ -46,6 +193,24 @@ namespace 自动测试
         public double 主运减速时间 = 0.2;
         public int 主运计数时间 = 0;
         public double 主运保留参数 = 0.0;
+        
+        public double Z轴导程 = 0.0;
+        public int Z轴最大行程 = 0;
+        public int Z轴最小行程 = 0;
+        public int Z轴回零快速 = 0;
+        public int Z轴回零慢速 = 0;
+        public double Z轴加减速时间 = 0.0;
+        public int Z轴自动速度 = 0;
+        public int Z轴手动速度 = 0;
+        
+        public double Y轴导程 = 0.0;
+        public int Y轴最大行程 = 0;
+        public int Y轴最小行程 = 0;
+        public int Y轴回零快速 = 0;
+        public int Y轴回零慢速 = 0;
+        public double Y轴加减速时间 = 0.0;
+        public int Y轴自动速度 = 0;
+        public int Y轴手动速度 = 0;
         
         public double 调宽一圈距离 = 16.0;
         public int 调宽一圈脉冲 = 10000;
@@ -65,21 +230,22 @@ namespace 自动测试
         public int 采样普通状态 = 200;
         public int 采样功能测试时 = 50;
         public int 采样工作状态 = 50;
-        public int 输入通道数 = 56;
-        public int 输出通道数 = 48;
         public int 通讯重试次数 = 0;
         public int 通讯单次超时 = 0;
-        public int 声音通道数 = 16;
-        public string 声音模块类型 = "声音专用模块T";
         public int 最大拼版数 = 30;
-        public int 电压通道数 = 24;
         public int 测试NG数 = 0;
-        public int 电流通道数 = 8;
         
-        public int 电压采集模块数 = 2;
-        public List<通道配置项> 电压采集通道 = new List<通道配置项>();
-        public int 电压输出模块数 = 0;
-        public List<通道配置项> 电压输出通道 = new List<通道配置项>();
+        public List<模块通道配置> 模块列表 = new List<模块通道配置>();
+        public List<int> 继电器通道数 = new List<int>();
+        
+        public List<string> 波特率列表 = new List<string>();
+        public List<string> 备注列表 = new List<string>();
+    }
+
+    public class 模块通道配置
+    {
+        public string 模块类型 = "输入模块";
+        public int 通道数量 = 16;
     }
 
     public class 电流模块类

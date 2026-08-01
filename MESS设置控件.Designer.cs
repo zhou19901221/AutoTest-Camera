@@ -189,6 +189,7 @@ namespace 自动测试
             this.条码枪类型框.Name = "条码枪类型框";
             this.条码枪类型框.Size = new System.Drawing.Size(100, 23);
             this.条码枪类型框.TabIndex = 1;
+            this.条码枪类型框.SelectedIndex = 0;
             // 
             // 条码枪数量标签
             // 

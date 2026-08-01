@@ -7,13 +7,13 @@ namespace 自动测试
 {
     public partial class 系统设置页面 : Form
     {
-        private 系统配置数据 配置数据 = new 系统配置数据();
+        private 系统配置数据 配置数据;
         private bool 配置已修改 = false;
 
         public 系统设置页面()
         {
             InitializeComponent();
-            初始化所有标签页();
+            配置数据 = 系统配置管理.实例;
             加载配置数据();
         }
 
@@ -23,13 +23,28 @@ namespace 自动测试
 
         private void 加载配置数据()
         {
+            基础参数控件1.设置配置数据(配置数据);
+            检测设置控件1.设置配置数据(配置数据);
+            运动控制控件1.设置配置数据(配置数据);
+            电压模块控件1.设置配置数据(配置数据);
+            MESS设置控件1.设置配置数据(配置数据);
+            其他设置控件1.设置配置数据(配置数据);
         }
 
         private void 保存按钮_Click(object? sender, EventArgs e)
         {
+            基础参数控件1.保存配置();
+            检测设置控件1.保存配置();
+            运动控制控件1.保存配置();
+            电压模块控件1.保存配置();
+            MESS设置控件1.保存配置();
+            其他设置控件1.保存配置();
+            
+            系统配置管理.保存(配置数据);
             MessageBox.Show("配置已保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             this.Close();
         }
+
 
         private void 取消按钮_Click(object? sender, EventArgs e)
         {

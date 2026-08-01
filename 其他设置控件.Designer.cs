@@ -225,6 +225,7 @@ namespace 自动测试
             this.选择状态框.Name = "选择状态框";
             this.选择状态框.Size = new System.Drawing.Size(100, 23);
             this.选择状态框.TabIndex = 1;
+            this.选择状态框.SelectedIndex = 0;
             // 
             // 路径颜色标签
             // 
@@ -246,6 +247,7 @@ namespace 自动测试
             this.路径颜色框.Name = "路径颜色框";
             this.路径颜色框.Size = new System.Drawing.Size(100, 23);
             this.路径颜色框.TabIndex = 3;
+            this.路径颜色框.SelectedIndex = 0;
             // 
             // 当前路径标签
             // 
@@ -268,6 +270,7 @@ namespace 自动测试
             this.当前路径框.Name = "当前路径框";
             this.当前路径框.Size = new System.Drawing.Size(100, 23);
             this.当前路径框.TabIndex = 5;
+            this.当前路径框.SelectedIndex = 0;
             // 
             // 空走状态标签
             // 
@@ -290,6 +293,7 @@ namespace 自动测试
             this.空走状态框.Name = "空走状态框";
             this.空走状态框.Size = new System.Drawing.Size(100, 23);
             this.空走状态框.TabIndex = 7;
+            this.空走状态框.SelectedIndex = 0;
             // 
             // 通讯组
             // 
@@ -326,6 +330,7 @@ namespace 自动测试
             this.记录类型框.Name = "记录类型框";
             this.记录类型框.Size = new System.Drawing.Size(100, 23);
             this.记录类型框.TabIndex = 1;
+            this.记录类型框.SelectedIndex = 0;
             // 
             // 字符格式框
             // 

@@ -90,6 +90,7 @@ namespace 自动测试
             // 检测次数框
             // 
             检测次数框.Location = new Point(100, 25);
+            检测次数框.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             检测次数框.Name = "检测次数框";
             检测次数框.Size = new Size(80, 23);
             检测次数框.TabIndex = 3;
@@ -138,6 +139,7 @@ namespace 自动测试
             // numericUpDown7
             // 
             numericUpDown7.Location = new Point(100, 25);
+            numericUpDown7.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             numericUpDown7.Name = "numericUpDown7";
             numericUpDown7.Size = new Size(80, 23);
             numericUpDown7.TabIndex = 3;

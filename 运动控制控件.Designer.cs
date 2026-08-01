@@ -112,7 +112,7 @@ namespace 自动测试
             // 
             回零慢速框.DecimalPlaces = 3;
             回零慢速框.Location = new Point(117, 328);
-            回零慢速框.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            回零慢速框.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             回零慢速框.Name = "回零慢速框";
             回零慢速框.Size = new Size(80, 23);
             回零慢速框.TabIndex = 16;
@@ -122,7 +122,7 @@ namespace 自动测试
             // 
             最小脉冲框.DecimalPlaces = 3;
             最小脉冲框.Location = new Point(117, 210);
-            最小脉冲框.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            最小脉冲框.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             最小脉冲框.Name = "最小脉冲框";
             最小脉冲框.Size = new Size(80, 23);
             最小脉冲框.TabIndex = 16;
@@ -132,7 +132,7 @@ namespace 自动测试
             // 
             单圈脉冲框.DecimalPlaces = 3;
             单圈脉冲框.Location = new Point(117, 92);
-            单圈脉冲框.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            单圈脉冲框.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             单圈脉冲框.Name = "单圈脉冲框";
             单圈脉冲框.Size = new Size(80, 23);
             单圈脉冲框.TabIndex = 16;
@@ -169,7 +169,7 @@ namespace 自动测试
             // 
             最大脉冲框.DecimalPlaces = 3;
             最大脉冲框.Location = new Point(117, 151);
-            最大脉冲框.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            最大脉冲框.Maximum = new decimal(new int[] { 10000000, 0, 0, 0 });
             最大脉冲框.Name = "最大脉冲框";
             最大脉冲框.Size = new Size(80, 23);
             最大脉冲框.TabIndex = 14;
@@ -179,7 +179,7 @@ namespace 自动测试
             // 
             回零快速框.DecimalPlaces = 3;
             回零快速框.Location = new Point(117, 269);
-            回零快速框.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            回零快速框.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             回零快速框.Name = "回零快速框";
             回零快速框.Size = new Size(80, 23);
             回零快速框.TabIndex = 14;
@@ -207,7 +207,7 @@ namespace 自动测试
             // 
             导程框.DecimalPlaces = 3;
             导程框.Location = new Point(117, 33);
-            导程框.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            导程框.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             导程框.Name = "导程框";
             导程框.Size = new Size(80, 23);
             导程框.TabIndex = 14;
@@ -226,7 +226,7 @@ namespace 自动测试
             // 
             numericUpDown13.DecimalPlaces = 3;
             numericUpDown13.Location = new Point(357, 328);
-            numericUpDown13.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown13.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown13.Name = "numericUpDown13";
             numericUpDown13.Size = new Size(80, 23);
             numericUpDown13.TabIndex = 14;
@@ -236,7 +236,7 @@ namespace 自动测试
             // 
             numericUpDown12.DecimalPlaces = 3;
             numericUpDown12.Location = new Point(357, 269);
-            numericUpDown12.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown12.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown12.Name = "numericUpDown12";
             numericUpDown12.Size = new Size(80, 23);
             numericUpDown12.TabIndex = 14;
@@ -255,7 +255,7 @@ namespace 自动测试
             // 
             numericUpDown17.DecimalPlaces = 3;
             numericUpDown17.Location = new Point(596, 210);
-            numericUpDown17.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown17.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown17.Name = "numericUpDown17";
             numericUpDown17.Size = new Size(80, 23);
             numericUpDown17.TabIndex = 14;
@@ -265,7 +265,7 @@ namespace 自动测试
             // 
             numericUpDown11.DecimalPlaces = 3;
             numericUpDown11.Location = new Point(357, 210);
-            numericUpDown11.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown11.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown11.Name = "numericUpDown11";
             numericUpDown11.Size = new Size(80, 23);
             numericUpDown11.TabIndex = 14;
@@ -302,7 +302,7 @@ namespace 自动测试
             // 
             numericUpDown16.DecimalPlaces = 3;
             numericUpDown16.Location = new Point(596, 151);
-            numericUpDown16.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown16.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown16.Name = "numericUpDown16";
             numericUpDown16.Size = new Size(80, 23);
             numericUpDown16.TabIndex = 14;
@@ -312,7 +312,7 @@ namespace 自动测试
             // 
             numericUpDown10.DecimalPlaces = 3;
             numericUpDown10.Location = new Point(357, 151);
-            numericUpDown10.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown10.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown10.Name = "numericUpDown10";
             numericUpDown10.Size = new Size(80, 23);
             numericUpDown10.TabIndex = 14;
@@ -340,7 +340,7 @@ namespace 自动测试
             // 
             numericUpDown15.DecimalPlaces = 3;
             numericUpDown15.Location = new Point(596, 92);
-            numericUpDown15.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown15.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown15.Name = "numericUpDown15";
             numericUpDown15.Size = new Size(80, 23);
             numericUpDown15.TabIndex = 14;
@@ -350,7 +350,7 @@ namespace 自动测试
             // 
             numericUpDown9.DecimalPlaces = 3;
             numericUpDown9.Location = new Point(357, 92);
-            numericUpDown9.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown9.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown9.Name = "numericUpDown9";
             numericUpDown9.Size = new Size(80, 23);
             numericUpDown9.TabIndex = 14;
@@ -378,7 +378,7 @@ namespace 自动测试
             // 
             numericUpDown14.DecimalPlaces = 3;
             numericUpDown14.Location = new Point(596, 33);
-            numericUpDown14.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown14.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown14.Name = "numericUpDown14";
             numericUpDown14.Size = new Size(80, 23);
             numericUpDown14.TabIndex = 14;
@@ -397,7 +397,7 @@ namespace 自动测试
             // 
             numericUpDown8.DecimalPlaces = 3;
             numericUpDown8.Location = new Point(357, 33);
-            numericUpDown8.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
+            numericUpDown8.Maximum = new decimal(new int[] { 1000000, 0, 0, 0 });
             numericUpDown8.Name = "numericUpDown8";
             numericUpDown8.Size = new Size(80, 23);
             numericUpDown8.TabIndex = 14;

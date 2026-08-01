@@ -81,6 +81,7 @@ namespace 自动测试
             测试类型框.Name = "测试类型框";
             测试类型框.Size = new Size(200, 25);
             测试类型框.TabIndex = 1;
+            测试类型框.SelectedIndex = 0;
             // 
             // 测试类型标签
             // 
@@ -113,6 +114,7 @@ namespace 自动测试
             波特率框.Name = "波特率框";
             波特率框.Size = new Size(100, 25);
             波特率框.TabIndex = 3;
+            波特率框.SelectedIndex = 4;
             // 
             // 波特率标签
             // 
@@ -312,6 +314,7 @@ namespace 自动测试
             无程控框.Name = "无程控框";
             无程控框.Size = new Size(100, 25);
             无程控框.TabIndex = 1;
+            无程控框.SelectedIndex = 0;
             // 
             // 无程控标签
             // 

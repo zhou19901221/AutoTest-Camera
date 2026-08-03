@@ -9,6 +9,7 @@ namespace 自动测试
         private MyCamera.MV_CC_DEVICE_INFO_LIST 设备列表 = new MyCamera.MV_CC_DEVICE_INFO_LIST();
         private bool 相机已连接 = false;
         private string 操作日志内容 = "";
+        private 编辑配置窗体.配置项数据? 当前配置 = null;
 
         public static Form1? 主窗体实例 = null;
 
@@ -168,6 +169,103 @@ namespace 自动测试
         {
             var visualDebug = new 系统设置页面();
             visualDebug.Show();
+        }
+
+        private void 选着配置_Click(object sender, EventArgs e)
+        {
+            var 配置列表 = 配置数据库.实例.获取所有配置名();
+            if (配置列表.Count == 0)
+            {
+                MessageBox.Show("没有已保存的配置，请先编辑配置并保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var 对话框 = new Form();
+            对话框.Text = "选择配置";
+            对话框.StartPosition = FormStartPosition.CenterParent;
+            对话框.FormBorderStyle = FormBorderStyle.FixedDialog;
+            对话框.MaximizeBox = false;
+            对话框.MinimizeBox = false;
+            对话框.Size = new Size(400, 350);
+
+            var 提示标签 = new Label();
+            提示标签.Text = "请选择要加载的配置：";
+            提示标签.Location = new Point(20, 15);
+            提示标签.Size = new Size(340, 25);
+            对话框.Controls.Add(提示标签);
+
+            var 列表框 = new ListBox();
+            列表框.Location = new Point(20, 45);
+            列表框.Size = new Size(340, 220);
+            foreach (var 名称 in 配置列表)
+            {
+                列表框.Items.Add(名称);
+            }
+            if (列表框.Items.Count > 0) 列表框.SelectedIndex = 0;
+            对话框.Controls.Add(列表框);
+
+            var 加载按钮 = new Button();
+            加载按钮.Text = "加载";
+            加载按钮.Location = new Point(120, 275);
+            加载按钮.Size = new Size(80, 30);
+            加载按钮.Enabled = false;
+            对话框.Controls.Add(加载按钮);
+
+            var 取消按钮 = new Button();
+            取消按钮.Text = "取消";
+            取消按钮.Location = new Point(220, 275);
+            取消按钮.Size = new Size(80, 30);
+            取消按钮.DialogResult = DialogResult.Cancel;
+            对话框.Controls.Add(取消按钮);
+
+            列表框.SelectedIndexChanged += (s, args) =>
+            {
+                加载按钮.Enabled = 列表框.SelectedIndex >= 0;
+            };
+
+            列表框.DoubleClick += (s, args) =>
+            {
+                if (列表框.SelectedIndex >= 0) 加载按钮.PerformClick();
+            };
+
+            加载按钮.Click += (s, args) =>
+            {
+                string 选中名称 = 列表框.SelectedItem?.ToString() ?? "";
+                var 数据 = 配置数据库.实例.加载配置(选中名称);
+                if (数据 != null)
+                {
+                    当前配置 = 数据;
+                    显示当前配置(数据);
+                    添加操作日志($"已加载配置：{选中名称}");
+                    对话框.DialogResult = DialogResult.OK;
+                    对话框.Close();
+                }
+                else
+                {
+                    MessageBox.Show($"加载配置 \"{选中名称}\" 失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+
+            对话框.ShowDialog(this);
+        }
+
+        private void 显示当前配置(编辑配置窗体.配置项数据 数据)
+        {
+            配置信息.Text = 数据.配置名称;
+            当前配置显示.Items.Clear();
+            当前配置显示.Items.Add($"拼板数：{数据.拼板数}");
+            当前配置显示.Items.Add(new string('─', 30));
+            当前配置显示.Items.Add($"{"序号",-6}{"名称",-20}{"类型",-14}{"延时",-6}{"启用",-6}");
+            当前配置显示.Items.Add(new string('─', 30));
+
+            foreach (var 项 in 数据.检测项列表)
+            {
+                string 启用文本 = 项.启用 ? "√" : "×";
+                当前配置显示.Items.Add($"{项.排序,-6}{项.名称,-20}{项.类型,-14}{项.延时,-6}{启用文本,-6}");
+            }
+
+            当前配置显示.Items.Add(new string('─', 30));
+            当前配置显示.Items.Add($"共 {数据.检测项列表.Count} 个检测项");
         }
     }
 }

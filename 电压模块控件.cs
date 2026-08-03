@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows.Forms;
 using System.Collections.Generic;
 
@@ -7,10 +7,11 @@ namespace 自动测试
     public partial class 电压模块控件 : UserControl
     {
         private List<ComboBox> 类型下拉框列表 = new List<ComboBox>();
-        private List<ComboBox> 波特率下拉框列表 = new List<ComboBox>();
-        private List<NumericUpDown> 通道数量列表 = new List<NumericUpDown>();
-        private List<NumericUpDown> 继电器列表 = new List<NumericUpDown>();
-        private List<TextBox> 备注列表 = new List<TextBox>();
+        private List<ComboBox> 电源类型框列表 = new List<ComboBox>();
+        private List<ComboBox> 单位下拉框列表 = new List<ComboBox>();
+        private List<NumericUpDown> 量程框列表 = new List<NumericUpDown>();
+        private List<TextBox> 功能板备注列表 = new List<TextBox>();
+        private List<TextBox> 电源备注列表 = new List<TextBox>();
         private 系统配置数据 配置数据;
 
         public 电压模块控件()
@@ -27,127 +28,111 @@ namespace 自动测试
 
         private void 初始化控件列表()
         {
-            类型下拉框列表.Add(comboBox1);
-            类型下拉框列表.Add(comboBox2);
-            类型下拉框列表.Add(comboBox3);
-            类型下拉框列表.Add(comboBox4);
-            类型下拉框列表.Add(comboBox5);
-            类型下拉框列表.Add(comboBox6);
-            类型下拉框列表.Add(comboBox7);
-            类型下拉框列表.Add(comboBox8);
+            类型下拉框列表.Add(功能板1类型框);
+            类型下拉框列表.Add(功能板2类型框);
+            类型下拉框列表.Add(功能板3类型框);
+            类型下拉框列表.Add(功能板4类型框);
+            类型下拉框列表.Add(功能板5类型框);
+            类型下拉框列表.Add(功能板6类型框);
+            类型下拉框列表.Add(功能板7类型框);
+            类型下拉框列表.Add(功能板8类型框);
 
-            波特率下拉框列表.Add(comboBox9);
-            波特率下拉框列表.Add(comboBox10);
-            波特率下拉框列表.Add(comboBox11);
-            波特率下拉框列表.Add(comboBox12);
-            波特率下拉框列表.Add(comboBox13);
-            波特率下拉框列表.Add(comboBox14);
-            波特率下拉框列表.Add(comboBox15);
-            波特率下拉框列表.Add(comboBox16);
+            电源类型框列表.Add(电源1类型框);
+            电源类型框列表.Add(电源2类型框);
+            电源类型框列表.Add(电源3类型框);
 
-            通道数量列表.Add(numericUpDown1);
-            通道数量列表.Add(numericUpDown2);
-            通道数量列表.Add(numericUpDown3);
-            通道数量列表.Add(numericUpDown4);
-            通道数量列表.Add(numericUpDown5);
-            通道数量列表.Add(numericUpDown6);
-            通道数量列表.Add(numericUpDown7);
-            通道数量列表.Add(numericUpDown8);
+            单位下拉框列表.Add(功能板1单位框);
+            单位下拉框列表.Add(功能板2单位框);
+            单位下拉框列表.Add(功能板3单位框);
+            单位下拉框列表.Add(功能板4单位框);
+            单位下拉框列表.Add(功能板5单位框);
+            单位下拉框列表.Add(功能板6单位框);
+            单位下拉框列表.Add(功能板7单位框);
+            单位下拉框列表.Add(功能板8单位框);
 
-            继电器列表.Add(numericUpDown17);
-            继电器列表.Add(numericUpDown18);
-            继电器列表.Add(numericUpDown19);
+            量程框列表.Add(功能板1量程框);
+            量程框列表.Add(功能板2量程框);
+            量程框列表.Add(功能板3量程框);
+            量程框列表.Add(功能板4量程框);
+            量程框列表.Add(功能板5量程框);
+            量程框列表.Add(功能板6量程框);
+            量程框列表.Add(功能板7量程框);
+            量程框列表.Add(功能板8量程框);
 
-            备注列表.Add(textBox1);
-            备注列表.Add(textBox2);
-            备注列表.Add(textBox3);
-            备注列表.Add(textBox4);
-            备注列表.Add(textBox5);
-            备注列表.Add(textBox6);
-            备注列表.Add(textBox7);
-            备注列表.Add(textBox8);
-            备注列表.Add(textBox9);
-            备注列表.Add(textBox10);
-            备注列表.Add(textBox11);
+            功能板备注列表.Add(功能板1备注框);
+            功能板备注列表.Add(功能板2备注框);
+            功能板备注列表.Add(功能板3备注框);
+            功能板备注列表.Add(功能板4备注框);
+            功能板备注列表.Add(功能板5备注框);
+            功能板备注列表.Add(功能板6备注框);
+            功能板备注列表.Add(功能板7备注框);
+            功能板备注列表.Add(功能板8备注框);
+
+            电源备注列表.Add(继电器1备注框);
+            电源备注列表.Add(继电器2备注框);
+            电源备注列表.Add(继电器3备注框);
         }
 
         public void 加载配置()
         {
             if (配置数据 == null) return;
-            
+
             for (int i = 0; i < 类型下拉框列表.Count; i++)
             {
                 if (i < 配置数据.电压模块.模块列表.Count)
                 {
                     int 索引 = 类型下拉框列表[i].Items.IndexOf(配置数据.电压模块.模块列表[i].模块类型);
                     if (索引 >= 0) 类型下拉框列表[i].SelectedIndex = 索引;
+
+                    if (i < 配置数据.电压模块.备注列表.Count)
+                        功能板备注列表[i].Text = 配置数据.电压模块.备注列表[i];
                 }
             }
-            
-            for (int i = 0; i < 通道数量列表.Count; i++)
+
+            for (int i = 0; i < 电源类型框列表.Count; i++)
             {
-                if (i < 配置数据.电压模块.模块列表.Count)
+                int 电源偏移 = 类型下拉框列表.Count + i;
+                if (电源偏移 < 配置数据.电压模块.模块列表.Count)
                 {
-                    通道数量列表[i].Value = 配置数据.电压模块.模块列表[i].通道数量;
+                    int 索引 = 电源类型框列表[i].Items.IndexOf(配置数据.电压模块.模块列表[电源偏移].模块类型);
+                    if (索引 >= 0) 电源类型框列表[i].SelectedIndex = 索引;
+
+                    if (电源偏移 < 配置数据.电压模块.备注列表.Count)
+                        电源备注列表[i].Text = 配置数据.电压模块.备注列表[电源偏移];
                 }
-            }
-            
-            for (int i = 0; i < 继电器列表.Count; i++)
-            {
-                if (i < 配置数据.电压模块.继电器通道数.Count)
-                {
-                    继电器列表[i].Value = 配置数据.电压模块.继电器通道数[i];
-                }
-            }
-            
-            for (int i = 0; i < 波特率下拉框列表.Count && i < 配置数据.电压模块.波特率列表.Count; i++)
-            {
-                int 索引 = 波特率下拉框列表[i].Items.IndexOf(配置数据.电压模块.波特率列表[i]);
-                if (索引 >= 0) 波特率下拉框列表[i].SelectedIndex = 索引;
-            }
-            
-            for (int i = 0; i < 备注列表.Count && i < 配置数据.电压模块.备注列表.Count; i++)
-            {
-                备注列表[i].Text = 配置数据.电压模块.备注列表[i];
             }
         }
 
         public void 保存配置()
         {
             if (配置数据 == null) return;
-            
+
             配置数据.电压模块.模块列表.Clear();
+            配置数据.电压模块.备注列表.Clear();
+
             for (int i = 0; i < 类型下拉框列表.Count; i++)
             {
                 配置数据.电压模块.模块列表.Add(new 模块通道配置
                 {
-                    模块类型 = 类型下拉框列表[i].SelectedItem?.ToString() ?? "输入模块",
-                    通道数量 = (int)通道数量列表[i].Value
+                    模块类型 = 类型下拉框列表[i].SelectedItem?.ToString() ?? "无",
+                    通道数量 = 0
                 });
+                配置数据.电压模块.备注列表.Add(功能板备注列表[i].Text);
             }
-            
-            配置数据.电压模块.继电器通道数.Clear();
-            for (int i = 0; i < 继电器列表.Count; i++)
+
+            for (int i = 0; i < 电源类型框列表.Count; i++)
             {
-                配置数据.电压模块.继电器通道数.Add((int)继电器列表[i].Value);
-            }
-            
-            配置数据.电压模块.波特率列表.Clear();
-            for (int i = 0; i < 波特率下拉框列表.Count; i++)
-            {
-                配置数据.电压模块.波特率列表.Add(波特率下拉框列表[i].Text);
-            }
-            
-            配置数据.电压模块.备注列表.Clear();
-            for (int i = 0; i < 备注列表.Count; i++)
-            {
-                配置数据.电压模块.备注列表.Add(备注列表[i].Text);
+                配置数据.电压模块.模块列表.Add(new 模块通道配置
+                {
+                    模块类型 = 电源类型框列表[i].SelectedItem?.ToString() ?? "无",
+                    通道数量 = 0
+                });
+                配置数据.电压模块.备注列表.Add(电源备注列表[i].Text);
             }
         }
 
         private void 采集组_Enter(object sender, EventArgs e)
         {
-
         }
 
         private void 电压模块控件_Load(object sender, EventArgs e)

@@ -214,6 +214,7 @@
             选着配置.TabIndex = 1;
             选着配置.Text = "选择配置";
             选着配置.UseVisualStyleBackColor = true;
+            选着配置.Click += 选着配置_Click;
             // 
             // 配置信息
             // 

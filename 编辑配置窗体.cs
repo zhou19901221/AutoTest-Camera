@@ -266,8 +266,8 @@ namespace 自动测试
 
         private void 更新行显示根据类型(DataGridViewRow row, string 类型)
         {
-            bool 需要数值范围 = 类型 == "直流电压" || 类型 == "交流电压" || 类型 == "直流电流" || 类型 == "交流电流" || 类型 == "声音采集";
-            bool 需要布尔值 = 类型 == "继电器输出" || 类型 == "输入检测";
+            bool 需要数值范围 = 类型 == "直流电压" || 类型 == "交流电压" || 类型 == "直流电流" || 类型 == "交流电流" || 类型 == "声音检测" || 类型 == "PWM检测";
+            bool 需要布尔值 = 类型 == "继电器输出";
             bool 需要文本值 = 类型 == "相机检测" || 类型 == "串口输出";
             
             row.Cells["最大值"].ReadOnly = !需要数值范围;
@@ -815,13 +815,32 @@ namespace 自动测试
 
         private void 关闭并保存按钮_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("配置已保存", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (配置已修改 && !string.IsNullOrEmpty(当前配置名))
+            {
+                保存当前配置数据();
+                配置已修改 = false;
+            }
             DialogResult = DialogResult.OK;
             Close();
         }
 
         private void 关闭按钮_Click(object sender, EventArgs e)
         {
+            if (配置已修改 && !string.IsNullOrEmpty(当前配置名))
+            {
+                var result = MessageBox.Show($"配置 \"{当前配置名}\" 已修改，是否保存？", "保存提示",
+                    MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    保存当前配置数据();
+                    配置已修改 = false;
+                }
+                else if (result == DialogResult.Cancel)
+                {
+                    return;
+                }
+            }
             DialogResult = DialogResult.Cancel;
             Close();
         }

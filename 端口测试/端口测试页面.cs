@@ -16,12 +16,15 @@ namespace 自动测试
 
         private readonly Dictionary<string, bool> 通道状态 = new();
         private SerialPort? modbus串口;
+        private readonly System.Windows.Forms.Timer 输入轮询定时器 = new System.Windows.Forms.Timer();
+        private readonly HashSet<Panel> 输入轮询卡片 = new HashSet<Panel>();
 
         private class 模块卡片信息
         {
             public string 板名称 { get; set; } = "";
             public string 模块类型 { get; set; } = "";
             public int 从站地址 { get; set; }
+            public int 配置索引 { get; set; } = -1;
             public bool 已连接 { get; set; }
         }
 
@@ -30,6 +33,8 @@ namespace 自动测试
             InitializeComponent();
             生成模块按钮();
             界面缩放器.等比例适配屏幕(this);
+            输入轮询定时器.Interval = 200;
+            输入轮询定时器.Tick += 输入轮询定时器_Tick;
         }
 
         private void 生成模块按钮()
@@ -47,7 +52,7 @@ namespace 自动测试
             {
                 string 模块类型 = 配置.电压模块.模块列表[i].模块类型;
                 int 从站地址 = 地址起始 + i;
-                AddModuleCard($"功能板{i + 1}", 模块类型, 从站地址);
+                AddModuleCard($"功能板{i + 1}", 模块类型, 从站地址, i);
             }
 
             for (int i = 0; i < 电源板数; i++)
@@ -56,7 +61,7 @@ namespace 自动测试
                 if (偏移 >= 配置.电压模块.模块列表.Count) break;
                 string 模块类型 = 配置.电压模块.模块列表[偏移].模块类型;
                 int 从站地址 = 地址起始 + 功能板数 + i;
-                AddModuleCard($"电源板{i + 1}", 模块类型, 从站地址);
+                AddModuleCard($"电源板{i + 1}", 模块类型, 从站地址, 偏移);
             }
         }
 
@@ -286,6 +291,72 @@ namespace 自动测试
             }
         }
 
+        private void 输入轮询定时器_Tick(object? sender, EventArgs e)
+        {
+            if (输入轮询卡片.Count == 0) return;
+
+            var 快照 = new List<Panel>(输入轮询卡片);
+            foreach (var 卡片 in 快照)
+            {
+                if (!卡片已连接(卡片)) continue;
+
+                try
+                {
+                    读取并刷新输入模块(卡片);
+                    SetCardStatus(卡片, 已连接色, "已连接");
+                }
+                catch
+                {
+                    标记卡片连接状态(卡片, false);
+                    输入轮询卡片.Remove(卡片);
+                    SetCardStatus(卡片, 错误色, "错误");
+                    MessageBox.Show("读取失败", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+            if (输入轮询卡片.Count == 0)
+            {
+                输入轮询定时器.Stop();
+            }
+        }
+
+        private void 读取并刷新输入模块(Panel 卡片)
+        {
+            string 模块类型 = 获取模块类型(卡片);
+            int 通道数 = 获取模块通道数(模块类型);
+            if (通道数 <= 0) return;
+
+            short[] 原始值 = 读取保持寄存器Int16((byte)获取从站地址(卡片), 0x0018, (ushort)通道数);
+            (double 量程, string 单位) = 获取模块量程单位(卡片);
+            string 前缀 = 获取地址前缀(模块类型);
+
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is not Panel 通道面板 || 通道面板.Name != "通道面板") continue;
+                for (int ch = 0; ch < 通道数; ch++)
+                {
+                    string 控件名 = $"RD_{前缀}{ch}";
+                    if (通道面板.Controls[控件名] is TextBox 读数框)
+                    {
+                        double 实际值 = 原始值[ch] * 量程 / 10000.0;
+                        string 数值文本 = 实际值.ToString("F2");
+                        读数框.Text = string.IsNullOrWhiteSpace(单位) ? 数值文本 : $"{数值文本} {单位}";
+                    }
+                }
+            }
+        }
+
+        private (double 量程, string 单位) 获取模块量程单位(Panel 卡片)
+        {
+            int 索引 = 获取配置索引(卡片);
+            var 列表 = 系统配置管理.实例.电压模块.模块列表;
+            if (索引 >= 0 && 索引 < 列表.Count)
+            {
+                return (列表[索引].量程, 列表[索引].单位);
+            }
+            return (0, "");
+        }
+
         private void 串口清空按钮_Click(object sender, EventArgs e)
         {
             var 按钮 = sender as Button;
@@ -303,11 +374,11 @@ namespace 自动测试
             }
         }
 
-        private void AddModuleCard(string 板名称, string 模块类型, int 从站地址)
+        private void AddModuleCard(string 板名称, string 模块类型, int 从站地址, int 配置索引)
         {
             var 卡片 = new Panel();
             卡片.Size = new Size(560, 50);
-            卡片.Tag = new 模块卡片信息 { 板名称 = 板名称, 模块类型 = 模块类型, 从站地址 = 从站地址, 已连接 = false };
+            卡片.Tag = new 模块卡片信息 { 板名称 = 板名称, 模块类型 = 模块类型, 从站地址 = 从站地址, 配置索引 = 配置索引, 已连接 = false };
             卡片.BackColor = Color.White;
             卡片.Margin = new Padding(3);
 
@@ -398,6 +469,30 @@ namespace 自动测试
             if (按钮?.Tag is not Panel 卡片) return;
             string 模块类型 = 获取模块类型(卡片);
 
+            if (是输入模块(模块类型))
+            {
+                try
+                {
+                    确保Modbus串口连接();
+                    展开通道面板(卡片);
+                    标记卡片连接状态(卡片, true);
+                    输入轮询卡片.Add(卡片);
+                    if (!输入轮询定时器.Enabled) 输入轮询定时器.Start();
+                    SetCardStatus(卡片, 已连接色, "已连接");
+                    读取并刷新输入模块(卡片);
+                    日志管理器.记录(日志类别.硬件操作, "输入模块连接并开始轮询", 获取卡片名称(卡片), 权限等级.管理员);
+                }
+                catch (Exception ex)
+                {
+                    标记卡片连接状态(卡片, false);
+                    输入轮询卡片.Remove(卡片);
+                    SetCardStatus(卡片, 错误色, "错误");
+                    MessageBox.Show($"连接设备失败：{ex.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    日志管理器.记录(日志类别.硬件操作, "输入模块连接失败", ex.Message, 权限等级.管理员);
+                }
+                return;
+            }
+
             if (!是输出模块(模块类型))
             {
                 SetCardStatus(卡片, 已连接色, "已连接");
@@ -436,6 +531,8 @@ namespace 自动测试
             SetCardStatus(卡片, 未连接色, "未连接");
             收起通道面板(卡片);
             标记卡片连接状态(卡片, false);
+            输入轮询卡片.Remove(卡片);
+            if (输入轮询卡片.Count == 0 && 输入轮询定时器.Enabled) 输入轮询定时器.Stop();
             日志管理器.记录(日志类别.硬件操作, "模块断开", 获取卡片名称(卡片), 权限等级.管理员);
         }
 
@@ -827,6 +924,12 @@ namespace 自动测试
             return 0;
         }
 
+        private int 获取配置索引(Panel 卡片)
+        {
+            if (卡片.Tag is 模块卡片信息 信息) return 信息.配置索引;
+            return -1;
+        }
+
         private bool 卡片已连接(Panel 卡片)
         {
             return 卡片.Tag is 模块卡片信息 信息 && 信息.已连接;
@@ -927,6 +1030,32 @@ namespace 自动测试
                 int byteIndex = i / 8;
                 int bitIndex = i % 8;
                 结果[i] = (响应[3 + byteIndex] & (1 << bitIndex)) != 0;
+            }
+
+            return 结果;
+        }
+
+        private short[] 读取保持寄存器Int16(byte 从站地址, ushort 起始地址, ushort 数量)
+        {
+            byte[] 请求 = new byte[]
+            {
+                从站地址, 0x03,
+                (byte)(起始地址 >> 8), (byte)(起始地址 & 0xFF),
+                (byte)(数量 >> 8), (byte)(数量 & 0xFF)
+            };
+
+            int 数据字节数 = 数量 * 2;
+            byte[] 响应 = 发送Modbus请求(请求, 5 + 数据字节数);
+            if (响应[1] != 0x03)
+            {
+                throw new InvalidOperationException("读取保持寄存器返回功能码异常");
+            }
+
+            short[] 结果 = new short[数量];
+            for (int i = 0; i < 数量; i++)
+            {
+                int baseIndex = 3 + i * 2;
+                结果[i] = (short)((响应[baseIndex] << 8) | 响应[baseIndex + 1]);
             }
 
             return 结果;
@@ -1080,6 +1209,9 @@ namespace 自动测试
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
+            if (输入轮询定时器.Enabled) 输入轮询定时器.Stop();
+            输入轮询卡片.Clear();
+
             if (modbus串口 != null)
             {
                 if (modbus串口.IsOpen) modbus串口.Close();

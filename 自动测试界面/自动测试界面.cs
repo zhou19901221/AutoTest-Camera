@@ -194,16 +194,19 @@ namespace 自动测试
             }
 
             确保继电器串口连接();
+            日志管理器.记录(日志类别.测试操作, $"执行[继电器输出] {项.名称}", $"目标状态:{(目标状态 ? "ON" : "OFF")} 从站数:{从站通道列表.Count}", 权限等级.员工);
             foreach (var kv in 从站通道列表.OrderBy(x => x.Key))
             {
+                string 通道文本 = string.Join(",", kv.Value.OrderBy(x => x));
                 bool[] 当前状态 = 读取线圈((byte)kv.Key, 0, 16);
+                日志管理器.记录(日志类别.测试操作, "继电器读取当前状态", $"从站:{kv.Key} 通道:{通道文本} 位图:{位图转Hex(当前状态)}", 权限等级.员工);
                 foreach (int 通道 in kv.Value)
                 {
                     当前状态[通道] = 目标状态;
                 }
 
                 写入多个线圈((byte)kv.Key, 0, 当前状态);
-                日志管理器.记录(日志类别.测试操作, $"执行[继电器输出] {项.名称}", $"从站{kv.Key} 已写入目标通道{kv.Value.Count}个 -> {(目标状态 ? "ON" : "OFF")}", 权限等级.员工);
+                日志管理器.记录(日志类别.测试操作, $"执行[继电器输出] {项.名称}", $"从站{kv.Key} 已写入目标通道{kv.Value.Count}个 -> {(目标状态 ? "ON" : "OFF")} 位图:{位图转Hex(当前状态)}", 权限等级.员工);
             }
         }
 
@@ -294,7 +297,7 @@ namespace 自动测试
             请求[6] = (byte)字节数;
             Array.Copy(数据, 0, 请求, 7, 字节数);
 
-            byte[] 响应 = 发送Modbus请求(请求, 8);
+            byte[] 响应 = 发送Modbus请求(请求, 8, $"写多线圈 从站:{从站地址} 起始:{起始地址} 数量:{数量}");
             if (响应[1] != 0x0F)
                 throw new InvalidOperationException("继电器写入返回功能码异常");
         }
@@ -309,7 +312,7 @@ namespace 自动测试
             };
 
             int 字节数 = (数量 + 7) / 8;
-            byte[] 响应 = 发送Modbus请求(请求, 5 + 字节数);
+            byte[] 响应 = 发送Modbus请求(请求, 5 + 字节数, $"读线圈 从站:{从站地址} 起始:{起始地址} 数量:{数量}");
             if (响应[1] != 0x01)
                 throw new InvalidOperationException("读取线圈返回功能码异常");
 
@@ -324,12 +327,13 @@ namespace 自动测试
             return 结果;
         }
 
-        private byte[] 发送Modbus请求(byte[] pdu, int 最小响应长度)
+        private byte[] 发送Modbus请求(byte[] pdu, int 最小响应长度, string 操作说明)
         {
             确保继电器串口连接();
             if (继电器串口 == null) throw new InvalidOperationException("串口未初始化");
 
             byte[] 帧 = 添加CRC(pdu);
+            日志管理器.记录(日志类别.测试操作, "继电器报文发送", $"{操作说明} TX:{BitConverter.ToString(帧).Replace("-", " ")}", 权限等级.员工);
             继电器串口.DiscardInBuffer();
             继电器串口.DiscardOutBuffer();
             继电器串口.Write(帧, 0, 帧.Length);
@@ -344,11 +348,23 @@ namespace 自动测试
 
             byte[] 有效响应 = new byte[已读];
             Array.Copy(响应, 0, 有效响应, 0, 已读);
+            日志管理器.记录(日志类别.测试操作, "继电器报文接收", $"{操作说明} RX:{BitConverter.ToString(有效响应).Replace("-", " ")}", 权限等级.员工);
             校验CRC(有效响应);
             if ((有效响应[1] & 0x80) != 0)
                 throw new InvalidOperationException($"Modbus异常码: 0x{有效响应[2]:X2}");
 
             return 有效响应;
+        }
+
+        private static string 位图转Hex(bool[] 状态)
+        {
+            int 字节数 = (状态.Length + 7) / 8;
+            byte[] 数据 = new byte[字节数];
+            for (int i = 0; i < 状态.Length; i++)
+            {
+                if (状态[i]) 数据[i / 8] |= (byte)(1 << (i % 8));
+            }
+            return BitConverter.ToString(数据).Replace("-", " ");
         }
 
         private static byte[] 添加CRC(byte[] 数据)

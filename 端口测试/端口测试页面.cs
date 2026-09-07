@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO.Ports;
 using System.Windows.Forms;
 
 namespace 自动测试
@@ -14,6 +15,15 @@ namespace 自动测试
         private static readonly Color 关闭色 = Color.FromArgb(200, 200, 200);
 
         private readonly Dictionary<string, bool> 通道状态 = new();
+        private SerialPort? modbus串口;
+
+        private class 模块卡片信息
+        {
+            public string 板名称 { get; set; } = "";
+            public string 模块类型 { get; set; } = "";
+            public int 从站地址 { get; set; }
+            public bool 已连接 { get; set; }
+        }
 
         public 端口测试页面()
         {
@@ -29,13 +39,14 @@ namespace 自动测试
             AddSerialCard();
 
             var 配置 = 系统配置管理.实例;
+            int 地址起始 = 模块寄存器管理.配置.从站地址起始;
             int 功能板数 = Math.Min(8, 配置.电压模块.模块列表.Count);
             int 电源板数 = Math.Min(3, 配置.电压模块.模块列表.Count - 8);
 
             for (int i = 0; i < 功能板数; i++)
             {
                 string 模块类型 = 配置.电压模块.模块列表[i].模块类型;
-                int 从站地址 = 2 + i;
+                int 从站地址 = 地址起始 + i;
                 AddModuleCard($"功能板{i + 1}", 模块类型, 从站地址);
             }
 
@@ -44,7 +55,7 @@ namespace 自动测试
                 int 偏移 = 8 + i;
                 if (偏移 >= 配置.电压模块.模块列表.Count) break;
                 string 模块类型 = 配置.电压模块.模块列表[偏移].模块类型;
-                int 从站地址 = 2 + 功能板数 + i;
+                int 从站地址 = 地址起始 + 功能板数 + i;
                 AddModuleCard($"电源板{i + 1}", 模块类型, 从站地址);
             }
         }
@@ -296,7 +307,7 @@ namespace 自动测试
         {
             var 卡片 = new Panel();
             卡片.Size = new Size(560, 50);
-            卡片.Tag = 模块类型;
+            卡片.Tag = new 模块卡片信息 { 板名称 = 板名称, 模块类型 = 模块类型, 从站地址 = 从站地址, 已连接 = false };
             卡片.BackColor = Color.White;
             卡片.Margin = new Padding(3);
 
@@ -385,9 +396,37 @@ namespace 自动测试
         {
             var 按钮 = sender as Button;
             if (按钮?.Tag is not Panel 卡片) return;
-            SetCardStatus(卡片, 已连接色, "已连接");
-            展开通道面板(卡片);
-            日志管理器.记录(日志类别.硬件操作, "模块连接", 获取卡片名称(卡片), 权限等级.管理员);
+            string 模块类型 = 获取模块类型(卡片);
+
+            if (!是输出模块(模块类型))
+            {
+                SetCardStatus(卡片, 已连接色, "已连接");
+                展开通道面板(卡片);
+                标记卡片连接状态(卡片, true);
+                日志管理器.记录(日志类别.硬件操作, "模块连接", 获取卡片名称(卡片), 权限等级.管理员);
+                return;
+            }
+
+            try
+            {
+                确保Modbus串口连接();
+                int 从站地址 = 获取从站地址(卡片);
+                int 通道数 = 获取模块通道数(模块类型);
+                bool[] 线圈状态 = 读取线圈((byte)从站地址, 0, (ushort)通道数);
+
+                展开通道面板(卡片);
+                应用输出通道状态到界面(卡片, 线圈状态);
+                标记卡片连接状态(卡片, true);
+                SetCardStatus(卡片, 已连接色, "已连接");
+                日志管理器.记录(日志类别.硬件操作, "模块连接并读取线圈", $"{获取卡片名称(卡片)} 地址:{从站地址}", 权限等级.管理员);
+            }
+            catch (Exception ex)
+            {
+                标记卡片连接状态(卡片, false);
+                SetCardStatus(卡片, 错误色, "错误");
+                MessageBox.Show($"连接设备失败：{ex.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                日志管理器.记录(日志类别.硬件操作, "模块连接失败", ex.Message, 权限等级.管理员);
+            }
         }
 
         private void 断开按钮_Click(object sender, EventArgs e)
@@ -396,6 +435,7 @@ namespace 自动测试
             if (按钮?.Tag is not Panel 卡片) return;
             SetCardStatus(卡片, 未连接色, "未连接");
             收起通道面板(卡片);
+            标记卡片连接状态(卡片, false);
             日志管理器.记录(日志类别.硬件操作, "模块断开", 获取卡片名称(卡片), 权限等级.管理员);
         }
 
@@ -405,6 +445,32 @@ namespace 自动测试
             if (按钮?.Tag is not Panel 卡片) return;
 
             bool 当前全开 = 按钮.Text == "全关";
+            string 模块类型 = 获取模块类型(卡片);
+
+            if (是输出模块(模块类型))
+            {
+                if (!卡片已连接(卡片))
+                {
+                    MessageBox.Show("请先连接设备", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                try
+                {
+                    int 从站地址 = 获取从站地址(卡片);
+                    int 通道数 = 获取模块通道数(模块类型);
+                    bool 目标状态 = !当前全开;
+                    bool[] 状态数组 = new bool[通道数];
+                    for (int i = 0; i < 通道数; i++) 状态数组[i] = 目标状态;
+                    写入多个线圈((byte)从站地址, 0, 状态数组);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"批量写入失败：{ex.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    SetCardStatus(卡片, 错误色, "错误");
+                    return;
+                }
+            }
 
             foreach (Control c in 卡片.Controls)
             {
@@ -416,7 +482,7 @@ namespace 自动测试
                         {
                             通道按钮.BackColor = !当前全开 ? 开启色 : 关闭色;
                             通道按钮.Text = !当前全开 ? 通道按钮.Text.Replace("OFF", "ON") : 通道按钮.Text.Replace("ON", "OFF");
-                            通道状态[通道按钮.Name] = !当前全开;
+                            通道状态[获取通道状态Key(卡片, 通道按钮.Name)] = !当前全开;
                         }
                     }
                 }
@@ -431,7 +497,7 @@ namespace 自动测试
         {
             收起通道面板(卡片);
 
-            string 模块类型 = 卡片.Tag?.ToString() ?? "";
+            string 模块类型 = 获取模块类型(卡片);
             int 通道数 = 获取模块通道数(模块类型);
             bool 是输出型 = 是输出模块(模块类型);
             bool 是输入型 = 是输入模块(模块类型);
@@ -637,14 +703,44 @@ namespace 自动测试
             var 按钮 = sender as Button;
             if (按钮 == null) return;
 
+            if (按钮.Tag is not Panel 卡片) return;
+
+            string 模块类型 = 获取模块类型(卡片);
+            if (是输出模块(模块类型))
+            {
+                if (!卡片已连接(卡片))
+                {
+                    MessageBox.Show("请先连接设备", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                int 通道号 = 解析通道号(按钮.Name);
+                if (通道号 < 0) return;
+
+                bool 当前状态输出 = 通道状态.TryGetValue(获取通道状态Key(卡片, 按钮.Name), out bool 值) && 值;
+                bool 目标状态 = !当前状态输出;
+
+                try
+                {
+                    写入单个线圈((byte)获取从站地址(卡片), (ushort)通道号, 目标状态);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"通道切换失败：{ex.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    SetCardStatus(卡片, 错误色, "错误");
+                    return;
+                }
+            }
+
             string 通道名 = 按钮.Name.Substring(3);
-            bool 当前状态 = 通道状态.ContainsKey(按钮.Name) && 通道状态[按钮.Name];
-            通道状态[按钮.Name] = !当前状态;
+            string 状态Key = 获取通道状态Key(卡片, 按钮.Name);
+            bool 当前状态 = 通道状态.TryGetValue(状态Key, out bool 状态值) && 状态值;
+            通道状态[状态Key] = !当前状态;
 
             按钮.BackColor = !当前状态 ? 开启色 : 关闭色;
             按钮.Text = !当前状态 ? $"{通道名} ON" : $"{通道名} OFF";
 
-            string 卡片名 = 按钮.Tag is Panel 卡片 ? 获取卡片名称(卡片) : "";
+            string 卡片名 = 获取卡片名称(卡片);
             日志管理器.记录(日志类别.硬件操作, !当前状态 ? "通道开启" : "通道关闭", $"{卡片名} {通道名}", 权限等级.厂家);
         }
 
@@ -670,7 +766,7 @@ namespace 自动测试
 
         private bool 是输出模块(string 类型)
         {
-            return 类型 == "输出模块" || 类型 == "继电器模块";
+            return 类型.StartsWith("输出模块") || 类型.StartsWith("继电器模块");
         }
 
         private bool 是脉冲模块(string 类型)
@@ -704,8 +800,8 @@ namespace 自动测试
         {
             return 类型 switch
             {
-                "输出模块" => 24,
-                "继电器模块" => 24,
+                "输出模块" => 16,
+                "继电器模块" => 16,
                 "直流电压模块（24）" => 24,
                 "交流电压模块（24）" => 24,
                 "交直流电流模块（8）" => 8,
@@ -713,8 +809,245 @@ namespace 自动测试
                 "脉冲声音模块" => 16,
                 _ when 类型.Contains("供电模块（8）") => 8,
                 _ when 类型.Contains("供电模块（16）") => 16,
+                _ when 类型.Contains("输出模块（16）") => 16,
+                _ when 类型.Contains("继电器模块（16）") => 16,
                 _ => 0
             };
+        }
+
+        private string 获取模块类型(Panel 卡片)
+        {
+            if (卡片.Tag is 模块卡片信息 信息) return 信息.模块类型;
+            return 卡片.Tag?.ToString() ?? "";
+        }
+
+        private int 获取从站地址(Panel 卡片)
+        {
+            if (卡片.Tag is 模块卡片信息 信息) return 信息.从站地址;
+            return 0;
+        }
+
+        private bool 卡片已连接(Panel 卡片)
+        {
+            return 卡片.Tag is 模块卡片信息 信息 && 信息.已连接;
+        }
+
+        private void 标记卡片连接状态(Panel 卡片, bool 已连接)
+        {
+            if (卡片.Tag is 模块卡片信息 信息)
+            {
+                信息.已连接 = 已连接;
+            }
+        }
+
+        private string 获取通道状态Key(Panel 卡片, string 按钮名)
+        {
+            return $"{获取卡片名称(卡片)}|{按钮名}";
+        }
+
+        private int 解析通道号(string 按钮名)
+        {
+            int idx = 按钮名.Length - 1;
+            while (idx >= 0 && char.IsDigit(按钮名[idx])) idx--;
+            string 数字 = 按钮名[(idx + 1)..];
+            return int.TryParse(数字, out int 通道号) ? 通道号 : -1;
+        }
+
+        private void 应用输出通道状态到界面(Panel 卡片, bool[] 线圈状态)
+        {
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is not Panel 通道面板 || 通道面板.Name != "通道面板") continue;
+                foreach (Control 通道控件 in 通道面板.Controls)
+                {
+                    if (通道控件 is not Button 按钮 || !按钮.Name.StartsWith("CH_")) continue;
+                    int ch = 解析通道号(按钮.Name);
+                    if (ch < 0 || ch >= 线圈状态.Length) continue;
+                    bool 开 = 线圈状态[ch];
+                    按钮.BackColor = 开 ? 开启色 : 关闭色;
+                    string 通道名 = 按钮.Name.Substring(3);
+                    按钮.Text = 开 ? $"{通道名} ON" : $"{通道名} OFF";
+                    通道状态[获取通道状态Key(卡片, 按钮.Name)] = 开;
+                }
+            }
+        }
+
+        private void 确保Modbus串口连接()
+        {
+            var 参数 = 系统配置管理.实例.基础参数;
+            if (string.IsNullOrWhiteSpace(参数.串口端口))
+            {
+                throw new InvalidOperationException("未配置串口端口");
+            }
+
+            if (modbus串口 == null)
+            {
+                modbus串口 = new SerialPort();
+            }
+
+            if (modbus串口.IsOpen && modbus串口.PortName == 参数.串口端口 && modbus串口.BaudRate == 参数.串口波特率)
+            {
+                return;
+            }
+
+            if (modbus串口.IsOpen)
+            {
+                modbus串口.Close();
+            }
+
+            modbus串口.PortName = 参数.串口端口;
+            modbus串口.BaudRate = 参数.串口波特率;
+            modbus串口.Parity = Parity.None;
+            modbus串口.DataBits = 8;
+            modbus串口.StopBits = StopBits.One;
+            modbus串口.ReadTimeout = 1000;
+            modbus串口.WriteTimeout = 1000;
+            modbus串口.Open();
+        }
+
+        private bool[] 读取线圈(byte 从站地址, ushort 起始地址, ushort 数量)
+        {
+            byte[] 请求 = new byte[]
+            {
+                从站地址, 0x01,
+                (byte)(起始地址 >> 8), (byte)(起始地址 & 0xFF),
+                (byte)(数量 >> 8), (byte)(数量 & 0xFF)
+            };
+
+            int 字节数 = (数量 + 7) / 8;
+            byte[] 响应 = 发送Modbus请求(请求, 5 + 字节数);
+            if (响应[1] != 0x01)
+            {
+                throw new InvalidOperationException("读取线圈返回功能码异常");
+            }
+
+            bool[] 结果 = new bool[数量];
+            for (int i = 0; i < 数量; i++)
+            {
+                int byteIndex = i / 8;
+                int bitIndex = i % 8;
+                结果[i] = (响应[3 + byteIndex] & (1 << bitIndex)) != 0;
+            }
+
+            return 结果;
+        }
+
+        private void 写入单个线圈(byte 从站地址, ushort 地址, bool 状态)
+        {
+            byte[] 请求 = new byte[]
+            {
+                从站地址, 0x05,
+                (byte)(地址 >> 8), (byte)(地址 & 0xFF),
+                状态 ? (byte)0xFF : (byte)0x00,
+                0x00
+            };
+
+            byte[] 响应 = 发送Modbus请求(请求, 8);
+            if (响应[1] != 0x05)
+            {
+                throw new InvalidOperationException("写单线圈返回功能码异常");
+            }
+        }
+
+        private void 写入多个线圈(byte 从站地址, ushort 起始地址, bool[] 状态数组)
+        {
+            ushort 数量 = (ushort)状态数组.Length;
+            int 字节数 = (数量 + 7) / 8;
+            byte[] 数据 = new byte[字节数];
+            for (int i = 0; i < 数量; i++)
+            {
+                if (状态数组[i])
+                {
+                    数据[i / 8] |= (byte)(1 << (i % 8));
+                }
+            }
+
+            byte[] 请求 = new byte[7 + 字节数];
+            请求[0] = 从站地址;
+            请求[1] = 0x0F;
+            请求[2] = (byte)(起始地址 >> 8);
+            请求[3] = (byte)(起始地址 & 0xFF);
+            请求[4] = (byte)(数量 >> 8);
+            请求[5] = (byte)(数量 & 0xFF);
+            请求[6] = (byte)字节数;
+            Array.Copy(数据, 0, 请求, 7, 字节数);
+
+            byte[] 响应 = 发送Modbus请求(请求, 8);
+            if (响应[1] != 0x0F)
+            {
+                throw new InvalidOperationException("写多线圈返回功能码异常");
+            }
+        }
+
+        private byte[] 发送Modbus请求(byte[] pdu, int 最小响应长度)
+        {
+            确保Modbus串口连接();
+            if (modbus串口 == null) throw new InvalidOperationException("串口未初始化");
+
+            byte[] 帧 = 添加CRC(pdu);
+            modbus串口.DiscardInBuffer();
+            modbus串口.DiscardOutBuffer();
+            modbus串口.Write(帧, 0, 帧.Length);
+
+            byte[] 响应 = new byte[Math.Max(最小响应长度, 8)];
+            int 已读 = 0;
+            while (已读 < 最小响应长度)
+            {
+                int n = modbus串口.Read(响应, 已读, 响应.Length - 已读);
+                已读 += n;
+            }
+
+            byte[] 有效响应 = new byte[已读];
+            Array.Copy(响应, 0, 有效响应, 0, 已读);
+            校验CRC(有效响应);
+
+            if ((有效响应[1] & 0x80) != 0)
+            {
+                throw new InvalidOperationException($"Modbus异常码: 0x{有效响应[2]:X2}");
+            }
+
+            return 有效响应;
+        }
+
+        private static byte[] 添加CRC(byte[] 数据)
+        {
+            ushort crc = 计算CRC16(数据, 数据.Length);
+            byte[] 帧 = new byte[数据.Length + 2];
+            Array.Copy(数据, 帧, 数据.Length);
+            帧[^2] = (byte)(crc & 0xFF);
+            帧[^1] = (byte)(crc >> 8);
+            return 帧;
+        }
+
+        private static void 校验CRC(byte[] 响应)
+        {
+            if (响应.Length < 5)
+            {
+                throw new InvalidOperationException("Modbus响应长度不足");
+            }
+
+            ushort 接收crc = (ushort)((响应[^1] << 8) | 响应[^2]);
+            ushort 计算crc = 计算CRC16(响应, 响应.Length - 2);
+            if (接收crc != 计算crc)
+            {
+                throw new InvalidOperationException("Modbus CRC校验失败");
+            }
+        }
+
+        private static ushort 计算CRC16(byte[] 数据, int 长度)
+        {
+            ushort crc = 0xFFFF;
+            for (int i = 0; i < 长度; i++)
+            {
+                crc ^= 数据[i];
+                for (int j = 0; j < 8; j++)
+                {
+                    bool lsb = (crc & 0x0001) != 0;
+                    crc >>= 1;
+                    if (lsb) crc ^= 0xA001;
+                }
+            }
+            return crc;
         }
 
         private string 获取卡片名称(Panel 卡片)
@@ -743,6 +1076,18 @@ namespace 自动测试
                     if (c.Name == "状态标签") c.Text = 文本;
                 }
             }
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            if (modbus串口 != null)
+            {
+                if (modbus串口.IsOpen) modbus串口.Close();
+                modbus串口.Dispose();
+                modbus串口 = null;
+            }
+
+            base.OnFormClosed(e);
         }
     }
 }

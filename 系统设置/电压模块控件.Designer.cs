@@ -187,7 +187,7 @@
             // 
             功能板8类型框.DropDownStyle = ComboBoxStyle.DropDownList;
             功能板8类型框.FormattingEnabled = true;
-            功能板8类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）", "继电器模块" });
+            功能板8类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块(16)", "输出模块(24)", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）", "继电器模块" });
             功能板8类型框.Location = new Point(108, 536);
             功能板8类型框.Name = "功能板8类型框";
             功能板8类型框.Size = new Size(170, 25);
@@ -207,7 +207,7 @@
             // 
             功能板7类型框.DropDownStyle = ComboBoxStyle.DropDownList;
             功能板7类型框.FormattingEnabled = true;
-            功能板7类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
+            功能板7类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块(16)", "输出模块(24)", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
             功能板7类型框.Location = new Point(108, 458);
             功能板7类型框.Name = "功能板7类型框";
             功能板7类型框.Size = new Size(170, 25);
@@ -227,7 +227,7 @@
             // 
             功能板6类型框.DropDownStyle = ComboBoxStyle.DropDownList;
             功能板6类型框.FormattingEnabled = true;
-            功能板6类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
+            功能板6类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块(16)", "输出模块(24)", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
             功能板6类型框.Location = new Point(108, 389);
             功能板6类型框.Name = "功能板6类型框";
             功能板6类型框.Size = new Size(170, 25);
@@ -247,7 +247,7 @@
             // 
             功能板5类型框.DropDownStyle = ComboBoxStyle.DropDownList;
             功能板5类型框.FormattingEnabled = true;
-            功能板5类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
+            功能板5类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块(16)", "输出模块(24)", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
             功能板5类型框.Location = new Point(108, 317);
             功能板5类型框.Name = "功能板5类型框";
             功能板5类型框.Size = new Size(170, 25);
@@ -267,7 +267,7 @@
             // 
             功能板4类型框.DropDownStyle = ComboBoxStyle.DropDownList;
             功能板4类型框.FormattingEnabled = true;
-            功能板4类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
+            功能板4类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块(16)", "输出模块(24)", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
             功能板4类型框.Location = new Point(108, 253);
             功能板4类型框.Name = "功能板4类型框";
             功能板4类型框.Size = new Size(170, 25);
@@ -287,7 +287,7 @@
             // 
             功能板3类型框.DropDownStyle = ComboBoxStyle.DropDownList;
             功能板3类型框.FormattingEnabled = true;
-            功能板3类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
+            功能板3类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块(16)", "输出模块(24)", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
             功能板3类型框.Location = new Point(108, 189);
             功能板3类型框.Name = "功能板3类型框";
             功能板3类型框.Size = new Size(170, 25);
@@ -307,7 +307,7 @@
             // 
             功能板2类型框.DropDownStyle = ComboBoxStyle.DropDownList;
             功能板2类型框.FormattingEnabled = true;
-            功能板2类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
+            功能板2类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块(16)", "输出模块(24)", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
             功能板2类型框.Location = new Point(108, 115);
             功能板2类型框.Name = "功能板2类型框";
             功能板2类型框.Size = new Size(170, 25);
@@ -327,7 +327,7 @@
             // 
             功能板1类型框.DropDownStyle = ComboBoxStyle.DropDownList;
             功能板1类型框.FormattingEnabled = true;
-            功能板1类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
+            功能板1类型框.Items.AddRange(new object[] { "无", "脉冲声音模块", "输出模块(16)", "输出模块(24)", "交直流电流模块（8）", "交直流电流模块（16）", "直流电压模块（24）", "交流电压模块（24）" });
             功能板1类型框.Location = new Point(108, 56);
             功能板1类型框.Name = "功能板1类型框";
             功能板1类型框.Size = new Size(170, 25);

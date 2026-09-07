@@ -170,7 +170,7 @@ namespace 自动测试
         private void 执行继电器输出(编辑配置窗体.检测项数据 项)
         {
             bool 目标状态 = bool.TryParse(项.设定值, out bool 开) && 开;
-            var 从站位图 = new Dictionary<int, bool[]>();
+            var 从站通道列表 = new Dictionary<int, HashSet<int>>();
 
             foreach (var 地址 in 获取检测项地址列表(项))
             {
@@ -178,26 +178,32 @@ namespace 自动测试
                 if (通道 < 0 || 通道 > 15) continue;
 
                 int 从站地址 = 模块寄存器管理.配置.从站地址起始 + 板号 - 1;
-                if (!从站位图.TryGetValue(从站地址, out bool[]? 位图))
+                if (!从站通道列表.TryGetValue(从站地址, out HashSet<int>? 通道列表))
                 {
-                    位图 = new bool[16];
-                    从站位图[从站地址] = 位图;
+                    通道列表 = new HashSet<int>();
+                    从站通道列表[从站地址] = 通道列表;
                 }
 
-                位图[通道] = 目标状态;
+                通道列表.Add(通道);
             }
 
-            if (从站位图.Count == 0)
+            if (从站通道列表.Count == 0)
             {
                 日志管理器.记录(日志类别.测试操作, $"执行[继电器输出] {项.名称}", "未配置有效DO地址，跳过", 权限等级.员工);
                 return;
             }
 
             确保继电器串口连接();
-            foreach (var kv in 从站位图.OrderBy(x => x.Key))
+            foreach (var kv in 从站通道列表.OrderBy(x => x.Key))
             {
-                写入多个线圈((byte)kv.Key, 0, kv.Value);
-                日志管理器.记录(日志类别.测试操作, $"执行[继电器输出] {项.名称}", $"从站{kv.Key} 已写入16通道 -> {(目标状态 ? "ON" : "OFF")}", 权限等级.员工);
+                bool[] 当前状态 = 读取线圈((byte)kv.Key, 0, 16);
+                foreach (int 通道 in kv.Value)
+                {
+                    当前状态[通道] = 目标状态;
+                }
+
+                写入多个线圈((byte)kv.Key, 0, 当前状态);
+                日志管理器.记录(日志类别.测试操作, $"执行[继电器输出] {项.名称}", $"从站{kv.Key} 已写入目标通道{kv.Value.Count}个 -> {(目标状态 ? "ON" : "OFF")}", 权限等级.员工);
             }
         }
 
@@ -291,6 +297,31 @@ namespace 自动测试
             byte[] 响应 = 发送Modbus请求(请求, 8);
             if (响应[1] != 0x0F)
                 throw new InvalidOperationException("继电器写入返回功能码异常");
+        }
+
+        private bool[] 读取线圈(byte 从站地址, ushort 起始地址, ushort 数量)
+        {
+            byte[] 请求 = new byte[]
+            {
+                从站地址, 0x01,
+                (byte)(起始地址 >> 8), (byte)(起始地址 & 0xFF),
+                (byte)(数量 >> 8), (byte)(数量 & 0xFF)
+            };
+
+            int 字节数 = (数量 + 7) / 8;
+            byte[] 响应 = 发送Modbus请求(请求, 5 + 字节数);
+            if (响应[1] != 0x01)
+                throw new InvalidOperationException("读取线圈返回功能码异常");
+
+            bool[] 结果 = new bool[数量];
+            for (int i = 0; i < 数量; i++)
+            {
+                int byteIndex = i / 8;
+                int bitIndex = i % 8;
+                结果[i] = (响应[3 + byteIndex] & (1 << bitIndex)) != 0;
+            }
+
+            return 结果;
         }
 
         private byte[] 发送Modbus请求(byte[] pdu, int 最小响应长度)

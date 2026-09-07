@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
+using System.Text.Json;
 
 namespace 自动测试
 {
@@ -80,6 +81,7 @@ namespace 自动测试
                     拼版30地址 TEXT,
                     拼版31地址 TEXT,
                     拼版32地址 TEXT,
+                    扩展地址JSON TEXT,
                     FOREIGN KEY (配置名) REFERENCES 配置表(配置名)
                 );
             ";
@@ -95,6 +97,14 @@ namespace 自动测试
                 }
                 catch { }
             }
+
+            try
+            {
+                var 添加扩展列命令 = 连接.CreateCommand();
+                添加扩展列命令.CommandText = "ALTER TABLE 检测项表 ADD COLUMN 扩展地址JSON TEXT";
+                添加扩展列命令.ExecuteNonQuery();
+            }
+            catch { }
         }
 
         public List<string> 获取所有配置名()
@@ -139,7 +149,7 @@ namespace 自动测试
             };
 
             var 检测项命令 = 连接.CreateCommand();
-            检测项命令.CommandText = "SELECT 排序, 名称, 类型, 延时, 最大值, 最小值, 设定值, 启用, 拼版1地址, 拼版2地址, 拼版3地址, 拼版4地址, 拼版5地址, 拼版6地址, 拼版7地址, 拼版8地址, 拼版9地址, 拼版10地址, 拼版11地址, 拼版12地址, 拼版13地址, 拼版14地址, 拼版15地址, 拼版16地址, 拼版17地址, 拼版18地址, 拼版19地址, 拼版20地址, 拼版21地址, 拼版22地址, 拼版23地址, 拼版24地址, 拼版25地址, 拼版26地址, 拼版27地址, 拼版28地址, 拼版29地址, 拼版30地址, 拼版31地址, 拼版32地址 FROM 检测项表 WHERE 配置名 = $配置名 ORDER BY 排序";
+            检测项命令.CommandText = "SELECT 排序, 名称, 类型, 延时, 最大值, 最小值, 设定值, 启用, 拼版1地址, 拼版2地址, 拼版3地址, 拼版4地址, 拼版5地址, 拼版6地址, 拼版7地址, 拼版8地址, 拼版9地址, 拼版10地址, 拼版11地址, 拼版12地址, 拼版13地址, 拼版14地址, 拼版15地址, 拼版16地址, 拼版17地址, 拼版18地址, 拼版19地址, 拼版20地址, 拼版21地址, 拼版22地址, 拼版23地址, 拼版24地址, 拼版25地址, 拼版26地址, 拼版27地址, 拼版28地址, 拼版29地址, 拼版30地址, 拼版31地址, 拼版32地址, 扩展地址JSON FROM 检测项表 WHERE 配置名 = $配置名 ORDER BY 排序";
             检测项命令.Parameters.AddWithValue("$配置名", 配置名);
 
             using var 检测项读取器 = 检测项命令.ExecuteReader();
@@ -163,6 +173,15 @@ namespace 自动测试
                     if (属性 != null && !检测项读取器.IsDBNull(7 + p))
                     {
                         属性.SetValue(项, 检测项读取器.GetString(7 + p));
+                    }
+                }
+
+                if (!检测项读取器.IsDBNull(40))
+                {
+                    string json = 检测项读取器.GetString(40);
+                    if (!string.IsNullOrWhiteSpace(json))
+                    {
+                        项.扩展地址 = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
                     }
                 }
                 
@@ -205,12 +224,12 @@ namespace 自动测试
                         拼版1地址, 拼版2地址, 拼版3地址, 拼版4地址, 拼版5地址, 拼版6地址, 拼版7地址, 拼版8地址, 
                         拼版9地址, 拼版10地址, 拼版11地址, 拼版12地址, 拼版13地址, 拼版14地址, 拼版15地址, 拼版16地址, 
                         拼版17地址, 拼版18地址, 拼版19地址, 拼版20地址, 拼版21地址, 拼版22地址, 拼版23地址, 拼版24地址, 
-                        拼版25地址, 拼版26地址, 拼版27地址, 拼版28地址, 拼版29地址, 拼版30地址, 拼版31地址, 拼版32地址) 
+                        拼版25地址, 拼版26地址, 拼版27地址, 拼版28地址, 拼版29地址, 拼版30地址, 拼版31地址, 拼版32地址, 扩展地址JSON) 
                         VALUES ($配置名, $排序, $名称, $类型, $延时, $最大值, $最小值, $设定值, $启用, 
                         $拼版1地址, $拼版2地址, $拼版3地址, $拼版4地址, $拼版5地址, $拼版6地址, $拼版7地址, $拼版8地址, 
                         $拼版9地址, $拼版10地址, $拼版11地址, $拼版12地址, $拼版13地址, $拼版14地址, $拼版15地址, $拼版16地址, 
                         $拼版17地址, $拼版18地址, $拼版19地址, $拼版20地址, $拼版21地址, $拼版22地址, $拼版23地址, $拼版24地址, 
-                        $拼版25地址, $拼版26地址, $拼版27地址, $拼版28地址, $拼版29地址, $拼版30地址, $拼版31地址, $拼版32地址)";
+                        $拼版25地址, $拼版26地址, $拼版27地址, $拼版28地址, $拼版29地址, $拼版30地址, $拼版31地址, $拼版32地址, $扩展地址JSON)";
                     插入检测项命令.Parameters.AddWithValue("$配置名", 数据.配置名称);
                     插入检测项命令.Parameters.AddWithValue("$排序", 项.排序);
                     插入检测项命令.Parameters.AddWithValue("$名称", 项.名称);
@@ -227,6 +246,7 @@ namespace 自动测试
                         string 地址 = 属性?.GetValue(项)?.ToString() ?? "";
                         插入检测项命令.Parameters.AddWithValue($"$拼版{p}地址", 地址);
                     }
+                    插入检测项命令.Parameters.AddWithValue("$扩展地址JSON", JsonSerializer.Serialize(项.扩展地址));
                     
                     插入检测项命令.ExecuteNonQuery();
                 }

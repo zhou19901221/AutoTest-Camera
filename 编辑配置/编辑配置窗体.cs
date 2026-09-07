@@ -63,6 +63,7 @@ namespace 自动测试
             public string 拼版30地址 { get; set; } = "";
             public string 拼版31地址 { get; set; } = "";
             public string 拼版32地址 { get; set; } = "";
+            public Dictionary<string, string> 扩展地址 { get; set; } = new Dictionary<string, string>();
         }
 
         public 编辑配置窗体()
@@ -174,6 +175,20 @@ namespace 自动测试
                         }
                     }
                 }
+
+                for (int p = 1; p <= 32; p++)
+                {
+                    for (int 子序号 = 2; 子序号 <= 4; 子序号++)
+                    {
+                        string 字段名 = $"拼版{p}地址_{子序号}";
+                        if (!检测项表格.Columns.Contains(字段名)) continue;
+                        string 地址 = row.Cells[字段名].Value?.ToString() ?? "";
+                        if (!string.IsNullOrEmpty(地址))
+                        {
+                            项.扩展地址[字段名] = 地址;
+                        }
+                    }
+                }
                 
                 数据.检测项列表.Add(项);
             }
@@ -215,6 +230,19 @@ namespace 自动测试
                             行.Cells[字段名].Value = 地址;
                         }
                     }
+                }
+
+                foreach (var kv in 项.扩展地址)
+                {
+                    if (!检测项表格.Columns.Contains(kv.Key))
+                    {
+                        var 列 = new DataGridViewTextBoxColumn();
+                        列.Name = kv.Key;
+                        列.HeaderText = kv.Key;
+                        列.Visible = false;
+                        检测项表格.Columns.Add(列);
+                    }
+                    行.Cells[kv.Key].Value = kv.Value;
                 }
             }
 

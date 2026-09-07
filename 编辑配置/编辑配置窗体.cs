@@ -470,6 +470,7 @@ namespace 自动测试
             }
 
             HashSet<string> 同行已选地址 = 获取同行已选地址(当前行索引, 当前拼版);
+            HashSet<string> 其他检测项已选地址 = 获取其他检测项已使用地址(当前行索引);
 
             string 已选1 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 1);
             string 已选2 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 2);
@@ -478,7 +479,7 @@ namespace 自动测试
 
             foreach (var 地址 in 地址列表)
             {
-                if (!同行已选地址.Contains(地址))
+                if (!同行已选地址.Contains(地址) && !其他检测项已选地址.Contains(地址))
                 {
                     if (地址 != 已选2 && 地址 != 已选3 && 地址 != 已选4)
                         工位地址框.Items.Add(地址);
@@ -626,10 +627,8 @@ namespace 自动测试
             if (拼版号 == 0) 拼版号 = 获取当前选中拼版();
             string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
 
-            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 当前行索引, 拼版号, 子序号, out string 重复位置))
+            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 当前行索引, 拼版号, 子序号, out _))
             {
-                MessageBox.Show($"同一条配置中通道地址只能使用一次。\r\n重复地址：{地址}\r\n重复位置：{重复位置}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
                 正在刷新工位地址 = true;
                 try
                 {
@@ -757,10 +756,12 @@ namespace 自动测试
             List<string> 地址列表 = 系统配置管理.获取可用地址列表(类型);
             int 当前拼版 = 获取当前选中拼版();
             HashSet<string> 同行已选 = 获取同行已选地址(当前行索引, 当前拼版);
+            HashSet<string> 其他检测项已选 = 获取其他检测项已使用地址(当前行索引);
 
             foreach (var 地址 in 地址列表)
             {
                 if (同行已选.Contains(地址)) continue;
+                if (其他检测项已选.Contains(地址)) continue;
                 if (地址 == 排除1 || 地址 == 排除2 || 地址 == 排除3) continue;
                 目标框.Items.Add(地址);
             }
@@ -873,9 +874,8 @@ namespace 自动测试
                         }
 
                         string 新地址 = $"{基础.前缀}{基础.板号}.{基础.通道 + 偏移}";
-                        if (!校验地址可用(新地址, out string 错误))
+                        if (!校验地址可用(新地址, out _))
                         {
-                            MessageBox.Show($"自动填充已终止：{错误}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             return;
                         }
                         待写入.Add((p, 子序号, 新地址));
@@ -901,9 +901,8 @@ namespace 自动测试
             {
                 当前通道 += 步进;
                 string 新地址 = $"{前缀}{板号}.{当前通道}";
-                if (!校验地址可用(新地址, out string 错误))
+                if (!校验地址可用(新地址, out _))
                 {
-                    MessageBox.Show($"自动填充已终止：{错误}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
                 if (!保存指定拼版地址(当前行索引, p, 新地址, 1))
@@ -972,9 +971,8 @@ namespace 自动测试
 
             string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
 
-            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 行索引, 拼版号, 子序号, out string 重复位置))
+            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 行索引, 拼版号, 子序号, out _))
             {
-                MessageBox.Show($"自动填充已终止：通道重复使用\r\n重复地址：{地址}\r\n重复位置：{重复位置}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 

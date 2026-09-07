@@ -407,6 +407,7 @@ namespace 自动测试
         }
 
         private int 上次拼版 = 1;
+        private bool 正在刷新工位地址 = false;
 
         private void 当前板选择_CheckedChanged(object sender, EventArgs e)
         {
@@ -421,6 +422,9 @@ namespace 自动测试
 
         private void 更新工位地址下拉框()
         {
+            正在刷新工位地址 = true;
+            try
+            {
             工位地址框.Items.Clear();
             工位地址框2.Items.Clear();
             工位地址框3.Items.Clear();
@@ -444,6 +448,14 @@ namespace 自动测试
             工位地址框2.Visible = 是继电器输出;
             工位地址框3.Visible = 是继电器输出;
             工位地址框4.Visible = 是继电器输出;
+
+            工位地址框.Items.Add("无");
+            if (是继电器输出)
+            {
+                工位地址框2.Items.Add("无");
+                工位地址框3.Items.Add("无");
+                工位地址框4.Items.Add("无");
+            }
 
             int 填充起始X = 是继电器输出 ? 590 : 220;
             顺序填充按钮.Location = new Point(填充起始X, 18);
@@ -489,6 +501,10 @@ namespace 自动测试
                     工位地址框.Items.Insert(0, 已选1);
                 工位地址框.SelectedItem = 已选1;
             }
+            else
+            {
+                工位地址框.SelectedItem = "无";
+            }
 
             if (是继电器输出)
             {
@@ -498,12 +514,20 @@ namespace 自动测试
                         工位地址框2.Items.Insert(0, 已选2);
                     工位地址框2.SelectedItem = 已选2;
                 }
+                else
+                {
+                    工位地址框2.SelectedItem = "无";
+                }
 
                 if (!string.IsNullOrEmpty(已选3))
                 {
                     if (!工位地址框3.Items.Contains(已选3))
                         工位地址框3.Items.Insert(0, 已选3);
                     工位地址框3.SelectedItem = 已选3;
+                }
+                else
+                {
+                    工位地址框3.SelectedItem = "无";
                 }
 
                 if (!string.IsNullOrEmpty(已选4))
@@ -512,8 +536,17 @@ namespace 自动测试
                         工位地址框4.Items.Insert(0, 已选4);
                     工位地址框4.SelectedItem = 已选4;
                 }
+                else
+                {
+                    工位地址框4.SelectedItem = "无";
+                }
             }
 
+            }
+            finally
+            {
+                正在刷新工位地址 = false;
+            }
         }
 
         private HashSet<string> 获取同行已选地址(int 行索引, int 排除拼版号)
@@ -588,7 +621,8 @@ namespace 自动测试
             var 行 = 检测项表格.Rows[当前行索引];
             if (行.IsNewRow) return;
 
-            string 地址 = 地址框.SelectedItem.ToString();
+            string 地址 = 地址框.SelectedItem?.ToString() ?? "";
+            if (地址 == "无") 地址 = "";
             if (拼版号 == 0) 拼版号 = 获取当前选中拼版();
             string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
 
@@ -607,24 +641,28 @@ namespace 自动测试
 
         private void 工位地址框_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (正在刷新工位地址) return;
             保存指定工位地址(工位地址框, 0, 1);
             刷新继电器地址互斥();
         }
 
         private void 工位地址框2_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (正在刷新工位地址) return;
             保存指定工位地址(工位地址框2, 0, 2);
             刷新继电器地址互斥();
         }
 
         private void 工位地址框3_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (正在刷新工位地址) return;
             保存指定工位地址(工位地址框3, 0, 3);
             刷新继电器地址互斥();
         }
 
         private void 工位地址框4_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (正在刷新工位地址) return;
             保存指定工位地址(工位地址框4, 0, 4);
             刷新继电器地址互斥();
         }
@@ -632,6 +670,10 @@ namespace 自动测试
         private void 刷新继电器地址互斥()
         {
             if (!工位地址框2.Visible) return;
+
+            正在刷新工位地址 = true;
+            try
+            {
 
             string 选1 = 工位地址框.SelectedItem?.ToString() ?? "";
             string 选2 = 工位地址框2.SelectedItem?.ToString() ?? "";
@@ -642,12 +684,18 @@ namespace 自动测试
             移除其他框中的地址(工位地址框2, 选1, 选3, 选4);
             移除其他框中的地址(工位地址框3, 选1, 选2, 选4);
             移除其他框中的地址(工位地址框4, 选1, 选2, 选3);
+            }
+            finally
+            {
+                正在刷新工位地址 = false;
+            }
         }
 
         private void 移除其他框中的地址(ComboBox 目标框, string 排除1, string 排除2, string 排除3)
         {
             string 当前选中 = 目标框.SelectedItem?.ToString() ?? "";
             目标框.Items.Clear();
+            目标框.Items.Add("无");
 
             int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
             if (当前行索引 < 0) return;
@@ -671,6 +719,10 @@ namespace 自动测试
                 if (!目标框.Items.Contains(当前选中))
                     目标框.Items.Insert(0, 当前选中);
                 目标框.SelectedItem = 当前选中;
+            }
+            else
+            {
+                目标框.SelectedItem = "无";
             }
         }
 
@@ -705,16 +757,61 @@ namespace 自动测试
             int 当前拼版 = 获取当前选中拼版();
             int 拼板数 = (int)拼板数框.Value;
 
-            if (!解析地址(当前地址, out string 前缀, out int 板号, out int 通道)) return;
-
+            string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
+            bool 是继电器输出 = 类型 == "继电器输出";
             int 步进 = 1 + 间隔数;
+
+            if (是继电器输出)
+            {
+                List<(string 前缀, int 板号, int 通道, bool 有效)> 基础地址 = new List<(string, int, int, bool)>();
+                ComboBox[] 框列表 = new[] { 工位地址框, 工位地址框2, 工位地址框3, 工位地址框4 };
+
+                foreach (var 框 in 框列表)
+                {
+                    string 选中 = 框.SelectedItem?.ToString() ?? "";
+                    if (string.IsNullOrEmpty(选中) || 选中 == "无")
+                    {
+                        基础地址.Add(("", 0, 0, false));
+                    }
+                    else if (解析地址(选中, out string pfx, out int bn, out int ch))
+                    {
+                        基础地址.Add((pfx, bn, ch, true));
+                    }
+                    else
+                    {
+                        基础地址.Add(("", 0, 0, false));
+                    }
+                }
+
+                for (int p = 当前拼版 + 1; p <= 拼板数; p++)
+                {
+                    int 偏移 = (p - 当前拼版) * 步进;
+                    for (int 子序号 = 1; 子序号 <= 4; 子序号++)
+                    {
+                        var 基础 = 基础地址[子序号 - 1];
+                        if (!基础.有效)
+                        {
+                            保存指定拼版地址(当前行索引, p, "", 子序号);
+                            continue;
+                        }
+
+                        string 新地址 = $"{基础.前缀}{基础.板号}.{基础.通道 + 偏移}";
+                        保存指定拼版地址(当前行索引, p, 新地址, 子序号);
+                    }
+                }
+
+                配置已修改 = true;
+                return;
+            }
+
+            if (!解析地址(当前地址, out string 前缀, out int 板号, out int 通道)) return;
             int 当前通道 = 通道;
 
             for (int p = 当前拼版 + 1; p <= 拼板数; p++)
             {
                 当前通道 += 步进;
                 string 新地址 = $"{前缀}{板号}.{当前通道}";
-                保存指定拼版地址(当前行索引, p, 新地址);
+                保存指定拼版地址(当前行索引, p, 新地址, 1);
             }
 
             配置已修改 = true;
@@ -746,13 +843,13 @@ namespace 自动测试
             return false;
         }
 
-        private void 保存指定拼版地址(int 行索引, int 拼版号, string 地址)
+        private void 保存指定拼版地址(int 行索引, int 拼版号, string 地址, int 子序号 = 1)
         {
             if (行索引 < 0 || 行索引 >= 检测项表格.Rows.Count) return;
             var 行 = 检测项表格.Rows[行索引];
             if (行.IsNewRow) return;
 
-            string 地址字段名 = $"拼版{拼版号}地址";
+            string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
 
             if (!检测项表格.Columns.Contains(地址字段名))
             {

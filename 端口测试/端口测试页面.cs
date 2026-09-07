@@ -126,6 +126,12 @@ namespace 自动测试
             断开按钮.Click += 串口断开按钮_Click;
             标题行.Controls.Add(断开按钮);
 
+            bool 有可用串口 = SerialPort.GetPortNames().Length > 0;
+            if (!有可用串口)
+            {
+                连接按钮.Enabled = false;
+            }
+
             卡片.Controls.Add(标题行);
             模块面板.Controls.Add(卡片);
         }
@@ -168,8 +174,19 @@ namespace 自动测试
 
             var 通道选择框 = new ComboBox();
             通道选择框.DropDownStyle = ComboBoxStyle.DropDownList;
-            通道选择框.Items.AddRange(new object[] { "通道1", "通道2", "通道3", "通道4" });
-            通道选择框.SelectedIndex = 0;
+            var 可用串口 = SerialPort.GetPortNames();
+            if (可用串口.Length > 0)
+            {
+                Array.Sort(可用串口, StringComparer.OrdinalIgnoreCase);
+                通道选择框.Items.AddRange(可用串口);
+                通道选择框.SelectedIndex = 0;
+            }
+            else
+            {
+                通道选择框.Items.Add("无可用COM口");
+                通道选择框.SelectedIndex = 0;
+                通道选择框.Enabled = false;
+            }
             通道选择框.Location = new Point(53, 5);
             通道选择框.Size = new Size(70, 25);
             通道选择框.Font = new Font("Microsoft YaHei UI", 9F);
@@ -201,6 +218,7 @@ namespace 自动测试
             发送按钮.Name = "发送按钮";
             发送按钮.Tag = 卡片;
             发送按钮.Click += 串口发送按钮_Click;
+            发送按钮.Enabled = 可用串口.Length > 0;
             通道面板.Controls.Add(发送按钮);
 
             var 清空按钮 = new Button();

@@ -319,6 +319,8 @@ namespace 自动测试
     {
         public string 模块类型 = "输入模块";
         public int 通道数量 = 16;
+        public double 量程 = 0.0;
+        public string 单位 = "";
     }
 
     public class 电流模块类

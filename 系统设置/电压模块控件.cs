@@ -84,6 +84,14 @@ namespace 自动测试
                     int 索引 = 类型下拉框列表[i].Items.IndexOf(配置数据.电压模块.模块列表[i].模块类型);
                     if (索引 >= 0) 类型下拉框列表[i].SelectedIndex = 索引;
 
+                    int 单位索引 = 单位下拉框列表[i].Items.IndexOf(配置数据.电压模块.模块列表[i].单位);
+                    if (单位索引 >= 0) 单位下拉框列表[i].SelectedIndex = 单位索引;
+
+                    decimal 量程值 = (decimal)配置数据.电压模块.模块列表[i].量程;
+                    if (量程值 < 量程框列表[i].Minimum) 量程值 = 量程框列表[i].Minimum;
+                    if (量程值 > 量程框列表[i].Maximum) 量程值 = 量程框列表[i].Maximum;
+                    量程框列表[i].Value = 量程值;
+
                     if (i < 配置数据.电压模块.备注列表.Count)
                         功能板备注列表[i].Text = 配置数据.电压模块.备注列表[i];
                 }
@@ -115,7 +123,9 @@ namespace 自动测试
                 配置数据.电压模块.模块列表.Add(new 模块通道配置
                 {
                     模块类型 = 类型下拉框列表[i].SelectedItem?.ToString() ?? "无",
-                    通道数量 = 0
+                    通道数量 = 0,
+                    量程 = (double)量程框列表[i].Value,
+                    单位 = 单位下拉框列表[i].SelectedItem?.ToString() ?? ""
                 });
                 配置数据.电压模块.备注列表.Add(功能板备注列表[i].Text);
             }
@@ -125,7 +135,9 @@ namespace 自动测试
                 配置数据.电压模块.模块列表.Add(new 模块通道配置
                 {
                     模块类型 = 电源类型框列表[i].SelectedItem?.ToString() ?? "无",
-                    通道数量 = 0
+                    通道数量 = 0,
+                    量程 = 0,
+                    单位 = ""
                 });
                 配置数据.电压模块.备注列表.Add(电源备注列表[i].Text);
             }

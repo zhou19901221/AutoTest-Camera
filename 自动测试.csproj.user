@@ -7,6 +7,12 @@
     <Compile Update="MESS设置控件.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="一迈电源设置窗体.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="主界面\Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="其他设置控件.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -16,11 +22,23 @@
     <Compile Update="基础参数控件.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="基础参数控件.Designer.sync-conflict-20260901-103805-7SW6EGF.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="日志\日志页面.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="日志页面.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="检测设置控件.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="电压模块控件.cs">
       <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="电源控制\一迈电源设置窗体.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Update="相机属性.cs">
       <SubType>UserControl</SubType>
@@ -28,13 +46,58 @@
     <Compile Update="相机属性页面.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="端口测试\端口测试页面.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="端口测试页面.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="系统设置.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="系统设置\MESS设置控件.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="系统设置\其他设置控件.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="系统设置\基础参数控件.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="系统设置\检测设置控件.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="系统设置\电压模块控件.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="系统设置\系统设置页面.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="系统设置\运动控制控件.cs">
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="系统设置页面.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="编辑配置\编辑配置窗体.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="编辑配置窗体.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="自动测试界面.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="自动测试界面\自动测试界面.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="视觉调试\相机属性.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="视觉调试\相机属性页面.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="视觉调试\视觉调试页面.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="视觉调试页面.cs">

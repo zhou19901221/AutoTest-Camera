@@ -1,0 +1,748 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace 自动测试
+{
+    public partial class 端口测试页面 : Form
+    {
+        private static readonly Color 未连接色 = Color.FromArgb(200, 200, 200);
+        private static readonly Color 已连接色 = Color.FromArgb(0, 176, 80);
+        private static readonly Color 错误色 = Color.FromArgb(255, 0, 0);
+        private static readonly Color 开启色 = Color.FromArgb(0, 176, 80);
+        private static readonly Color 关闭色 = Color.FromArgb(200, 200, 200);
+
+        private readonly Dictionary<string, bool> 通道状态 = new();
+
+        public 端口测试页面()
+        {
+            InitializeComponent();
+            生成模块按钮();
+            界面缩放器.等比例适配屏幕(this);
+        }
+
+        private void 生成模块按钮()
+        {
+            模块面板.Controls.Clear();
+
+            AddSerialCard();
+
+            var 配置 = 系统配置管理.实例;
+            int 功能板数 = Math.Min(8, 配置.电压模块.模块列表.Count);
+            int 电源板数 = Math.Min(3, 配置.电压模块.模块列表.Count - 8);
+
+            for (int i = 0; i < 功能板数; i++)
+            {
+                string 模块类型 = 配置.电压模块.模块列表[i].模块类型;
+                int 从站地址 = 2 + i;
+                AddModuleCard($"功能板{i + 1}", 模块类型, 从站地址);
+            }
+
+            for (int i = 0; i < 电源板数; i++)
+            {
+                int 偏移 = 8 + i;
+                if (偏移 >= 配置.电压模块.模块列表.Count) break;
+                string 模块类型 = 配置.电压模块.模块列表[偏移].模块类型;
+                int 从站地址 = 2 + 功能板数 + i;
+                AddModuleCard($"电源板{i + 1}", 模块类型, 从站地址);
+            }
+        }
+
+        private void AddSerialCard()
+        {
+            var 卡片 = new Panel();
+            卡片.Size = new Size(560, 50);
+            卡片.Tag = "串口通讯板";
+            卡片.BackColor = Color.White;
+            卡片.Margin = new Padding(3);
+
+            var 标题行 = new Panel();
+            标题行.Size = new Size(554, 44);
+            标题行.Dock = DockStyle.Top;
+            标题行.BackColor = Color.FromArgb(245, 245, 245);
+
+            var 名称标签 = new Label();
+            名称标签.Text = "串口通讯板 [RS485]";
+            名称标签.Location = new Point(8, 12);
+            名称标签.Size = new Size(200, 22);
+            名称标签.Font = new Font("Microsoft YaHei UI", 9.5F, FontStyle.Bold);
+            标题行.Controls.Add(名称标签);
+
+            var 状态指示 = new Panel();
+            状态指示.Location = new Point(210, 12);
+            状态指示.Size = new Size(18, 18);
+            状态指示.BackColor = 未连接色;
+            状态指示.Name = "状态指示";
+            标题行.Controls.Add(状态指示);
+
+            var 状态标签 = new Label();
+            状态标签.Text = "未连接";
+            状态标签.Location = new Point(232, 12);
+            状态标签.Size = new Size(60, 18);
+            状态标签.Font = new Font("Microsoft YaHei UI", 9F);
+            状态标签.Name = "状态标签";
+            标题行.Controls.Add(状态标签);
+
+            var 连接按钮 = new Button();
+            连接按钮.Text = "连接";
+            连接按钮.Location = new Point(380, 8);
+            连接按钮.Size = new Size(55, 28);
+            连接按钮.FlatStyle = FlatStyle.Flat;
+            连接按钮.BackColor = Color.FromArgb(91, 155, 213);
+            连接按钮.ForeColor = Color.White;
+            连接按钮.Font = new Font("Microsoft YaHei UI", 9F);
+            连接按钮.Name = "连接按钮";
+            连接按钮.Tag = 卡片;
+            连接按钮.Click += 串口连接按钮_Click;
+            标题行.Controls.Add(连接按钮);
+
+            var 断开按钮 = new Button();
+            断开按钮.Text = "断开";
+            断开按钮.Location = new Point(440, 8);
+            断开按钮.Size = new Size(55, 28);
+            断开按钮.FlatStyle = FlatStyle.Flat;
+            断开按钮.BackColor = Color.FromArgb(220, 80, 60);
+            断开按钮.ForeColor = Color.White;
+            断开按钮.Font = new Font("Microsoft YaHei UI", 9F);
+            断开按钮.Name = "断开按钮";
+            断开按钮.Tag = 卡片;
+            断开按钮.Click += 串口断开按钮_Click;
+            标题行.Controls.Add(断开按钮);
+
+            卡片.Controls.Add(标题行);
+            模块面板.Controls.Add(卡片);
+        }
+
+        private void 串口连接按钮_Click(object sender, EventArgs e)
+        {
+            var 按钮 = sender as Button;
+            if (按钮?.Tag is not Panel 卡片) return;
+            SetCardStatus(卡片, 已连接色, "已连接");
+            展开串口通道(卡片);
+            日志管理器.记录(日志类别.硬件操作, "串口连接", "串口通讯板", 权限等级.管理员);
+        }
+
+        private void 串口断开按钮_Click(object sender, EventArgs e)
+        {
+            var 按钮 = sender as Button;
+            if (按钮?.Tag is not Panel 卡片) return;
+            SetCardStatus(卡片, 未连接色, "未连接");
+            收起串口通道(卡片);
+            日志管理器.记录(日志类别.硬件操作, "串口断开", "串口通讯板", 权限等级.管理员);
+        }
+
+        private void 展开串口通道(Panel 卡片)
+        {
+            收起串口通道(卡片);
+
+            var 通道面板 = new Panel();
+            通道面板.Name = "通道面板";
+            通道面板.Location = new Point(0, 48);
+            通道面板.Width = 554;
+            通道面板.Height = 90;
+            卡片.Height = 50 + 通道面板.Height;
+
+            var 通道选择标签 = new Label();
+            通道选择标签.Text = "通道：";
+            通道选择标签.Location = new Point(8, 7);
+            通道选择标签.Size = new Size(45, 20);
+            通道选择标签.Font = new Font("Microsoft YaHei UI", 9F);
+            通道面板.Controls.Add(通道选择标签);
+
+            var 通道选择框 = new ComboBox();
+            通道选择框.DropDownStyle = ComboBoxStyle.DropDownList;
+            通道选择框.Items.AddRange(new object[] { "通道1", "通道2", "通道3", "通道4" });
+            通道选择框.SelectedIndex = 0;
+            通道选择框.Location = new Point(53, 5);
+            通道选择框.Size = new Size(70, 25);
+            通道选择框.Font = new Font("Microsoft YaHei UI", 9F);
+            通道选择框.Name = "通道选择框";
+            通道面板.Controls.Add(通道选择框);
+
+            var 发送标签 = new Label();
+            发送标签.Text = "发送：";
+            发送标签.Location = new Point(130, 7);
+            发送标签.Size = new Size(45, 20);
+            发送标签.Font = new Font("Microsoft YaHei UI", 9F);
+            通道面板.Controls.Add(发送标签);
+
+            var 发送框 = new TextBox();
+            发送框.Location = new Point(175, 5);
+            发送框.Size = new Size(240, 26);
+            发送框.Font = new Font("Consolas", 9F);
+            发送框.Name = "发送框";
+            通道面板.Controls.Add(发送框);
+
+            var 发送按钮 = new Button();
+            发送按钮.Text = "发送";
+            发送按钮.Location = new Point(420, 3);
+            发送按钮.Size = new Size(55, 28);
+            发送按钮.FlatStyle = FlatStyle.Flat;
+            发送按钮.BackColor = Color.FromArgb(91, 155, 213);
+            发送按钮.ForeColor = Color.White;
+            发送按钮.Font = new Font("Microsoft YaHei UI", 9F);
+            发送按钮.Name = "发送按钮";
+            发送按钮.Tag = 卡片;
+            发送按钮.Click += 串口发送按钮_Click;
+            通道面板.Controls.Add(发送按钮);
+
+            var 清空按钮 = new Button();
+            清空按钮.Text = "清空";
+            清空按钮.Location = new Point(480, 3);
+            清空按钮.Size = new Size(55, 28);
+            清空按钮.FlatStyle = FlatStyle.Flat;
+            清空按钮.Font = new Font("Microsoft YaHei UI", 9F);
+            清空按钮.Name = "清空按钮";
+            清空按钮.Tag = 卡片;
+            清空按钮.Click += 串口清空按钮_Click;
+            通道面板.Controls.Add(清空按钮);
+
+            var 接收标签 = new Label();
+            接收标签.Text = "接收：";
+            接收标签.Location = new Point(60, 40);
+            接收标签.Size = new Size(45, 20);
+            接收标签.Font = new Font("Microsoft YaHei UI", 9F);
+            通道面板.Controls.Add(接收标签);
+
+            var 接收框 = new TextBox();
+            接收框.Location = new Point(105, 38);
+            接收框.Size = new Size(430, 46);
+            接收框.Multiline = true;
+            接收框.ReadOnly = true;
+            接收框.Font = new Font("Consolas", 9F);
+            接收框.BackColor = Color.FromArgb(248, 248, 248);
+            接收框.Name = "接收框";
+            接收框.ScrollBars = ScrollBars.Vertical;
+            通道面板.Controls.Add(接收框);
+
+            卡片.Controls.Add(通道面板);
+        }
+
+        private void 收起串口通道(Panel 卡片)
+        {
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is Panel p && p.Name == "通道面板")
+                {
+                    卡片.Controls.Remove(p);
+                    p.Dispose();
+                    break;
+                }
+            }
+            卡片.Height = 50;
+        }
+
+        private void 串口发送按钮_Click(object sender, EventArgs e)
+        {
+            var 按钮 = sender as Button;
+            if (按钮?.Tag is not Panel 卡片) return;
+
+            string 发送内容 = "";
+            string 接收内容 = "";
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is Panel 通道面板 && 通道面板.Name == "通道面板")
+                {
+                    foreach (Control tc in 通道面板.Controls)
+                    {
+                        if (tc.Name == "发送框") 发送内容 = tc.Text;
+                        if (tc.Name == "接收框") 接收内容 = tc.Text;
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(发送内容))
+            {
+                MessageBox.Show("请输入发送报文内容", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            日志管理器.记录(日志类别.硬件操作, "串口发送报文", 发送内容, 权限等级.厂家);
+
+            接收内容 += $"[{DateTime.Now:HH:mm:ss.fff}] 发送: {发送内容}\r\n";
+            接收内容 += $"[{DateTime.Now:HH:mm:ss.fff}] 接收: (待通讯实现)\r\n";
+
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is Panel 通道面板 && 通道面板.Name == "通道面板")
+                {
+                    foreach (Control tc in 通道面板.Controls)
+                    {
+                        if (tc.Name == "接收框") tc.Text = 接收内容;
+                    }
+                }
+            }
+        }
+
+        private void 串口清空按钮_Click(object sender, EventArgs e)
+        {
+            var 按钮 = sender as Button;
+            if (按钮?.Tag is not Panel 卡片) return;
+
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is Panel 通道面板 && 通道面板.Name == "通道面板")
+                {
+                    foreach (Control tc in 通道面板.Controls)
+                    {
+                        if (tc.Name == "接收框") tc.Text = "";
+                    }
+                }
+            }
+        }
+
+        private void AddModuleCard(string 板名称, string 模块类型, int 从站地址)
+        {
+            var 卡片 = new Panel();
+            卡片.Size = new Size(560, 50);
+            卡片.Tag = 模块类型;
+            卡片.BackColor = Color.White;
+            卡片.Margin = new Padding(3);
+
+            var 标题行 = new Panel();
+            标题行.Size = new Size(554, 44);
+            标题行.Dock = DockStyle.Top;
+            标题行.BackColor = Color.FromArgb(245, 245, 245);
+
+            var 名称标签 = new Label();
+            名称标签.Text = $"{板名称} [{模块类型}] 地址:{从站地址}";
+            名称标签.Location = new Point(8, 12);
+            名称标签.Size = new Size(280, 22);
+            名称标签.Font = new Font("Microsoft YaHei UI", 9.5F, FontStyle.Bold);
+            标题行.Controls.Add(名称标签);
+
+            var 状态指示 = new Panel();
+            状态指示.Location = new Point(290, 12);
+            状态指示.Size = new Size(18, 18);
+            状态指示.BackColor = 未连接色;
+            状态指示.Name = "状态指示";
+            标题行.Controls.Add(状态指示);
+
+            var 状态标签 = new Label();
+            状态标签.Text = "未连接";
+            状态标签.Location = new Point(312, 12);
+            状态标签.Size = new Size(60, 18);
+            状态标签.Font = new Font("Microsoft YaHei UI", 9F);
+            状态标签.Name = "状态标签";
+            标题行.Controls.Add(状态标签);
+
+            var 连接按钮 = new Button();
+            连接按钮.Text = "连接";
+            连接按钮.Location = new Point(380, 8);
+            连接按钮.Size = new Size(55, 28);
+            连接按钮.FlatStyle = FlatStyle.Flat;
+            连接按钮.BackColor = Color.FromArgb(91, 155, 213);
+            连接按钮.ForeColor = Color.White;
+            连接按钮.Font = new Font("Microsoft YaHei UI", 9F);
+            连接按钮.Name = "连接按钮";
+            连接按钮.Tag = 卡片;
+            连接按钮.Click += 连接按钮_Click;
+            标题行.Controls.Add(连接按钮);
+
+            var 断开按钮 = new Button();
+            断开按钮.Text = "断开";
+            断开按钮.Location = new Point(440, 8);
+            断开按钮.Size = new Size(55, 28);
+            断开按钮.FlatStyle = FlatStyle.Flat;
+            断开按钮.BackColor = Color.FromArgb(220, 80, 60);
+            断开按钮.ForeColor = Color.White;
+            断开按钮.Font = new Font("Microsoft YaHei UI", 9F);
+            断开按钮.Name = "断开按钮";
+            断开按钮.Tag = 卡片;
+            断开按钮.Click += 断开按钮_Click;
+            标题行.Controls.Add(断开按钮);
+
+            var 全开全关按钮 = new Button();
+            全开全关按钮.Text = "全开";
+            全开全关按钮.Location = new Point(500, 8);
+            全开全关按钮.Size = new Size(45, 28);
+            全开全关按钮.FlatStyle = FlatStyle.Flat;
+            全开全关按钮.BackColor = Color.FromArgb(50, 150, 50);
+            全开全关按钮.ForeColor = Color.White;
+            全开全关按钮.Font = new Font("Microsoft YaHei UI", 9F);
+            全开全关按钮.Name = "全开全关按钮";
+            全开全关按钮.Tag = 卡片;
+            全开全关按钮.Click += 全开全关按钮_Click;
+            全开全关按钮.Visible = false;
+            标题行.Controls.Add(全开全关按钮);
+
+            卡片.Controls.Add(标题行);
+
+            if (模块类型 == "无")
+            {
+                卡片.BackColor = Color.FromArgb(240, 240, 240);
+                foreach (Control c in 标题行.Controls)
+                {
+                    if (c is Button btn) btn.Enabled = false;
+                }
+            }
+
+            模块面板.Controls.Add(卡片);
+        }
+
+        private void 连接按钮_Click(object sender, EventArgs e)
+        {
+            var 按钮 = sender as Button;
+            if (按钮?.Tag is not Panel 卡片) return;
+            SetCardStatus(卡片, 已连接色, "已连接");
+            展开通道面板(卡片);
+            日志管理器.记录(日志类别.硬件操作, "模块连接", 获取卡片名称(卡片), 权限等级.管理员);
+        }
+
+        private void 断开按钮_Click(object sender, EventArgs e)
+        {
+            var 按钮 = sender as Button;
+            if (按钮?.Tag is not Panel 卡片) return;
+            SetCardStatus(卡片, 未连接色, "未连接");
+            收起通道面板(卡片);
+            日志管理器.记录(日志类别.硬件操作, "模块断开", 获取卡片名称(卡片), 权限等级.管理员);
+        }
+
+        private void 全开全关按钮_Click(object sender, EventArgs e)
+        {
+            var 按钮 = sender as Button;
+            if (按钮?.Tag is not Panel 卡片) return;
+
+            bool 当前全开 = 按钮.Text == "全关";
+
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is Panel 通道面板 && 通道面板.Name == "通道面板")
+                {
+                    foreach (Control 通道控件 in 通道面板.Controls)
+                    {
+                        if (通道控件 is Button 通道按钮 && 通道按钮.Name.StartsWith("CH_"))
+                        {
+                            通道按钮.BackColor = !当前全开 ? 开启色 : 关闭色;
+                            通道按钮.Text = !当前全开 ? 通道按钮.Text.Replace("OFF", "ON") : 通道按钮.Text.Replace("ON", "OFF");
+                            通道状态[通道按钮.Name] = !当前全开;
+                        }
+                    }
+                }
+            }
+
+            按钮.Text = !当前全开 ? "全关" : "全开";
+            按钮.BackColor = !当前全开 ? Color.FromArgb(220, 80, 60) : Color.FromArgb(50, 150, 50);
+            日志管理器.记录(日志类别.硬件操作, !当前全开 ? "全部通道开启" : "全部通道关闭", 获取卡片名称(卡片), 权限等级.厂家);
+        }
+
+        private void 展开通道面板(Panel 卡片)
+        {
+            收起通道面板(卡片);
+
+            string 模块类型 = 卡片.Tag?.ToString() ?? "";
+            int 通道数 = 获取模块通道数(模块类型);
+            bool 是输出型 = 是输出模块(模块类型);
+            bool 是输入型 = 是输入模块(模块类型);
+            bool 是电源型 = 是电源模块(模块类型);
+            bool 是脉冲型 = 是脉冲模块(模块类型);
+
+            var 通道面板 = new Panel();
+            通道面板.Name = "通道面板";
+            通道面板.Location = new Point(0, 48);
+            通道面板.Width = 554;
+
+            if (是电源型)
+            {
+                通道面板.Height = 通道数 * 32 + 30;
+                卡片.Height = 50 + 通道面板.Height;
+                卡片.Width = 560;
+
+                var 表头 = new Label();
+                表头.Text = "  通道      开关       电压(V)     电流(A)     功率(W)";
+                表头.Location = new Point(5, 3);
+                表头.Size = new Size(540, 22);
+                表头.Font = new Font("Microsoft YaHei UI", 8.5F, FontStyle.Bold);
+                通道面板.Controls.Add(表头);
+
+                for (int ch = 0; ch < 通道数; ch++)
+                {
+                    int y = 26 + ch * 32;
+
+                    var 通道标签 = new Label();
+                    通道标签.Text = $"PS{ch}";
+                    通道标签.Location = new Point(5, y + 3);
+                    通道标签.Size = new Size(40, 22);
+                    通道标签.Font = new Font("Microsoft YaHei UI", 9F);
+                    通道面板.Controls.Add(通道标签);
+
+                    var 开关按钮 = new Button();
+                    开关按钮.Text = "OFF";
+                    开关按钮.Size = new Size(50, 26);
+                    开关按钮.Location = new Point(50, y);
+                    开关按钮.FlatStyle = FlatStyle.Flat;
+                    开关按钮.BackColor = 关闭色;
+                    开关按钮.Font = new Font("Microsoft YaHei UI", 8F);
+                    开关按钮.Name = $"CH_PS{ch}";
+                    开关按钮.Tag = 卡片;
+                    开关按钮.Click += 通道开关_Click;
+                    通道面板.Controls.Add(开关按钮);
+
+                    var 电压框 = new TextBox();
+                    电压框.Text = "--";
+                    电压框.Size = new Size(80, 26);
+                    电压框.Location = new Point(110, y);
+                    电压框.ReadOnly = true;
+                    电压框.Font = new Font("Microsoft YaHei UI", 9F);
+                    电压框.BackColor = Color.FromArgb(248, 248, 248);
+                    电压框.Name = $"RD_PS{ch}_V";
+                    通道面板.Controls.Add(电压框);
+
+                    var 电流框 = new TextBox();
+                    电流框.Text = "--";
+                    电流框.Size = new Size(80, 26);
+                    电流框.Location = new Point(200, y);
+                    电流框.ReadOnly = true;
+                    电流框.Font = new Font("Microsoft YaHei UI", 9F);
+                    电流框.BackColor = Color.FromArgb(248, 248, 248);
+                    电流框.Name = $"RD_PS{ch}_A";
+                    通道面板.Controls.Add(电流框);
+
+                    var 功率框 = new TextBox();
+                    功率框.Text = "--";
+                    功率框.Size = new Size(80, 26);
+                    功率框.Location = new Point(290, y);
+                    功率框.ReadOnly = true;
+                    功率框.Font = new Font("Microsoft YaHei UI", 9F);
+                    功率框.BackColor = Color.FromArgb(248, 248, 248);
+                    功率框.Name = $"RD_PS{ch}_W";
+                    通道面板.Controls.Add(功率框);
+
+                    var 功率标签 = new Label();
+                    功率标签.Text = $"PW{ch}: --";
+                    功率标签.Location = new Point(380, y + 3);
+                    功率标签.Size = new Size(80, 22);
+                    功率标签.Font = new Font("Microsoft YaHei UI", 8.5F);
+                    功率标签.Name = $"LB_PW{ch}";
+                    通道面板.Controls.Add(功率标签);
+                }
+            }
+            else if (是脉冲型)
+            {
+                通道面板.Height = 通道数 * 32 + 50;
+                卡片.Height = 50 + 通道面板.Height;
+                卡片.Width = 560;
+
+                var PO表头 = new Label();
+                PO表头.Text = "  PO通道    脉冲频率(Hz)          PI通道    声音大小(dB)";
+                PO表头.Location = new Point(5, 3);
+                PO表头.Size = new Size(540, 22);
+                PO表头.Font = new Font("Microsoft YaHei UI", 8.5F, FontStyle.Bold);
+                通道面板.Controls.Add(PO表头);
+
+                for (int ch = 0; ch < 通道数; ch++)
+                {
+                    int y = 26 + ch * 32;
+
+                    var PO标签 = new Label();
+                    PO标签.Text = $"PO{ch}";
+                    PO标签.Location = new Point(5, y + 3);
+                    PO标签.Size = new Size(40, 22);
+                    PO标签.Font = new Font("Microsoft YaHei UI", 9F);
+                    通道面板.Controls.Add(PO标签);
+
+                    var 频率框 = new TextBox();
+                    频率框.Text = "--";
+                    频率框.Size = new Size(100, 26);
+                    频率框.Location = new Point(50, y);
+                    频率框.ReadOnly = true;
+                    频率框.Font = new Font("Microsoft YaHei UI", 9F);
+                    频率框.BackColor = Color.FromArgb(248, 248, 248);
+                    频率框.Name = $"RD_PO{ch}";
+                    通道面板.Controls.Add(频率框);
+
+                    var PI标签 = new Label();
+                    PI标签.Text = $"PI{ch}";
+                    PI标签.Location = new Point(280, y + 3);
+                    PI标签.Size = new Size(40, 22);
+                    PI标签.Font = new Font("Microsoft YaHei UI", 9F);
+                    通道面板.Controls.Add(PI标签);
+
+                    var 声音框 = new TextBox();
+                    声音框.Text = "--";
+                    声音框.Size = new Size(100, 26);
+                    声音框.Location = new Point(325, y);
+                    声音框.ReadOnly = true;
+                    声音框.Font = new Font("Microsoft YaHei UI", 9F);
+                    声音框.BackColor = Color.FromArgb(248, 248, 248);
+                    声音框.Name = $"RD_PI{ch}";
+                    通道面板.Controls.Add(声音框);
+                }
+            }
+            else
+            {
+                int 行数 = (通道数 + 7) / 8;
+                通道面板.Height = 行数 * 36 + 10;
+                卡片.Height = 50 + 通道面板.Height;
+
+                string 前缀 = 获取地址前缀(模块类型);
+
+                for (int ch = 0; ch < 通道数; ch++)
+                {
+                    int 行 = ch / 8;
+                    int 列 = ch % 8;
+                    int x = 8 + 列 * 68;
+                    int y = 5 + 行 * 36;
+
+                    if (是输出型)
+                    {
+                        var 通道按钮 = new Button();
+                        通道按钮.Text = $"{前缀}{ch}";
+                        通道按钮.Size = new Size(62, 30);
+                        通道按钮.Location = new Point(x, y);
+                        通道按钮.FlatStyle = FlatStyle.Flat;
+                        通道按钮.BackColor = 关闭色;
+                        通道按钮.Font = new Font("Microsoft YaHei UI", 8F);
+                        通道按钮.Name = $"CH_{前缀}{ch}";
+                        通道按钮.Tag = 卡片;
+                        通道按钮.Click += 通道开关_Click;
+                        通道面板.Controls.Add(通道按钮);
+                    }
+                    else if (是输入型)
+                    {
+                        var 通道框 = new TextBox();
+                        通道框.Text = $"{前缀}{ch}: --";
+                        通道框.Size = new Size(62, 26);
+                        通道框.Location = new Point(x, y);
+                        通道框.ReadOnly = true;
+                        通道框.Font = new Font("Microsoft YaHei UI", 8F);
+                        通道框.BackColor = Color.FromArgb(248, 248, 248);
+                        通道框.Name = $"RD_{前缀}{ch}";
+                        通道面板.Controls.Add(通道框);
+                    }
+                }
+            }
+
+            if (是输出型 || 是电源型)
+            {
+                foreach (Control c in 卡片.Controls)
+                {
+                    if (c is Panel 标题行)
+                    {
+                        foreach (Control tc in 标题行.Controls)
+                        {
+                            if (tc.Name == "全开全关按钮") tc.Visible = true;
+                        }
+                    }
+                }
+            }
+
+            卡片.Controls.Add(通道面板);
+        }
+
+
+        private void 通道开关_Click(object sender, EventArgs e)
+        {
+            var 按钮 = sender as Button;
+            if (按钮 == null) return;
+
+            string 通道名 = 按钮.Name.Substring(3);
+            bool 当前状态 = 通道状态.ContainsKey(按钮.Name) && 通道状态[按钮.Name];
+            通道状态[按钮.Name] = !当前状态;
+
+            按钮.BackColor = !当前状态 ? 开启色 : 关闭色;
+            按钮.Text = !当前状态 ? $"{通道名} ON" : $"{通道名} OFF";
+
+            string 卡片名 = 按钮.Tag is Panel 卡片 ? 获取卡片名称(卡片) : "";
+            日志管理器.记录(日志类别.硬件操作, !当前状态 ? "通道开启" : "通道关闭", $"{卡片名} {通道名}", 权限等级.厂家);
+        }
+
+        private void 收起通道面板(Panel 卡片)
+        {
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is Panel p && p.Name == "通道面板")
+                {
+                    卡片.Controls.Remove(p);
+                    p.Dispose();
+                    break;
+                }
+            }
+
+            卡片.Height = 50;
+
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is Button btn && btn.Name == "全开全关按钮") btn.Visible = false;
+            }
+        }
+
+        private bool 是输出模块(string 类型)
+        {
+            return 类型 == "输出模块" || 类型 == "继电器模块";
+        }
+
+        private bool 是脉冲模块(string 类型)
+        {
+            return 类型 == "脉冲声音模块";
+        }
+
+        private bool 是输入模块(string 类型)
+        {
+            return 类型 == "直流电压模块（24）" || 类型 == "交流电压模块（24）" ||
+                   类型 == "交直流电流模块（8）" || 类型 == "交直流电流模块（16）";
+        }
+
+        private bool 是电源模块(string 类型)
+        {
+            return 类型.Contains("供电模块");
+        }
+
+        private string 获取地址前缀(string 类型)
+        {
+            if (类型 == "输出模块" || 类型 == "继电器模块") return "DO";
+            if (类型 == "直流电压模块（24）") return "VD";
+            if (类型 == "交流电压模块（24）") return "VA";
+            if (类型.Contains("交直流电流")) return "CD";
+            if (类型 == "脉冲声音模块") return "PO";
+            if (类型.Contains("供电模块")) return "PS";
+            return "CH";
+        }
+
+        private int 获取模块通道数(string 类型)
+        {
+            return 类型 switch
+            {
+                "输出模块" => 24,
+                "继电器模块" => 24,
+                "直流电压模块（24）" => 24,
+                "交流电压模块（24）" => 24,
+                "交直流电流模块（8）" => 8,
+                "交直流电流模块（16）" => 16,
+                "脉冲声音模块" => 16,
+                _ when 类型.Contains("供电模块（8）") => 8,
+                _ when 类型.Contains("供电模块（16）") => 16,
+                _ => 0
+            };
+        }
+
+        private string 获取卡片名称(Panel 卡片)
+        {
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is Panel 标题行)
+                {
+                    foreach (Control tc in 标题行.Controls)
+                    {
+                        if (tc.Name == "" || tc.Font.Bold) return tc.Text?.Split('[')[0].Trim() ?? "";
+                    }
+                }
+            }
+            return "";
+        }
+
+        private void SetCardStatus(Panel 卡片, Color 颜色, string 文本)
+        {
+            foreach (Control 标题行 in 卡片.Controls)
+            {
+                if (标题行 is not Panel) continue;
+                foreach (Control c in 标题行.Controls)
+                {
+                    if (c.Name == "状态指示") c.BackColor = 颜色;
+                    if (c.Name == "状态标签") c.Text = 文本;
+                }
+            }
+        }
+    }
+}

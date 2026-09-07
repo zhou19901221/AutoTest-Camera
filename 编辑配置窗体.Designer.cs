@@ -38,6 +38,12 @@ namespace 自动测试
             功能测试页 = new TabPage();
             工位地址标签 = new Label();
             工位地址框 = new ComboBox();
+            工位地址框2 = new ComboBox();
+            工位地址框3 = new ComboBox();
+            工位地址框4 = new ComboBox();
+            顺序填充按钮 = new Button();
+            间隔1填充按钮 = new Button();
+            间隔2填充按钮 = new Button();
             标签导航 = new TabControl();
             检测项页 = new TabPage();
             检测项表格 = new DataGridView();
@@ -50,6 +56,16 @@ namespace 自动测试
             设定值 = new DataGridViewTextBoxColumn();
             启用列 = new DataGridViewCheckBoxColumn();
             超时 = new DataGridViewTextBoxColumn();
+            检测设置页 = new TabPage();
+            checkBox5 = new CheckBox();
+            checkBox4 = new CheckBox();
+            checkBox3 = new CheckBox();
+            checkBox1 = new CheckBox();
+            checkBox2 = new CheckBox();
+            显示环境温度湿度框 = new CheckBox();
+            NG跳转标签 = new Label();
+            NG跳转框 = new TextBox();
+            检测设置表格 = new DataGridView();
             增加项按钮 = new Button();
             插入项按钮 = new Button();
             保存项按钮 = new Button();
@@ -58,18 +74,16 @@ namespace 自动测试
             删除项按钮 = new Button();
             启用所有按钮 = new Button();
             停用所有按钮 = new Button();
-            检测设置页 = new TabPage();
-            NG跳转标签 = new Label();
-            NG跳转框 = new TextBox();
-            检测设置表格 = new DataGridView();
-            显示环境温度湿度框 = new CheckBox();
-            checkBox1 = new CheckBox();
-            checkBox2 = new CheckBox();
-            checkBox3 = new CheckBox();
-            checkBox4 = new CheckBox();
-            checkBox5 = new CheckBox();
-            textBox1 = new TextBox();
-            label1 = new Label();
+            插入项按钮 = new Button();
+            停用所有按钮 = new Button();
+            粘贴项按钮 = new Button();
+            保存项按钮 = new Button();
+            删除项按钮 = new Button();
+            启用所有按钮 = new Button();
+            复制项按钮 = new Button();
+            设置名称列 = new DataGridViewTextBoxColumn();
+            设置值列 = new DataGridViewTextBoxColumn();
+            设置说明列 = new DataGridViewTextBoxColumn();
             左侧面板.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)拼板数框).BeginInit();
             右侧面板.SuspendLayout();
@@ -276,6 +290,16 @@ namespace 自动测试
             当前板6框.TabIndex = 5;
             当前板6框.Text = "6";
             // 
+            // 增加项按钮
+            // 
+            增加项按钮.Location = new Point(16, 822);
+            增加项按钮.Name = "增加项按钮";
+            增加项按钮.Size = new Size(75, 25);
+            增加项按钮.TabIndex = 1;
+            增加项按钮.Text = "增加项";
+            增加项按钮.UseVisualStyleBackColor = true;
+            增加项按钮.Click += 增加项按钮_Click;
+            // 
             // 功能导航
             // 
             功能导航.Controls.Add(功能测试页);
@@ -289,6 +313,12 @@ namespace 自动测试
             // 
             功能测试页.Controls.Add(工位地址标签);
             功能测试页.Controls.Add(工位地址框);
+            功能测试页.Controls.Add(工位地址框2);
+            功能测试页.Controls.Add(工位地址框3);
+            功能测试页.Controls.Add(工位地址框4);
+            功能测试页.Controls.Add(顺序填充按钮);
+            功能测试页.Controls.Add(间隔1填充按钮);
+            功能测试页.Controls.Add(间隔2填充按钮);
             功能测试页.Location = new Point(4, 26);
             功能测试页.Name = "功能测试页";
             功能测试页.Size = new Size(1138, 67);
@@ -313,6 +343,70 @@ namespace 自动测试
             工位地址框.Name = "工位地址框";
             工位地址框.Size = new Size(120, 25);
             工位地址框.TabIndex = 1;
+            工位地址框.SelectedIndexChanged += 工位地址框_SelectedIndexChanged;
+            // 
+            // 工位地址框2
+            // 
+            工位地址框2.DropDownStyle = ComboBoxStyle.DropDownList;
+            工位地址框2.FormattingEnabled = true;
+            工位地址框2.Location = new Point(210, 20);
+            工位地址框2.Name = "工位地址框2";
+            工位地址框2.Size = new Size(120, 25);
+            工位地址框2.TabIndex = 1;
+            工位地址框2.Visible = false;
+            工位地址框2.SelectedIndexChanged += 工位地址框2_SelectedIndexChanged;
+            // 
+            // 工位地址框3
+            // 
+            工位地址框3.DropDownStyle = ComboBoxStyle.DropDownList;
+            工位地址框3.FormattingEnabled = true;
+            工位地址框3.Location = new Point(336, 20);
+            工位地址框3.Name = "工位地址框3";
+            工位地址框3.Size = new Size(120, 25);
+            工位地址框3.TabIndex = 1;
+            工位地址框3.Visible = false;
+            工位地址框3.SelectedIndexChanged += 工位地址框3_SelectedIndexChanged;
+            // 
+            // 工位地址框4
+            // 
+            工位地址框4.DropDownStyle = ComboBoxStyle.DropDownList;
+            工位地址框4.FormattingEnabled = true;
+            工位地址框4.Location = new Point(462, 20);
+            工位地址框4.Name = "工位地址框4";
+            工位地址框4.Size = new Size(120, 25);
+            工位地址框4.TabIndex = 1;
+            工位地址框4.Visible = false;
+            工位地址框4.SelectedIndexChanged += 工位地址框4_SelectedIndexChanged;
+            // 
+            // 顺序填充按钮
+            // 
+            顺序填充按钮.Location = new Point(220, 18);
+            顺序填充按钮.Name = "顺序填充按钮";
+            顺序填充按钮.Size = new Size(75, 28);
+            顺序填充按钮.TabIndex = 2;
+            顺序填充按钮.Text = "顺序填充";
+            顺序填充按钮.UseVisualStyleBackColor = true;
+            顺序填充按钮.Click += 顺序填充按钮_Click;
+            // 
+            // 间隔1填充按钮
+            // 
+            间隔1填充按钮.Location = new Point(305, 18);
+            间隔1填充按钮.Name = "间隔1填充按钮";
+            间隔1填充按钮.Size = new Size(75, 28);
+            间隔1填充按钮.TabIndex = 3;
+            间隔1填充按钮.Text = "间隔1填充";
+            间隔1填充按钮.UseVisualStyleBackColor = true;
+            间隔1填充按钮.Click += 间隔1填充按钮_Click;
+            // 
+            // 间隔2填充按钮
+            // 
+            间隔2填充按钮.Location = new Point(390, 18);
+            间隔2填充按钮.Name = "间隔2填充按钮";
+            间隔2填充按钮.Size = new Size(75, 28);
+            间隔2填充按钮.TabIndex = 4;
+            间隔2填充按钮.Text = "间隔2填充";
+            间隔2填充按钮.UseVisualStyleBackColor = true;
+            间隔2填充按钮.Click += 间隔2填充按钮_Click;
             // 
             // 标签导航
             // 
@@ -357,7 +451,7 @@ namespace 自动测试
             // 类型列
             // 
             类型列.HeaderText = "类型";
-            类型列.Items.AddRange(new object[] { "继电器输出", "直流电压", "交流电压", "直流电流", "交流电流", "PWM检测", "声音检测", "电源输出", "串口输出", "相机检测" });
+            类型列.Items.AddRange(new object[] { "继电器输出", "直流电压", "交流电压", "直流电流", "交流电流", "PWM检测", "声音检测", "电源输出", "输入功率", "串口输出", "相机检测" });
             类型列.Name = "类型列";
             // 
             // 延时列
@@ -392,15 +486,107 @@ namespace 自动测试
             超时.HeaderText = "超时";
             超时.Name = "超时";
             // 
-            // 增加项按钮
+            // 检测设置页
             // 
-            增加项按钮.Location = new Point(16, 822);
-            增加项按钮.Name = "增加项按钮";
-            增加项按钮.Size = new Size(75, 25);
-            增加项按钮.TabIndex = 1;
-            增加项按钮.Text = "增加项";
-            增加项按钮.UseVisualStyleBackColor = true;
-            增加项按钮.Click += 增加项按钮_Click;
+            检测设置页.Controls.Add(checkBox5);
+            检测设置页.Controls.Add(checkBox4);
+            检测设置页.Controls.Add(checkBox3);
+            检测设置页.Controls.Add(checkBox1);
+            检测设置页.Controls.Add(checkBox2);
+            检测设置页.Controls.Add(显示环境温度湿度框);
+            检测设置页.Controls.Add(NG跳转标签);
+            检测设置页.Controls.Add(NG跳转框);
+            检测设置页.Controls.Add(检测设置表格);
+            检测设置页.Location = new Point(4, 26);
+            检测设置页.Name = "检测设置页";
+            检测设置页.Size = new Size(1134, 580);
+            检测设置页.TabIndex = 1;
+            检测设置页.Text = "检测设置";
+            检测设置页.UseVisualStyleBackColor = true;
+            // 
+            // checkBox5
+            // 
+            checkBox5.AutoSize = true;
+            checkBox5.Location = new Point(16, 299);
+            checkBox5.Name = "checkBox5";
+            checkBox5.Size = new Size(75, 21);
+            checkBox5.TabIndex = 18;
+            checkBox5.Text = "短路检测";
+            checkBox5.UseVisualStyleBackColor = true;
+            // 
+            // checkBox4
+            // 
+            checkBox4.AutoSize = true;
+            checkBox4.Location = new Point(16, 244);
+            checkBox4.Name = "checkBox4";
+            checkBox4.Size = new Size(99, 21);
+            checkBox4.TabIndex = 18;
+            checkBox4.Text = "超时结束供电";
+            checkBox4.UseVisualStyleBackColor = true;
+            // 
+            // checkBox3
+            // 
+            checkBox3.AutoSize = true;
+            checkBox3.Location = new Point(16, 189);
+            checkBox3.Name = "checkBox3";
+            checkBox3.Size = new Size(94, 21);
+            checkBox3.TabIndex = 18;
+            checkBox3.Text = "超时NG跳转";
+            checkBox3.UseVisualStyleBackColor = true;
+            // 
+            // checkBox1
+            // 
+            checkBox1.AutoSize = true;
+            checkBox1.Location = new Point(16, 134);
+            checkBox1.Name = "checkBox1";
+            checkBox1.Size = new Size(99, 21);
+            checkBox1.TabIndex = 18;
+            checkBox1.Text = "超时结束检测";
+            checkBox1.UseVisualStyleBackColor = true;
+            // 
+            // checkBox2
+            // 
+            checkBox2.AutoSize = true;
+            checkBox2.Location = new Point(16, 79);
+            checkBox2.Name = "checkBox2";
+            checkBox2.Size = new Size(70, 21);
+            checkBox2.TabIndex = 18;
+            checkBox2.Text = "NG跳转";
+            checkBox2.UseVisualStyleBackColor = true;
+            // 
+            // 显示环境温度湿度框
+            // 
+            显示环境温度湿度框.AutoSize = true;
+            显示环境温度湿度框.Location = new Point(16, 24);
+            显示环境温度湿度框.Name = "显示环境温度湿度框";
+            显示环境温度湿度框.Size = new Size(70, 21);
+            显示环境温度湿度框.TabIndex = 18;
+            显示环境温度湿度框.Text = "NG结束";
+            显示环境温度湿度框.UseVisualStyleBackColor = true;
+            // 
+            // NG跳转标签
+            // 
+            NG跳转标签.Location = new Point(152, 78);
+            NG跳转标签.Name = "NG跳转标签";
+            NG跳转标签.Size = new Size(80, 23);
+            NG跳转标签.TabIndex = 16;
+            NG跳转标签.Text = "NG跳转：";
+            NG跳转标签.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // NG跳转框
+            // 
+            NG跳转框.Location = new Point(322, 78);
+            NG跳转框.Name = "NG跳转框";
+            NG跳转框.Size = new Size(80, 23);
+            NG跳转框.TabIndex = 17;
+            // 
+            // 检测设置表格
+            // 
+            检测设置表格.Location = new Point(1, 4);
+            检测设置表格.Name = "检测设置表格";
+            检测设置表格.Size = new Size(1129, 573);
+            检测设置表格.TabIndex = 0;
+            检测设置表格.Visible = false;
             // 
             // 插入项按钮
             // 
@@ -412,25 +598,15 @@ namespace 自动测试
             插入项按钮.UseVisualStyleBackColor = true;
             插入项按钮.Click += 插入项按钮_Click;
             // 
-            // 保存项按钮
+            // 停用所有按钮
             // 
-            保存项按钮.Location = new Point(178, 822);
-            保存项按钮.Name = "保存项按钮";
-            保存项按钮.Size = new Size(75, 25);
-            保存项按钮.TabIndex = 3;
-            保存项按钮.Text = "保存项";
-            保存项按钮.UseVisualStyleBackColor = true;
-            保存项按钮.Click += 保存项按钮_Click;
-            // 
-            // 复制项按钮
-            // 
-            复制项按钮.Location = new Point(259, 822);
-            复制项按钮.Name = "复制项按钮";
-            复制项按钮.Size = new Size(75, 25);
-            复制项按钮.TabIndex = 4;
-            复制项按钮.Text = "复制项";
-            复制项按钮.UseVisualStyleBackColor = true;
-            复制项按钮.Click += 复制项按钮_Click;
+            停用所有按钮.Location = new Point(583, 822);
+            停用所有按钮.Name = "停用所有按钮";
+            停用所有按钮.Size = new Size(75, 25);
+            停用所有按钮.TabIndex = 8;
+            停用所有按钮.Text = "停用所有";
+            停用所有按钮.UseVisualStyleBackColor = true;
+            停用所有按钮.Click += 停用所有按钮_Click;
             // 
             // 粘贴项按钮
             // 
@@ -441,6 +617,16 @@ namespace 自动测试
             粘贴项按钮.Text = "粘贴项";
             粘贴项按钮.UseVisualStyleBackColor = true;
             粘贴项按钮.Click += 粘贴项按钮_Click;
+            // 
+            // 保存项按钮
+            // 
+            保存项按钮.Location = new Point(178, 822);
+            保存项按钮.Name = "保存项按钮";
+            保存项按钮.Size = new Size(75, 25);
+            保存项按钮.TabIndex = 3;
+            保存项按钮.Text = "保存项";
+            保存项按钮.UseVisualStyleBackColor = true;
+            保存项按钮.Click += 保存项按钮_Click;
             // 
             // 删除项按钮
             // 
@@ -462,134 +648,35 @@ namespace 自动测试
             启用所有按钮.UseVisualStyleBackColor = true;
             启用所有按钮.Click += 启用所有按钮_Click;
             // 
-            // 停用所有按钮
+            // 复制项按钮
             // 
-            停用所有按钮.Location = new Point(583, 822);
-            停用所有按钮.Name = "停用所有按钮";
-            停用所有按钮.Size = new Size(75, 25);
-            停用所有按钮.TabIndex = 8;
-            停用所有按钮.Text = "停用所有";
-            停用所有按钮.UseVisualStyleBackColor = true;
-            停用所有按钮.Click += 停用所有按钮_Click;
+            复制项按钮.Location = new Point(259, 822);
+            复制项按钮.Name = "复制项按钮";
+            复制项按钮.Size = new Size(75, 25);
+            复制项按钮.TabIndex = 4;
+            复制项按钮.Text = "复制项";
+            复制项按钮.UseVisualStyleBackColor = true;
+            复制项按钮.Click += 复制项按钮_Click;
             // 
-            // 检测设置页
+            // 设置名称列
             // 
-            检测设置页.Controls.Add(checkBox5);
-            检测设置页.Controls.Add(checkBox4);
-            检测设置页.Controls.Add(checkBox3);
-            检测设置页.Controls.Add(checkBox1);
-            检测设置页.Controls.Add(checkBox2);
-            检测设置页.Controls.Add(显示环境温度湿度框);
-            检测设置页.Controls.Add(label1);
-            检测设置页.Controls.Add(textBox1);
-            检测设置页.Controls.Add(NG跳转标签);
-            检测设置页.Controls.Add(NG跳转框);
-            检测设置页.Controls.Add(检测设置表格);
-            检测设置页.Location = new Point(4, 26);
-            检测设置页.Name = "检测设置页";
-            检测设置页.Size = new Size(1134, 588);
-            检测设置页.TabIndex = 1;
-            检测设置页.Text = "检测设置";
-            检测设置页.UseVisualStyleBackColor = true;
+            设置名称列.HeaderText = "设置项";
+            设置名称列.Name = "设置名称列";
+            设置名称列.ReadOnly = true;
+            设置名称列.Width = 150;
             // 
-            // NG跳转标签
+            // 设置值列
             // 
-            NG跳转标签.Location = new Point(133, 51);
-            NG跳转标签.Name = "NG跳转标签";
-            NG跳转标签.Size = new Size(80, 23);
-            NG跳转标签.TabIndex = 16;
-            NG跳转标签.Text = "NG跳转：";
-            NG跳转标签.TextAlign = ContentAlignment.MiddleRight;
+            设置值列.HeaderText = "设置值";
+            设置值列.Name = "设置值列";
+            设置值列.Width = 200;
             // 
-            // NG跳转框
+            // 设置说明列
             // 
-            NG跳转框.Location = new Point(213, 51);
-            NG跳转框.Name = "NG跳转框";
-            NG跳转框.Size = new Size(80, 23);
-            NG跳转框.TabIndex = 17;
-            // 
-            // 检测设置表格
-            // 
-            检测设置表格.Location = new Point(3, 3);
-            检测设置表格.Name = "检测设置表格";
-            检测设置表格.Size = new Size(1128, 440);
-            检测设置表格.TabIndex = 0;
-            // 
-            // 显示环境温度湿度框
-            // 
-            显示环境温度湿度框.AutoSize = true;
-            显示环境温度湿度框.Location = new Point(16, 24);
-            显示环境温度湿度框.Name = "显示环境温度湿度框";
-            显示环境温度湿度框.Size = new Size(70, 21);
-            显示环境温度湿度框.TabIndex = 18;
-            显示环境温度湿度框.Text = "NG结束";
-            显示环境温度湿度框.UseVisualStyleBackColor = true;
-            // 
-            // checkBox1
-            // 
-            checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(16, 78);
-            checkBox1.Name = "checkBox1";
-            checkBox1.Size = new Size(99, 21);
-            checkBox1.TabIndex = 18;
-            checkBox1.Text = "超时结束检测";
-            checkBox1.UseVisualStyleBackColor = true;
-            // 
-            // checkBox2
-            // 
-            checkBox2.AutoSize = true;
-            checkBox2.Location = new Point(16, 51);
-            checkBox2.Name = "checkBox2";
-            checkBox2.Size = new Size(70, 21);
-            checkBox2.TabIndex = 18;
-            checkBox2.Text = "NG跳转";
-            checkBox2.UseVisualStyleBackColor = true;
-            // 
-            // checkBox3
-            // 
-            checkBox3.AutoSize = true;
-            checkBox3.Location = new Point(16, 105);
-            checkBox3.Name = "checkBox3";
-            checkBox3.Size = new Size(94, 21);
-            checkBox3.TabIndex = 18;
-            checkBox3.Text = "超时NG跳转";
-            checkBox3.UseVisualStyleBackColor = true;
-            // 
-            // checkBox4
-            // 
-            checkBox4.AutoSize = true;
-            checkBox4.Location = new Point(16, 132);
-            checkBox4.Name = "checkBox4";
-            checkBox4.Size = new Size(99, 21);
-            checkBox4.TabIndex = 18;
-            checkBox4.Text = "超时结束供电";
-            checkBox4.UseVisualStyleBackColor = true;
-            // 
-            // checkBox5
-            // 
-            checkBox5.AutoSize = true;
-            checkBox5.Location = new Point(16, 159);
-            checkBox5.Name = "checkBox5";
-            checkBox5.Size = new Size(99, 21);
-            checkBox5.TabIndex = 18;
-            checkBox5.Text = "上电检测电压";
-            checkBox5.UseVisualStyleBackColor = true;
-            // 
-            // textBox1
-            // 
-            textBox1.Location = new Point(213, 159);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(80, 23);
-            textBox1.TabIndex = 17;
-            // 
-            // label1
-            // 
-            label1.Location = new Point(133, 159);
-            label1.Name = "label1";
-            label1.Size = new Size(80, 23);
-            label1.TabIndex = 16;
-            label1.Text = "上电电压：";
-            label1.TextAlign = ContentAlignment.MiddleRight;
+            设置说明列.HeaderText = "说明";
+            设置说明列.Name = "设置说明列";
+            设置说明列.ReadOnly = true;
+            设置说明列.Width = 300;
             // 
             // 编辑配置窗体
             // 
@@ -644,6 +731,12 @@ namespace 自动测试
         private TabPage 功能测试页;
         private Label 工位地址标签;
         private ComboBox 工位地址框;
+        private ComboBox 工位地址框2;
+        private ComboBox 工位地址框3;
+        private ComboBox 工位地址框4;
+        private Button 顺序填充按钮;
+        private Button 间隔1填充按钮;
+        private Button 间隔2填充按钮;
 
         private TabControl 标签导航;
         private TabPage 检测项页;
@@ -677,7 +770,8 @@ namespace 自动测试
         private CheckBox checkBox2;
         private CheckBox 显示环境温度湿度框;
         private CheckBox checkBox5;
-        private Label label1;
-        private TextBox textBox1;
+        private DataGridViewTextBoxColumn 设置名称列;
+        private DataGridViewTextBoxColumn 设置值列;
+        private DataGridViewTextBoxColumn 设置说明列;
     }
 }

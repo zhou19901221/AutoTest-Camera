@@ -27,6 +27,9 @@ namespace 自动测试
             public int 排序 { get; set; } = 0;
             public string 类型 { get; set; } = "继电器输出";
             public int 延时 { get; set; } = 0;
+            public string 最大值 { get; set; } = "";
+            public string 最小值 { get; set; } = "";
+            public string 设定值 { get; set; } = "";
             public bool 启用 { get; set; } = false;
             public string 拼版1地址 { get; set; } = "";
             public string 拼版2地址 { get; set; } = "";
@@ -66,6 +69,7 @@ namespace 自动测试
         {
             InitializeComponent();
             初始化界面();
+            界面缩放器.等比例适配屏幕(this);
         }
 
         private void 初始化界面()
@@ -132,6 +136,8 @@ namespace 自动测试
         {
             if (string.IsNullOrEmpty(当前配置名)) return;
             
+            日志管理器.记录(日志类别.配置操作, "保存配置", 当前配置名);
+            
             var 数据 = new 配置项数据
             {
                 配置名称 = 当前配置名,
@@ -150,6 +156,9 @@ namespace 自动测试
                     排序 = int.TryParse(row.Cells["排序列"].Value?.ToString(), out int 排序) ? 排序 : 0,
                     类型 = row.Cells["类型列"].Value?.ToString() ?? "继电器输出",
                     延时 = int.TryParse(row.Cells["延时列"].Value?.ToString(), out int 延时) ? 延时 : 0,
+                    最大值 = row.Cells["最大值"].Value?.ToString() ?? "",
+                    最小值 = row.Cells["最小值"].Value?.ToString() ?? "",
+                    设定值 = row.Cells["设定值"].Value?.ToString() ?? "",
                     启用 = bool.TryParse(row.Cells["启用列"].Value?.ToString(), out bool 启用) ? 启用 : false
                 };
                 
@@ -182,7 +191,7 @@ namespace 自动测试
             检测项表格.Rows.Clear();
             foreach (var 项 in 数据.检测项列表)
             {
-                int 新索引 = 检测项表格.Rows.Add(项.排序, 项.名称, 项.类型, 项.延时, "", "", "", 项.启用);
+                int 新索引 = 检测项表格.Rows.Add(项.排序, 项.名称, 项.类型, 项.延时, 项.最大值, 项.最小值, 项.设定值, 项.启用);
                 var 行 = 检测项表格.Rows[新索引];
                 更新行显示根据类型(行, 项.类型);
                 
@@ -208,6 +217,8 @@ namespace 自动测试
                     }
                 }
             }
+
+            同步检测设置表格();
         }
 
         private void 检测项表格_CurrentCellDirtyStateChanged(object sender, EventArgs e)
@@ -246,6 +257,8 @@ namespace 自动测试
             {
                 string 类型 = row.Cells["类型列"].Value?.ToString() ?? "";
                 更新行显示根据类型(row, 类型);
+                同步检测设置表格();
+                日志管理器.记录(日志类别.配置操作, "修改检测项类型", $"{当前配置名} 行{e.RowIndex+1} → {类型}");
             }
             
             if (检测项表格.Columns[e.ColumnIndex].Name == "排序列")
@@ -266,14 +279,15 @@ namespace 自动测试
 
         private void 更新行显示根据类型(DataGridViewRow row, string 类型)
         {
-            bool 需要数值范围 = 类型 == "直流电压" || 类型 == "交流电压" || 类型 == "直流电流" || 类型 == "交流电流" || 类型 == "声音检测" || 类型 == "PWM检测";
-            bool 需要布尔值 = 类型 == "继电器输出";
+            bool 需要数值范围 = 类型 == "直流电压" || 类型 == "交流电压" || 类型 == "直流电流" || 类型 == "交流电流" || 类型 == "声音检测" || 类型 == "PWM检测" || 类型 == "输入功率";
+            bool 需要布尔值 = 类型 == "继电器输出" || 类型 == "电源输出";
             bool 需要文本值 = 类型 == "相机检测" || 类型 == "串口输出";
+            bool 保留最大最小 = 类型 == "电源输出" || 类型 == "输入功率";
             
-            row.Cells["最大值"].ReadOnly = !需要数值范围;
-            row.Cells["最小值"].ReadOnly = !需要数值范围;
+            row.Cells["最大值"].ReadOnly = !(需要数值范围 || 保留最大最小);
+            row.Cells["最小值"].ReadOnly = !(需要数值范围 || 保留最大最小);
             
-            if (!需要数值范围)
+            if (!需要数值范围 && !保留最大最小)
             {
                 row.Cells["最大值"].Value = "";
                 row.Cells["最小值"].Value = "";
@@ -286,7 +300,7 @@ namespace 自动测试
                 comboBoxCell.Value = "false";
                 row.Cells["设定值"] = comboBoxCell;
             }
-            else if (需要文本值 || 需要数值范围)
+            else if (需要文本值 || 需要数值范围 || 保留最大最小)
             {
                 var textBoxCell = new DataGridViewTextBoxCell();
                 textBoxCell.Value = "";
@@ -298,6 +312,24 @@ namespace 自动测试
                 textBoxCell.Value = "";
                 row.Cells["设定值"] = textBoxCell;
             }
+        }
+
+        private void 同步检测设置表格()
+        {
+            bool 有电源输出 = false;
+            foreach (DataGridViewRow 行 in 检测项表格.Rows)
+            {
+                if (行.IsNewRow) continue;
+                string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
+                if (类型 == "电源输出")
+                {
+                    有电源输出 = true;
+                    break;
+                }
+            }
+
+            checkBox5.Enabled = 有电源输出;
+            if (!有电源输出) checkBox5.Checked = false;
         }
 
 
@@ -390,6 +422,9 @@ namespace 自动测试
         private void 更新工位地址下拉框()
         {
             工位地址框.Items.Clear();
+            工位地址框2.Items.Clear();
+            工位地址框3.Items.Clear();
+            工位地址框4.Items.Clear();
 
             int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
             if (当前行索引 < 0 || 当前行索引 >= 检测项表格.Rows.Count) return;
@@ -405,32 +440,80 @@ namespace 自动测试
 
             List<string> 地址列表 = 系统配置管理.获取可用地址列表(类型);
             
+            bool 是继电器输出 = 类型 == "继电器输出";
+            工位地址框2.Visible = 是继电器输出;
+            工位地址框3.Visible = 是继电器输出;
+            工位地址框4.Visible = 是继电器输出;
+
+            int 填充起始X = 是继电器输出 ? 590 : 220;
+            顺序填充按钮.Location = new Point(填充起始X, 18);
+            间隔1填充按钮.Location = new Point(填充起始X + 85, 18);
+            间隔2填充按钮.Location = new Point(填充起始X + 170, 18);
+
             if (地址列表.Count == 0)
             {
-                工位地址框.Items.Add($"未安装对应模块");
+                工位地址框.Items.Add("未安装对应模块");
                 工位地址框.SelectedIndex = 0;
                 return;
             }
 
             HashSet<string> 同行已选地址 = 获取同行已选地址(当前行索引, 当前拼版);
 
+            string 已选1 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 1);
+            string 已选2 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 2);
+            string 已选3 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 3);
+            string 已选4 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 4);
+
             foreach (var 地址 in 地址列表)
             {
                 if (!同行已选地址.Contains(地址))
                 {
-                    工位地址框.Items.Add(地址);
+                    if (地址 != 已选2 && 地址 != 已选3 && 地址 != 已选4)
+                        工位地址框.Items.Add(地址);
+                    
+                    if (是继电器输出)
+                    {
+                        if (地址 != 已选1 && 地址 != 已选3 && 地址 != 已选4)
+                            工位地址框2.Items.Add(地址);
+                        if (地址 != 已选1 && 地址 != 已选2 && 地址 != 已选4)
+                            工位地址框3.Items.Add(地址);
+                        if (地址 != 已选1 && 地址 != 已选2 && 地址 != 已选3)
+                            工位地址框4.Items.Add(地址);
+                    }
                 }
             }
 
-            string 当前地址 = 获取当前检测项拼版地址(当前行索引, 当前拼版);
-            if (!string.IsNullOrEmpty(当前地址))
+            if (!string.IsNullOrEmpty(已选1))
             {
-                if (!工位地址框.Items.Contains(当前地址))
-                {
-                    工位地址框.Items.Insert(0, 当前地址);
-                }
-                工位地址框.SelectedItem = 当前地址;
+                if (!工位地址框.Items.Contains(已选1))
+                    工位地址框.Items.Insert(0, 已选1);
+                工位地址框.SelectedItem = 已选1;
             }
+
+            if (是继电器输出)
+            {
+                if (!string.IsNullOrEmpty(已选2))
+                {
+                    if (!工位地址框2.Items.Contains(已选2))
+                        工位地址框2.Items.Insert(0, 已选2);
+                    工位地址框2.SelectedItem = 已选2;
+                }
+
+                if (!string.IsNullOrEmpty(已选3))
+                {
+                    if (!工位地址框3.Items.Contains(已选3))
+                        工位地址框3.Items.Insert(0, 已选3);
+                    工位地址框3.SelectedItem = 已选3;
+                }
+
+                if (!string.IsNullOrEmpty(已选4))
+                {
+                    if (!工位地址框4.Items.Contains(已选4))
+                        工位地址框4.Items.Insert(0, 已选4);
+                    工位地址框4.SelectedItem = 已选4;
+                }
+            }
+
         }
 
         private HashSet<string> 获取同行已选地址(int 行索引, int 排除拼版号)
@@ -469,11 +552,16 @@ namespace 自动测试
 
         private string 获取当前检测项拼版地址(int 行索引, int 拼版号)
         {
+            return 获取当前检测项拼版子地址(行索引, 拼版号, 1);
+        }
+
+        private string 获取当前检测项拼版子地址(int 行索引, int 拼版号, int 子序号)
+        {
             if (行索引 < 0 || 行索引 >= 检测项表格.Rows.Count) return "";
             var 行 = 检测项表格.Rows[行索引];
             if (行.IsNewRow) return "";
 
-            string 地址字段名 = $"拼版{拼版号}地址";
+            string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
             
             if (检测项表格.Columns.Contains(地址字段名))
             {
@@ -485,8 +573,14 @@ namespace 自动测试
 
         private void 保存当前工位地址(int 拼版号 = 0)
         {
-            if (工位地址框.SelectedIndex == -1) return;
-            if (工位地址框.SelectedItem?.ToString() == "未安装对应模块") return;
+            保存指定工位地址(工位地址框, 拼版号, 1);
+        }
+
+
+        private void 保存指定工位地址(ComboBox 地址框, int 拼版号, int 子序号)
+        {
+            if (地址框.SelectedIndex == -1) return;
+            if (地址框.SelectedItem?.ToString() == "未安装对应模块") return;
 
             int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
             if (当前行索引 < 0 || 当前行索引 >= 检测项表格.Rows.Count) return;
@@ -494,9 +588,9 @@ namespace 自动测试
             var 行 = 检测项表格.Rows[当前行索引];
             if (行.IsNewRow) return;
 
-            string 地址 = 工位地址框.SelectedItem.ToString();
+            string 地址 = 地址框.SelectedItem.ToString();
             if (拼版号 == 0) 拼版号 = 获取当前选中拼版();
-            string 地址字段名 = $"拼版{拼版号}地址";
+            string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
 
             if (!检测项表格.Columns.Contains(地址字段名))
             {
@@ -513,7 +607,163 @@ namespace 自动测试
 
         private void 工位地址框_SelectedIndexChanged(object sender, EventArgs e)
         {
+            保存指定工位地址(工位地址框, 0, 1);
+            刷新继电器地址互斥();
+        }
+
+        private void 工位地址框2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            保存指定工位地址(工位地址框2, 0, 2);
+            刷新继电器地址互斥();
+        }
+
+        private void 工位地址框3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            保存指定工位地址(工位地址框3, 0, 3);
+            刷新继电器地址互斥();
+        }
+
+        private void 工位地址框4_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            保存指定工位地址(工位地址框4, 0, 4);
+            刷新继电器地址互斥();
+        }
+
+        private void 刷新继电器地址互斥()
+        {
+            if (!工位地址框2.Visible) return;
+
+            string 选1 = 工位地址框.SelectedItem?.ToString() ?? "";
+            string 选2 = 工位地址框2.SelectedItem?.ToString() ?? "";
+            string 选3 = 工位地址框3.SelectedItem?.ToString() ?? "";
+            string 选4 = 工位地址框4.SelectedItem?.ToString() ?? "";
+
+            移除其他框中的地址(工位地址框, 选2, 选3, 选4);
+            移除其他框中的地址(工位地址框2, 选1, 选3, 选4);
+            移除其他框中的地址(工位地址框3, 选1, 选2, 选4);
+            移除其他框中的地址(工位地址框4, 选1, 选2, 选3);
+        }
+
+        private void 移除其他框中的地址(ComboBox 目标框, string 排除1, string 排除2, string 排除3)
+        {
+            string 当前选中 = 目标框.SelectedItem?.ToString() ?? "";
+            目标框.Items.Clear();
+
+            int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
+            if (当前行索引 < 0) return;
+            var 行 = 检测项表格.Rows[当前行索引];
+            if (行.IsNewRow) return;
+            string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
+
+            List<string> 地址列表 = 系统配置管理.获取可用地址列表(类型);
+            int 当前拼版 = 获取当前选中拼版();
+            HashSet<string> 同行已选 = 获取同行已选地址(当前行索引, 当前拼版);
+
+            foreach (var 地址 in 地址列表)
+            {
+                if (同行已选.Contains(地址)) continue;
+                if (地址 == 排除1 || 地址 == 排除2 || 地址 == 排除3) continue;
+                目标框.Items.Add(地址);
+            }
+
+            if (!string.IsNullOrEmpty(当前选中))
+            {
+                if (!目标框.Items.Contains(当前选中))
+                    目标框.Items.Insert(0, 当前选中);
+                目标框.SelectedItem = 当前选中;
+            }
+        }
+
+        private void 顺序填充按钮_Click(object sender, EventArgs e)
+        {
+            自动填充地址(0);
+        }
+
+        private void 间隔1填充按钮_Click(object sender, EventArgs e)
+        {
+            自动填充地址(1);
+        }
+
+        private void 间隔2填充按钮_Click(object sender, EventArgs e)
+        {
+            自动填充地址(2);
+        }
+
+        private void 自动填充地址(int 间隔数)
+        {
+            if (工位地址框.SelectedIndex == -1) return;
+            if (工位地址框.SelectedItem?.ToString() == "未安装对应模块") return;
+
+            int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
+            if (当前行索引 < 0 || 当前行索引 >= 检测项表格.Rows.Count) return;
+            var 行 = 检测项表格.Rows[当前行索引];
+            if (行.IsNewRow) return;
+
+            string 当前地址 = 工位地址框.SelectedItem.ToString();
             保存当前工位地址();
+
+            int 当前拼版 = 获取当前选中拼版();
+            int 拼板数 = (int)拼板数框.Value;
+
+            if (!解析地址(当前地址, out string 前缀, out int 板号, out int 通道)) return;
+
+            int 步进 = 1 + 间隔数;
+            int 当前通道 = 通道;
+
+            for (int p = 当前拼版 + 1; p <= 拼板数; p++)
+            {
+                当前通道 += 步进;
+                string 新地址 = $"{前缀}{板号}.{当前通道}";
+                保存指定拼版地址(当前行索引, p, 新地址);
+            }
+
+            配置已修改 = true;
+        }
+
+        private bool 解析地址(string 地址, out string 前缀, out int 板号, out int 通道)
+        {
+            前缀 = "";
+            板号 = 0;
+            通道 = 0;
+
+            int 点位置 = 地址.IndexOf('.');
+            if (点位置 < 0) return false;
+
+            string 前半 = 地址.Substring(0, 点位置);
+            通道 = int.TryParse(地址.Substring(点位置 + 1), out int ch) ? ch : -1;
+            if (通道 < 0) return false;
+
+            for (int i = 0; i < 前半.Length; i++)
+            {
+                if (char.IsDigit(前半[i]))
+                {
+                    前缀 = 前半.Substring(0, i);
+                    板号 = int.TryParse(前半.Substring(i), out int bn) ? bn : -1;
+                    return 板号 > 0;
+                }
+            }
+
+            return false;
+        }
+
+        private void 保存指定拼版地址(int 行索引, int 拼版号, string 地址)
+        {
+            if (行索引 < 0 || 行索引 >= 检测项表格.Rows.Count) return;
+            var 行 = 检测项表格.Rows[行索引];
+            if (行.IsNewRow) return;
+
+            string 地址字段名 = $"拼版{拼版号}地址";
+
+            if (!检测项表格.Columns.Contains(地址字段名))
+            {
+                var 列 = new DataGridViewTextBoxColumn();
+                列.Name = 地址字段名;
+                列.HeaderText = 地址字段名;
+                列.Visible = false;
+                检测项表格.Columns.Add(列);
+            }
+
+            行.Cells[地址字段名].Value = 地址;
         }
 
         private void 排版按钮_Click(object sender, EventArgs e)
@@ -538,6 +788,7 @@ namespace 自动测试
         private void 增加配置按钮_Click(object sender, EventArgs e)
         {
             string 新配置名 = "新配置" + (配置名列表.Items.Count + 1);
+            日志管理器.记录(日志类别.配置操作, "新建配置", 新配置名);
             var 新数据 = new 配置项数据
             {
                 配置名称 = 新配置名,
@@ -560,6 +811,7 @@ namespace 自动测试
             }
 
             string 源配置名 = 配置名列表.SelectedItem.ToString();
+            日志管理器.记录(日志类别.配置操作, "复制配置", $"源: {源配置名}");
             var 源数据 = 配置数据库.实例.加载配置(源配置名);
             if (源数据 == null)
             {
@@ -590,6 +842,8 @@ namespace 自动测试
                 MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+
+            日志管理器.记录(日志类别.数据操作, "导出配置", 配置名列表.SelectedItem.ToString(), 权限等级.管理员);
 
             using (var dialog = new SaveFileDialog())
             {
@@ -623,6 +877,7 @@ namespace 自动测试
             }
 
             string 配置名 = 配置名列表.SelectedItem.ToString();
+            日志管理器.记录(日志类别.配置操作, "删除配置", 配置名);
             var result = MessageBox.Show($"确定要删除配置：{配置名}吗？", "确认",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -636,6 +891,7 @@ namespace 自动测试
 
         private void 导入配置按钮_Click(object sender, EventArgs e)
         {
+            日志管理器.记录(日志类别.数据操作, "导入配置", "", 权限等级.管理员);
             using (var dialog = new OpenFileDialog())
             {
                 dialog.Filter = "配置文件|*.json";
@@ -726,6 +982,8 @@ namespace 自动测试
                         检测项表格.Rows.Remove(row);
                     }
                 }
+                日志管理器.记录(日志类别.配置操作, "删除检测项", 当前配置名);
+                同步检测设置表格();
             }
         }
 
@@ -933,6 +1191,7 @@ namespace 自动测试
                             配置名列表.Items[配置名列表.SelectedIndex] = 新配置名;
                             当前配置名 = 新配置名;
                             
+                            日志管理器.记录(日志类别.配置操作, "重命名配置", $"{原配置名} → {新配置名}");
                             MessageBox.Show("配置名称已修改", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }

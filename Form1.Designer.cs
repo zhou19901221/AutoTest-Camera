@@ -33,8 +33,7 @@
         {
             components = new System.ComponentModel.Container();
             文件 = new Label();
-            设置 = new Label();
-            label1 = new Label();
+            设置 = new Button();
             文件菜单 = new ContextMenuStrip(components);
             新建ToolStripMenuItem = new ToolStripMenuItem();
             打开ToolStripMenuItem = new ToolStripMenuItem();
@@ -49,13 +48,14 @@
             选着配置 = new Button();
             配置信息 = new Label();
             label2 = new Label();
-            当前配置显示 = new ListBox();
+            当前配置显示 = new DataGridView();
             当前操作日志 = new GroupBox();
             操作日志文本框 = new TextBox();
             进入自动测试 = new Button();
             文件菜单.SuspendLayout();
             flowLayoutPanel1.SuspendLayout();
             当前配置信息.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)当前配置显示).BeginInit();
             当前操作日志.SuspendLayout();
             SuspendLayout();
             // 
@@ -73,24 +73,16 @@
             // 设置
             // 
             设置.AutoSize = true;
+            设置.BackColor = Color.Transparent;
+            设置.FlatStyle = FlatStyle.Flat;
             设置.Font = new Font("Microsoft YaHei UI", 15F);
-            设置.Location = new Point(83, 9);
+            设置.Location = new Point(83, 5);
             设置.Name = "设置";
-            设置.Size = new Size(52, 27);
+            设置.Size = new Size(64, 39);
             设置.TabIndex = 1;
             设置.Text = "设置";
-            设置.Click += label1_Click;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Microsoft YaHei UI", 15F);
-            label1.Location = new Point(158, 9);
-            label1.Name = "label1";
-            label1.Size = new Size(52, 27);
-            label1.TabIndex = 1;
-            label1.Text = "操作";
-            label1.Click += label1_Click;
+            设置.UseVisualStyleBackColor = false;
+            设置.Click += 设置_Click;
             // 
             // 文件菜单
             // 
@@ -181,6 +173,7 @@
             日志.TabIndex = 0;
             日志.Text = "日志";
             日志.UseVisualStyleBackColor = false;
+            日志.Click += 日志_Click;
             // 
             // 状态提示
             // 
@@ -236,10 +229,16 @@
             // 
             // 当前配置显示
             // 
-            当前配置显示.FormattingEnabled = true;
-            当前配置显示.ItemHeight = 17;
+            当前配置显示.AllowUserToAddRows = false;
+            当前配置显示.AllowUserToDeleteRows = false;
+            当前配置显示.AllowUserToResizeRows = false;
+            当前配置显示.BackgroundColor = Color.White;
+            当前配置显示.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             当前配置显示.Location = new Point(20, 150);
+            当前配置显示.MultiSelect = false;
             当前配置显示.Name = "当前配置显示";
+            当前配置显示.ReadOnly = true;
+            当前配置显示.RowHeadersVisible = false;
             当前配置显示.Size = new Size(480, 718);
             当前配置显示.TabIndex = 4;
             // 
@@ -277,6 +276,7 @@
             进入自动测试.TabIndex = 6;
             进入自动测试.Text = "进入自动测试";
             进入自动测试.UseVisualStyleBackColor = false;
+            进入自动测试.Click += 进入自动测试_Click;
             // 
             // Form1
             // 
@@ -289,7 +289,6 @@
             Controls.Add(当前配置显示);
             Controls.Add(当前配置信息);
             Controls.Add(flowLayoutPanel1);
-            Controls.Add(label1);
             Controls.Add(设置);
             Controls.Add(文件);
             Name = "Form1";
@@ -298,6 +297,7 @@
             文件菜单.ResumeLayout(false);
             flowLayoutPanel1.ResumeLayout(false);
             当前配置信息.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)当前配置显示).EndInit();
             当前操作日志.ResumeLayout(false);
             当前操作日志.PerformLayout();
             ResumeLayout(false);
@@ -307,8 +307,7 @@
         #endregion
 
         private Label 文件;
-        private Label 设置;
-        private Label label1;
+        private Button 设置;
         private ContextMenuStrip 文件菜单;
         private ToolStripMenuItem 新建ToolStripMenuItem;
         private ToolStripMenuItem 打开ToolStripMenuItem;
@@ -323,7 +322,7 @@
         private Button 选着配置;
         private Label 配置信息;
         private Label label2;
-        private ListBox 当前配置显示;
+        private DataGridView 当前配置显示;
         private GroupBox 当前操作日志;
         private Button 进入自动测试;
         private TextBox 操作日志文本框;

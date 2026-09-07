@@ -28,7 +28,6 @@ namespace 自动测试
             MESS设置控件1 = new MESS设置控件();
             其他设置页 = new TabPage();
             其他设置控件1 = new 其他设置控件();
-            其它模块控件1 = new 其它模块控件();
             保存按钮 = new Button();
             取消按钮 = new Button();
             标签导航.SuspendLayout();
@@ -75,6 +74,7 @@ namespace 自动测试
             基础参数控件1.Name = "基础参数控件1";
             基础参数控件1.Size = new Size(1776, 877);
             基础参数控件1.TabIndex = 0;
+            基础参数控件1.Load += 基础参数控件1_Load;
             // 
             // 检测设置页
             // 
@@ -102,7 +102,7 @@ namespace 自动测试
             运动控制页.Controls.Add(运动控制控件1);
             运动控制页.Location = new Point(4, 26);
             运动控制页.Name = "运动控制页";
-            运动控制页.Size = new Size(192, 70);
+            运动控制页.Size = new Size(1782, 883);
             运动控制页.TabIndex = 1;
             运动控制页.Text = "运动控制";
             运动控制页.UseVisualStyleBackColor = true;
@@ -113,7 +113,7 @@ namespace 自动测试
             运动控制控件1.Dock = DockStyle.Fill;
             运动控制控件1.Location = new Point(0, 0);
             运动控制控件1.Name = "运动控制控件1";
-            运动控制控件1.Size = new Size(192, 70);
+            运动控制控件1.Size = new Size(1782, 883);
             运动控制控件1.TabIndex = 0;
             // 
             // 电压模块页
@@ -122,9 +122,9 @@ namespace 自动测试
             电压模块页.Controls.Add(电压模块控件1);
             电压模块页.Location = new Point(4, 26);
             电压模块页.Name = "电压模块页";
-            电压模块页.Size = new Size(192, 70);
+            电压模块页.Size = new Size(1782, 883);
             电压模块页.TabIndex = 3;
-            电压模块页.Text = "电压模块";
+            电压模块页.Text = "模块设置";
             电压模块页.UseVisualStyleBackColor = true;
             // 
             // 电压模块控件1
@@ -133,7 +133,7 @@ namespace 自动测试
             电压模块控件1.Dock = DockStyle.Fill;
             电压模块控件1.Location = new Point(0, 0);
             电压模块控件1.Name = "电压模块控件1";
-            电压模块控件1.Size = new Size(192, 70);
+            电压模块控件1.Size = new Size(1782, 883);
             电压模块控件1.TabIndex = 0;
             // 
             // MESS设置页
@@ -175,15 +175,6 @@ namespace 自动测试
             其他设置控件1.Name = "其他设置控件1";
             其他设置控件1.Size = new Size(192, 70);
             其他设置控件1.TabIndex = 0;
-            // 
-            // 其它模块控件1
-            // 
-            其它模块控件1.AutoScroll = true;
-            其它模块控件1.Dock = DockStyle.Fill;
-            其它模块控件1.Location = new Point(0, 0);
-            其它模块控件1.Name = "其它模块控件1";
-            其它模块控件1.Size = new Size(1192, 620);
-            其它模块控件1.TabIndex = 0;
             // 
             // 保存按钮
             // 
@@ -243,9 +234,7 @@ namespace 自动测试
         private 运动控制控件 运动控制控件1;
         private System.Windows.Forms.TabPage 电压模块页;
         private 电压模块控件 电压模块控件1;
-        private System.Windows.Forms.TabPage 电流模块页;
-        private 其它模块控件 其它模块控件1;
-        private System.Windows.Forms.TabPage 平台视觉页;
+
         private System.Windows.Forms.TabPage MESS设置页;
         private MESS设置控件 MESS设置控件1;
         private System.Windows.Forms.TabPage 其他设置页;

@@ -1,5 +1,7 @@
 using System;
 using System.Drawing;
+using System.IO.Ports;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace 自动测试
@@ -13,6 +15,7 @@ namespace 自动测试
         private int 当前拼板数;
         private 编辑配置窗体.配置项数据? 当前配置;
         private 一迈电源控制? 电源;
+        private SerialPort? 继电器串口;
         private CancellationTokenSource? 取消源;
         private bool 测试中;
 
@@ -112,6 +115,12 @@ namespace 自动测试
                 取消源 = null;
                 电源?.断开();
                 电源 = null;
+                if (继电器串口 != null)
+                {
+                    if (继电器串口.IsOpen) 继电器串口.Close();
+                    继电器串口.Dispose();
+                    继电器串口 = null;
+                }
                 开始测试按钮.Text = "开始测试";
             }
         }
@@ -146,6 +155,9 @@ namespace 自动测试
         {
             switch (项.类型)
             {
+                case "继电器输出":
+                    执行继电器输出(项);
+                    break;
                 case "程控电源":
                     执行程控电源(项);
                     break;
@@ -153,6 +165,193 @@ namespace 自动测试
                     日志管理器.记录(日志类别.测试操作, $"执行[{项.类型}] {项.名称}", "暂未接入硬件，跳过", 权限等级.员工);
                     break;
             }
+        }
+
+        private void 执行继电器输出(编辑配置窗体.检测项数据 项)
+        {
+            bool 目标状态 = bool.TryParse(项.设定值, out bool 开) && 开;
+            var 从站位图 = new Dictionary<int, bool[]>();
+
+            foreach (var 地址 in 获取检测项地址列表(项))
+            {
+                if (!解析DO地址(地址, out int 板号, out int 通道)) continue;
+                if (通道 < 0 || 通道 > 15) continue;
+
+                int 从站地址 = 模块寄存器管理.配置.从站地址起始 + 板号 - 1;
+                if (!从站位图.TryGetValue(从站地址, out bool[]? 位图))
+                {
+                    位图 = new bool[16];
+                    从站位图[从站地址] = 位图;
+                }
+
+                位图[通道] = 目标状态;
+            }
+
+            if (从站位图.Count == 0)
+            {
+                日志管理器.记录(日志类别.测试操作, $"执行[继电器输出] {项.名称}", "未配置有效DO地址，跳过", 权限等级.员工);
+                return;
+            }
+
+            确保继电器串口连接();
+            foreach (var kv in 从站位图.OrderBy(x => x.Key))
+            {
+                写入多个线圈((byte)kv.Key, 0, kv.Value);
+                日志管理器.记录(日志类别.测试操作, $"执行[继电器输出] {项.名称}", $"从站{kv.Key} 已写入16通道 -> {(目标状态 ? "ON" : "OFF")}", 权限等级.员工);
+            }
+        }
+
+        private IEnumerable<string> 获取检测项地址列表(编辑配置窗体.检测项数据 项)
+        {
+            var 地址集合 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int 拼板数 = Math.Max(1, Math.Min(当前拼板数, 32));
+
+            for (int p = 1; p <= 拼板数; p++)
+            {
+                string 主字段 = $"拼版{p}地址";
+                string 地址1 = typeof(编辑配置窗体.检测项数据).GetProperty(主字段)?.GetValue(项)?.ToString() ?? "";
+                if (!string.IsNullOrWhiteSpace(地址1) && 地址1 != "无") 地址集合.Add(地址1.Trim());
+
+                for (int s = 2; s <= 4; s++)
+                {
+                    string 扩展字段 = $"拼版{p}地址_{s}";
+                    if (项.扩展地址.TryGetValue(扩展字段, out string? 扩展地址) && !string.IsNullOrWhiteSpace(扩展地址) && 扩展地址 != "无")
+                    {
+                        地址集合.Add(扩展地址.Trim());
+                    }
+                }
+            }
+
+            return 地址集合;
+        }
+
+        private bool 解析DO地址(string 地址, out int 板号, out int 通道)
+        {
+            板号 = 0;
+            通道 = 0;
+            if (string.IsNullOrWhiteSpace(地址)) return false;
+
+            string txt = 地址.Trim();
+            if (!txt.StartsWith("DO", StringComparison.OrdinalIgnoreCase)) return false;
+
+            int 点位 = txt.IndexOf('.');
+            if (点位 <= 2 || 点位 >= txt.Length - 1) return false;
+
+            return int.TryParse(txt.Substring(2, 点位 - 2), out 板号)
+                && int.TryParse(txt.Substring(点位 + 1), out 通道)
+                && 板号 > 0;
+        }
+
+        private void 确保继电器串口连接()
+        {
+            var 基础参数 = 系统配置管理.实例.基础参数;
+            if (string.IsNullOrWhiteSpace(基础参数.串口端口))
+                throw new InvalidOperationException("未配置串口端口");
+
+            if (继电器串口 == null)
+            {
+                继电器串口 = new SerialPort();
+            }
+
+            if (继电器串口.IsOpen && 继电器串口.PortName == 基础参数.串口端口 && 继电器串口.BaudRate == 基础参数.串口波特率)
+                return;
+
+            if (继电器串口.IsOpen) 继电器串口.Close();
+
+            继电器串口.PortName = 基础参数.串口端口;
+            继电器串口.BaudRate = 基础参数.串口波特率;
+            继电器串口.Parity = Parity.None;
+            继电器串口.DataBits = 8;
+            继电器串口.StopBits = StopBits.One;
+            继电器串口.ReadTimeout = 1000;
+            继电器串口.WriteTimeout = 1000;
+            继电器串口.Open();
+        }
+
+        private void 写入多个线圈(byte 从站地址, ushort 起始地址, bool[] 状态数组)
+        {
+            ushort 数量 = (ushort)状态数组.Length;
+            int 字节数 = (数量 + 7) / 8;
+            byte[] 数据 = new byte[字节数];
+            for (int i = 0; i < 数量; i++)
+            {
+                if (状态数组[i]) 数据[i / 8] |= (byte)(1 << (i % 8));
+            }
+
+            byte[] 请求 = new byte[7 + 字节数];
+            请求[0] = 从站地址;
+            请求[1] = 0x0F;
+            请求[2] = (byte)(起始地址 >> 8);
+            请求[3] = (byte)(起始地址 & 0xFF);
+            请求[4] = (byte)(数量 >> 8);
+            请求[5] = (byte)(数量 & 0xFF);
+            请求[6] = (byte)字节数;
+            Array.Copy(数据, 0, 请求, 7, 字节数);
+
+            byte[] 响应 = 发送Modbus请求(请求, 8);
+            if (响应[1] != 0x0F)
+                throw new InvalidOperationException("继电器写入返回功能码异常");
+        }
+
+        private byte[] 发送Modbus请求(byte[] pdu, int 最小响应长度)
+        {
+            确保继电器串口连接();
+            if (继电器串口 == null) throw new InvalidOperationException("串口未初始化");
+
+            byte[] 帧 = 添加CRC(pdu);
+            继电器串口.DiscardInBuffer();
+            继电器串口.DiscardOutBuffer();
+            继电器串口.Write(帧, 0, 帧.Length);
+
+            byte[] 响应 = new byte[Math.Max(最小响应长度, 8)];
+            int 已读 = 0;
+            while (已读 < 最小响应长度)
+            {
+                int n = 继电器串口.Read(响应, 已读, 响应.Length - 已读);
+                已读 += n;
+            }
+
+            byte[] 有效响应 = new byte[已读];
+            Array.Copy(响应, 0, 有效响应, 0, 已读);
+            校验CRC(有效响应);
+            if ((有效响应[1] & 0x80) != 0)
+                throw new InvalidOperationException($"Modbus异常码: 0x{有效响应[2]:X2}");
+
+            return 有效响应;
+        }
+
+        private static byte[] 添加CRC(byte[] 数据)
+        {
+            ushort crc = 计算CRC16(数据, 数据.Length);
+            byte[] 帧 = new byte[数据.Length + 2];
+            Array.Copy(数据, 帧, 数据.Length);
+            帧[^2] = (byte)(crc & 0xFF);
+            帧[^1] = (byte)(crc >> 8);
+            return 帧;
+        }
+
+        private static void 校验CRC(byte[] 响应)
+        {
+            if (响应.Length < 5) throw new InvalidOperationException("Modbus响应长度不足");
+            ushort 接收crc = (ushort)((响应[^1] << 8) | 响应[^2]);
+            ushort 计算crc = 计算CRC16(响应, 响应.Length - 2);
+            if (接收crc != 计算crc) throw new InvalidOperationException("Modbus CRC校验失败");
+        }
+
+        private static ushort 计算CRC16(byte[] 数据, int 长度)
+        {
+            ushort crc = 0xFFFF;
+            for (int i = 0; i < 长度; i++)
+            {
+                crc ^= 数据[i];
+                for (int j = 0; j < 8; j++)
+                {
+                    bool lsb = (crc & 0x0001) != 0;
+                    crc >>= 1;
+                    if (lsb) crc ^= 0xA001;
+                }
+            }
+            return crc;
         }
 
         private void 执行程控电源(编辑配置窗体.检测项数据 项)

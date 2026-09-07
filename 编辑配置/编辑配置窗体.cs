@@ -562,10 +562,13 @@ namespace 自动测试
             for (int p = 1; p <= 拼板数; p++)
             {
                 if (p == 排除拼版号) continue;
-                string 地址 = 获取当前检测项拼版地址(行索引, p);
-                if (!string.IsNullOrEmpty(地址))
+                for (int 子序号 = 1; 子序号 <= 4; 子序号++)
                 {
-                    已选地址.Add(地址);
+                    string 地址 = 获取当前检测项拼版子地址(行索引, p, 子序号);
+                    if (!string.IsNullOrEmpty(地址))
+                    {
+                        已选地址.Add(地址);
+                    }
                 }
             }
             return 已选地址;
@@ -581,12 +584,6 @@ namespace 自动测试
                 }
             }
             return 1;
-        }
-
-
-        private string 获取当前检测项拼版地址(int 行索引, int 拼版号)
-        {
-            return 获取当前检测项拼版子地址(行索引, 拼版号, 1);
         }
 
         private string 获取当前检测项拼版子地址(int 行索引, int 拼版号, int 子序号)

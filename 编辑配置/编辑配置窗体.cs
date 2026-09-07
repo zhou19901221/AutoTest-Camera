@@ -626,6 +626,23 @@ namespace 自动测试
             if (拼版号 == 0) 拼版号 = 获取当前选中拼版();
             string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
 
+            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 当前行索引, 拼版号, 子序号, out string 重复位置))
+            {
+                MessageBox.Show($"同一条配置中通道地址只能使用一次。\r\n重复地址：{地址}\r\n重复位置：{重复位置}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                正在刷新工位地址 = true;
+                try
+                {
+                    string 原地址 = 检测项表格.Columns.Contains(地址字段名) ? 行.Cells[地址字段名].Value?.ToString() ?? "" : "";
+                    地址框.SelectedItem = string.IsNullOrEmpty(原地址) ? "无" : 原地址;
+                }
+                finally
+                {
+                    正在刷新工位地址 = false;
+                }
+                return;
+            }
+
             if (!检测项表格.Columns.Contains(地址字段名))
             {
                 var 列 = new DataGridViewTextBoxColumn();
@@ -637,6 +654,40 @@ namespace 自动测试
 
             行.Cells[地址字段名].Value = 地址;
             配置已修改 = true;
+        }
+
+        private bool 查找重复通道地址(string 地址, int 排除行索引, int 排除拼版号, int 排除子序号, out string 重复位置)
+        {
+            重复位置 = "";
+            int 拼板数 = (int)拼板数框.Value;
+
+            for (int rowIndex = 0; rowIndex < 检测项表格.Rows.Count; rowIndex++)
+            {
+                var row = 检测项表格.Rows[rowIndex];
+                if (row.IsNewRow) continue;
+
+                string 检测项名称 = row.Cells["名称列"].Value?.ToString() ?? $"第{rowIndex + 1}行";
+
+                for (int p = 1; p <= 拼板数; p++)
+                {
+                    for (int 子序号 = 1; 子序号 <= 4; 子序号++)
+                    {
+                        if (rowIndex == 排除行索引 && p == 排除拼版号 && 子序号 == 排除子序号) continue;
+
+                        string 字段名 = 子序号 == 1 ? $"拼版{p}地址" : $"拼版{p}地址_{子序号}";
+                        if (!检测项表格.Columns.Contains(字段名)) continue;
+
+                        string 已有地址 = row.Cells[字段名].Value?.ToString() ?? "";
+                        if (已有地址 == 地址)
+                        {
+                            重复位置 = $"{检测项名称} / 拼版{p} / 工位{子序号}";
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void 工位地址框_SelectedIndexChanged(object sender, EventArgs e)
@@ -756,8 +807,33 @@ namespace 自动测试
 
             int 当前拼版 = 获取当前选中拼版();
             int 拼板数 = (int)拼板数框.Value;
-
             string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
+            List<string> 可用地址列表 = 系统配置管理.获取可用地址列表(类型);
+            HashSet<string> 可用地址集合 = new HashSet<string>(可用地址列表);
+            HashSet<string> 已使用地址 = 获取其他检测项已使用地址(当前行索引);
+            HashSet<string> 本次填充地址 = new HashSet<string>();
+
+            bool 校验地址可用(string 地址, out string 错误)
+            {
+                错误 = "";
+                if (string.IsNullOrEmpty(地址)) return true;
+
+                if (!可用地址集合.Contains(地址))
+                {
+                    错误 = $"通道超出可用范围：{地址}";
+                    return false;
+                }
+
+                if (已使用地址.Contains(地址) || 本次填充地址.Contains(地址))
+                {
+                    错误 = $"通道重复使用：{地址}";
+                    return false;
+                }
+
+                本次填充地址.Add(地址);
+                return true;
+            }
+
             bool 是继电器输出 = 类型 == "继电器输出";
             int 步进 = 1 + 间隔数;
 
@@ -765,6 +841,7 @@ namespace 自动测试
             {
                 List<(string 前缀, int 板号, int 通道, bool 有效)> 基础地址 = new List<(string, int, int, bool)>();
                 ComboBox[] 框列表 = new[] { 工位地址框, 工位地址框2, 工位地址框3, 工位地址框4 };
+                var 待写入 = new List<(int 拼版, int 子序号, string 地址)>();
 
                 foreach (var 框 in 框列表)
                 {
@@ -791,12 +868,25 @@ namespace 自动测试
                         var 基础 = 基础地址[子序号 - 1];
                         if (!基础.有效)
                         {
-                            保存指定拼版地址(当前行索引, p, "", 子序号);
+                            待写入.Add((p, 子序号, ""));
                             continue;
                         }
 
                         string 新地址 = $"{基础.前缀}{基础.板号}.{基础.通道 + 偏移}";
-                        保存指定拼版地址(当前行索引, p, 新地址, 子序号);
+                        if (!校验地址可用(新地址, out string 错误))
+                        {
+                            MessageBox.Show($"自动填充已终止：{错误}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+                        待写入.Add((p, 子序号, 新地址));
+                    }
+                }
+
+                foreach (var item in 待写入)
+                {
+                    if (!保存指定拼版地址(当前行索引, item.拼版, item.地址, item.子序号))
+                    {
+                        return;
                     }
                 }
 
@@ -811,10 +901,41 @@ namespace 自动测试
             {
                 当前通道 += 步进;
                 string 新地址 = $"{前缀}{板号}.{当前通道}";
-                保存指定拼版地址(当前行索引, p, 新地址, 1);
+                if (!校验地址可用(新地址, out string 错误))
+                {
+                    MessageBox.Show($"自动填充已终止：{错误}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                if (!保存指定拼版地址(当前行索引, p, 新地址, 1))
+                {
+                    return;
+                }
             }
 
             配置已修改 = true;
+        }
+
+        private HashSet<string> 获取其他检测项已使用地址(int 当前行索引)
+        {
+            var 已使用 = new HashSet<string>();
+            int 拼板数 = (int)拼板数框.Value;
+
+            for (int rowIndex = 0; rowIndex < 检测项表格.Rows.Count; rowIndex++)
+            {
+                var row = 检测项表格.Rows[rowIndex];
+                if (row.IsNewRow || rowIndex == 当前行索引) continue;
+
+                for (int p = 1; p <= 拼板数; p++)
+                {
+                    for (int 子序号 = 1; 子序号 <= 4; 子序号++)
+                    {
+                        string 地址 = 获取当前检测项拼版子地址(rowIndex, p, 子序号);
+                        if (!string.IsNullOrEmpty(地址)) 已使用.Add(地址);
+                    }
+                }
+            }
+
+            return 已使用;
         }
 
         private bool 解析地址(string 地址, out string 前缀, out int 板号, out int 通道)
@@ -843,13 +964,19 @@ namespace 自动测试
             return false;
         }
 
-        private void 保存指定拼版地址(int 行索引, int 拼版号, string 地址, int 子序号 = 1)
+        private bool 保存指定拼版地址(int 行索引, int 拼版号, string 地址, int 子序号 = 1)
         {
-            if (行索引 < 0 || 行索引 >= 检测项表格.Rows.Count) return;
+            if (行索引 < 0 || 行索引 >= 检测项表格.Rows.Count) return false;
             var 行 = 检测项表格.Rows[行索引];
-            if (行.IsNewRow) return;
+            if (行.IsNewRow) return false;
 
             string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
+
+            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 行索引, 拼版号, 子序号, out string 重复位置))
+            {
+                MessageBox.Show($"自动填充已终止：通道重复使用\r\n重复地址：{地址}\r\n重复位置：{重复位置}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
 
             if (!检测项表格.Columns.Contains(地址字段名))
             {
@@ -861,6 +988,7 @@ namespace 自动测试
             }
 
             行.Cells[地址字段名].Value = 地址;
+            return true;
         }
 
         private void 排版按钮_Click(object sender, EventArgs e)

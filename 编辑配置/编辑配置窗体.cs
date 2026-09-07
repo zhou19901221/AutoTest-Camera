@@ -470,7 +470,6 @@ namespace 自动测试
             }
 
             HashSet<string> 同行已选地址 = 获取同行已选地址(当前行索引, 当前拼版);
-            HashSet<string> 其他检测项已选地址 = 获取其他检测项已使用地址(当前行索引);
 
             string 已选1 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 1);
             string 已选2 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 2);
@@ -479,7 +478,7 @@ namespace 自动测试
 
             foreach (var 地址 in 地址列表)
             {
-                if (!同行已选地址.Contains(地址) && !其他检测项已选地址.Contains(地址))
+                if (!同行已选地址.Contains(地址))
                 {
                     if (地址 != 已选2 && 地址 != 已选3 && 地址 != 已选4)
                         工位地址框.Items.Add(地址);
@@ -624,7 +623,7 @@ namespace 自动测试
             if (拼版号 == 0) 拼版号 = 获取当前选中拼版();
             string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
 
-            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 当前行索引, 拼版号, 子序号, out _))
+            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 当前行索引, 拼版号, 子序号, 仅当前行: true, out _))
             {
                 正在刷新工位地址 = true;
                 try
@@ -652,7 +651,7 @@ namespace 自动测试
             配置已修改 = true;
         }
 
-        private bool 查找重复通道地址(string 地址, int 排除行索引, int 排除拼版号, int 排除子序号, out string 重复位置)
+        private bool 查找重复通道地址(string 地址, int 排除行索引, int 排除拼版号, int 排除子序号, bool 仅当前行, out string 重复位置)
         {
             重复位置 = "";
             int 拼板数 = (int)拼板数框.Value;
@@ -661,6 +660,7 @@ namespace 自动测试
             {
                 var row = 检测项表格.Rows[rowIndex];
                 if (row.IsNewRow) continue;
+                if (仅当前行 && rowIndex != 排除行索引) continue;
 
                 string 检测项名称 = row.Cells["名称列"].Value?.ToString() ?? $"第{rowIndex + 1}行";
 
@@ -753,12 +753,10 @@ namespace 自动测试
             List<string> 地址列表 = 系统配置管理.获取可用地址列表(类型);
             int 当前拼版 = 获取当前选中拼版();
             HashSet<string> 同行已选 = 获取同行已选地址(当前行索引, 当前拼版);
-            HashSet<string> 其他检测项已选 = 获取其他检测项已使用地址(当前行索引);
 
             foreach (var 地址 in 地址列表)
             {
                 if (同行已选.Contains(地址)) continue;
-                if (其他检测项已选.Contains(地址)) continue;
                 if (地址 == 排除1 || 地址 == 排除2 || 地址 == 排除3) continue;
                 目标框.Items.Add(地址);
             }
@@ -808,7 +806,7 @@ namespace 自动测试
             string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
             List<string> 可用地址列表 = 系统配置管理.获取可用地址列表(类型);
             HashSet<string> 可用地址集合 = new HashSet<string>(可用地址列表);
-            HashSet<string> 已使用地址 = 获取其他检测项已使用地址(当前行索引);
+            HashSet<string> 已使用地址 = 获取当前测试项已使用地址(当前行索引);
             HashSet<string> 本次填充地址 = new HashSet<string>();
 
             bool 校验地址可用(string 地址, out string 错误)
@@ -911,22 +909,21 @@ namespace 自动测试
             配置已修改 = true;
         }
 
-        private HashSet<string> 获取其他检测项已使用地址(int 当前行索引)
+        private HashSet<string> 获取当前测试项已使用地址(int 当前行索引)
         {
             var 已使用 = new HashSet<string>();
             int 拼板数 = (int)拼板数框.Value;
 
-            for (int rowIndex = 0; rowIndex < 检测项表格.Rows.Count; rowIndex++)
-            {
-                var row = 检测项表格.Rows[rowIndex];
-                if (row.IsNewRow || rowIndex == 当前行索引) continue;
+            if (当前行索引 < 0 || 当前行索引 >= 检测项表格.Rows.Count) return 已使用;
 
-                for (int p = 1; p <= 拼板数; p++)
+            for (int p = 1; p <= 拼板数; p++)
+            {
+                for (int 子序号 = 1; 子序号 <= 4; 子序号++)
                 {
-                    for (int 子序号 = 1; 子序号 <= 4; 子序号++)
+                    string 地址 = 获取当前检测项拼版子地址(当前行索引, p, 子序号);
+                    if (!string.IsNullOrEmpty(地址))
                     {
-                        string 地址 = 获取当前检测项拼版子地址(rowIndex, p, 子序号);
-                        if (!string.IsNullOrEmpty(地址)) 已使用.Add(地址);
+                        已使用.Add(地址);
                     }
                 }
             }
@@ -968,7 +965,7 @@ namespace 自动测试
 
             string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
 
-            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 行索引, 拼版号, 子序号, out _))
+            if (!string.IsNullOrEmpty(地址) && 查找重复通道地址(地址, 行索引, 拼版号, 子序号, 仅当前行: true, out _))
             {
                 return false;
             }

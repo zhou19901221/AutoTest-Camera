@@ -136,6 +136,9 @@ namespace 自动测试
         private void 保存当前配置数据()
         {
             if (string.IsNullOrEmpty(当前配置名)) return;
+
+            Validate();
+            检测项表格.EndEdit();
             
             日志管理器.记录(日志类别.配置操作, "保存配置", 当前配置名);
             
@@ -307,6 +310,7 @@ namespace 自动测试
 
         private void 更新行显示根据类型(DataGridViewRow row, string 类型)
         {
+            string 原设定值 = row.Cells["设定值"].Value?.ToString() ?? "";
             bool 需要数值范围 = 类型 == "直流电压" || 类型 == "交流电压" || 类型 == "直流电流" || 类型 == "交流电流" || 类型 == "声音检测" || 类型 == "PWM检测" || 类型 == "输入功率";
             bool 需要布尔值 = 类型 == "继电器输出" || 类型 == "电源输出" || 类型 == "程控电源";
             bool 需要文本值 = 类型 == "相机检测" || 类型 == "串口输出";
@@ -315,29 +319,23 @@ namespace 自动测试
             row.Cells["最大值"].ReadOnly = !(需要数值范围 || 保留最大最小);
             row.Cells["最小值"].ReadOnly = !(需要数值范围 || 保留最大最小);
             
-            if (!需要数值范围 && !保留最大最小)
-            {
-                row.Cells["最大值"].Value = "";
-                row.Cells["最小值"].Value = "";
-            }
-            
             if (需要布尔值)
             {
                 var comboBoxCell = new DataGridViewComboBoxCell();
                 comboBoxCell.Items.AddRange(new object[] { "true", "false" });
-                comboBoxCell.Value = "false";
+                comboBoxCell.Value = (原设定值 == "true" || 原设定值 == "false") ? 原设定值 : "false";
                 row.Cells["设定值"] = comboBoxCell;
             }
             else if (需要文本值 || 需要数值范围 || 保留最大最小)
             {
                 var textBoxCell = new DataGridViewTextBoxCell();
-                textBoxCell.Value = "";
+                textBoxCell.Value = 原设定值;
                 row.Cells["设定值"] = textBoxCell;
             }
             else
             {
                 var textBoxCell = new DataGridViewTextBoxCell();
-                textBoxCell.Value = "";
+                textBoxCell.Value = 原设定值;
                 row.Cells["设定值"] = textBoxCell;
             }
         }

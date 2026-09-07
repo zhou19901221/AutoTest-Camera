@@ -428,6 +428,7 @@ namespace 自动测试
         public string 记录类型 = "不记录";
         public bool 字符格式 = false;
         public string 保存文件路径 = @"D:\ComLog\";
+        public string 上次加载配置名 = "";
     }
 
     public class 通道配置项

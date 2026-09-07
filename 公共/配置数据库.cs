@@ -5,6 +5,16 @@ using System.Text.Json;
 
 namespace 自动测试
 {
+    public class 测试结果记录
+    {
+        public DateTime 测试时间 { get; set; }
+        public string 测试配置 { get; set; } = "";
+        public string 测试结果 { get; set; } = "";
+        public string SN { get; set; } = "";
+        public string FAIL结果 { get; set; } = "";
+        public int 拼版号 { get; set; }
+    }
+
     public class 配置数据库
     {
         private static 配置数据库? _实例;
@@ -83,6 +93,16 @@ namespace 自动测试
                     拼版32地址 TEXT,
                     扩展地址JSON TEXT,
                     FOREIGN KEY (配置名) REFERENCES 配置表(配置名)
+                );
+
+                CREATE TABLE IF NOT EXISTS 测试结果表 (
+                    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    测试时间 TEXT NOT NULL,
+                    测试配置 TEXT NOT NULL,
+                    测试结果 TEXT NOT NULL,
+                    SN TEXT,
+                    FAIL结果 TEXT,
+                    拼版号 INTEGER NOT NULL
                 );
             ";
             命令.ExecuteNonQuery();
@@ -299,6 +319,98 @@ namespace 自动测试
 
             var 结果 = 命令.ExecuteScalar();
             return Convert.ToInt32(结果) > 0;
+        }
+
+        public void 保存测试结果(测试结果记录 记录)
+        {
+            using var 连接 = new SqliteConnection($"Data Source={数据库路径}");
+            连接.Open();
+
+            var 命令 = 连接.CreateCommand();
+            命令.CommandText = @"
+                INSERT INTO 测试结果表 (测试时间, 测试配置, 测试结果, SN, FAIL结果, 拼版号)
+                VALUES ($测试时间, $测试配置, $测试结果, $SN, $FAIL结果, $拼版号)
+            ";
+            命令.Parameters.AddWithValue("$测试时间", 记录.测试时间.ToString("yyyy-MM-dd HH:mm:ss"));
+            命令.Parameters.AddWithValue("$测试配置", 记录.测试配置 ?? "");
+            命令.Parameters.AddWithValue("$测试结果", 记录.测试结果 ?? "");
+            命令.Parameters.AddWithValue("$SN", 记录.SN ?? "");
+            命令.Parameters.AddWithValue("$FAIL结果", 记录.FAIL结果 ?? "");
+            命令.Parameters.AddWithValue("$拼版号", 记录.拼版号);
+            命令.ExecuteNonQuery();
+        }
+
+        public List<测试结果记录> 查询测试结果(DateTime? 起始, DateTime? 结束, string? 配置名, string? 结果, string? sn)
+        {
+            var 列表 = new List<测试结果记录>();
+            using var 连接 = new SqliteConnection($"Data Source={数据库路径}");
+            连接.Open();
+
+            var 命令 = 连接.CreateCommand();
+            var 条件 = new List<string>();
+
+            if (起始.HasValue)
+            {
+                条件.Add("测试时间 >= $起始");
+                命令.Parameters.AddWithValue("$起始", 起始.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+            }
+            if (结束.HasValue)
+            {
+                条件.Add("测试时间 < $结束");
+                命令.Parameters.AddWithValue("$结束", 结束.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+            }
+            if (!string.IsNullOrWhiteSpace(配置名))
+            {
+                条件.Add("测试配置 = $配置名");
+                命令.Parameters.AddWithValue("$配置名", 配置名.Trim());
+            }
+            if (!string.IsNullOrWhiteSpace(结果))
+            {
+                条件.Add("测试结果 = $结果");
+                命令.Parameters.AddWithValue("$结果", 结果.Trim());
+            }
+            if (!string.IsNullOrWhiteSpace(sn))
+            {
+                条件.Add("SN LIKE $SN");
+                命令.Parameters.AddWithValue("$SN", $"%{sn.Trim()}%");
+            }
+
+            string where = 条件.Count > 0 ? "WHERE " + string.Join(" AND ", 条件) : "";
+            命令.CommandText = $"SELECT 测试时间, 测试配置, 测试结果, SN, FAIL结果, 拼版号 FROM 测试结果表 {where} ORDER BY 测试时间 DESC";
+
+            using var 读取器 = 命令.ExecuteReader();
+            while (读取器.Read())
+            {
+                列表.Add(new 测试结果记录
+                {
+                    测试时间 = DateTime.TryParse(读取器.GetString(0), out var t) ? t : DateTime.MinValue,
+                    测试配置 = 读取器.IsDBNull(1) ? "" : 读取器.GetString(1),
+                    测试结果 = 读取器.IsDBNull(2) ? "" : 读取器.GetString(2),
+                    SN = 读取器.IsDBNull(3) ? "" : 读取器.GetString(3),
+                    FAIL结果 = 读取器.IsDBNull(4) ? "" : 读取器.GetString(4),
+                    拼版号 = 读取器.IsDBNull(5) ? 0 : 读取器.GetInt32(5)
+                });
+            }
+
+            return 列表;
+        }
+
+        public List<string> 获取测试结果配置列表()
+        {
+            var 列表 = new List<string>();
+            using var 连接 = new SqliteConnection($"Data Source={数据库路径}");
+            连接.Open();
+
+            var 命令 = 连接.CreateCommand();
+            命令.CommandText = "SELECT DISTINCT 测试配置 FROM 测试结果表 WHERE 测试配置 IS NOT NULL AND 测试配置 <> '' ORDER BY 测试配置";
+
+            using var 读取器 = 命令.ExecuteReader();
+            while (读取器.Read())
+            {
+                列表.Add(读取器.GetString(0));
+            }
+
+            return 列表;
         }
     }
 }

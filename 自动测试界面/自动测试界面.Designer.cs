@@ -44,6 +44,8 @@ namespace 自动测试
             循环次数框 = new NumericUpDown();
             平台升降框 = new CheckBox();
             回工作点框 = new CheckBox();
+            SN标签 = new Label();
+            SN输入框 = new TextBox();
             右侧面板 = new Panel();
             统计面板 = new GroupBox();
             总数标签 = new Label();
@@ -298,6 +300,8 @@ namespace 自动测试
             测试控制面板.Controls.Add(平台升降框);
             测试控制面板.Controls.Add(循环次数框);
             测试控制面板.Controls.Add(循环框);
+            测试控制面板.Controls.Add(SN输入框);
+            测试控制面板.Controls.Add(SN标签);
             测试控制面板.Controls.Add(开始测试按钮);
             测试控制面板.Controls.Add(手动测试按钮);
             测试控制面板.Location = new Point(5, 500);
@@ -342,9 +346,25 @@ namespace 自动测试
             循环框.Text = "循环";
             循环框.UseVisualStyleBackColor = true;
             // 
+            // SN标签
+            // 
+            SN标签.AutoSize = true;
+            SN标签.Location = new Point(205, 15);
+            SN标签.Name = "SN标签";
+            SN标签.Size = new Size(29, 17);
+            SN标签.TabIndex = 6;
+            SN标签.Text = "SN";
+            // 
+            // SN输入框
+            // 
+            SN输入框.Location = new Point(240, 11);
+            SN输入框.Name = "SN输入框";
+            SN输入框.Size = new Size(95, 23);
+            SN输入框.TabIndex = 7;
+            // 
             // 循环次数框
             // 
-            循环次数框.Location = new Point(275, 12);
+            循环次数框.Location = new Point(340, 12);
             循环次数框.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             循环次数框.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             循环次数框.Name = "循环次数框";
@@ -355,7 +375,7 @@ namespace 自动测试
             // 平台升降框
             // 
             平台升降框.AutoSize = true;
-            平台升降框.Location = new Point(350, 14);
+            平台升降框.Location = new Point(415, 14);
             平台升降框.Name = "平台升降框";
             平台升降框.Size = new Size(80, 22);
             平台升降框.TabIndex = 4;
@@ -365,7 +385,7 @@ namespace 自动测试
             // 回工作点框
             // 
             回工作点框.AutoSize = true;
-            回工作点框.Location = new Point(440, 14);
+            回工作点框.Location = new Point(495, 14);
             回工作点框.Name = "回工作点框";
             回工作点框.Size = new Size(80, 22);
             回工作点框.TabIndex = 5;
@@ -587,6 +607,8 @@ namespace 自动测试
         private Button 手动测试按钮;
         private Button 开始测试按钮;
         private CheckBox 循环框;
+        private Label SN标签;
+        private TextBox SN输入框;
         private NumericUpDown 循环次数框;
         private CheckBox 平台升降框;
         private CheckBox 回工作点框;

@@ -19,6 +19,27 @@ namespace 自动测试
         private CancellationTokenSource? 取消源;
         private bool 测试中;
 
+        private void 写入自动测试日志(string 内容)
+        {
+            string 行文本 = $"****{DateTime.Now:HH:mm:ss} {内容}{Environment.NewLine}";
+
+            if (日志文本框.InvokeRequired)
+            {
+                日志文本框.Invoke(new Action(() =>
+                {
+                    日志文本框.AppendText(行文本);
+                    日志文本框.SelectionStart = 日志文本框.TextLength;
+                    日志文本框.ScrollToCaret();
+                }));
+            }
+            else
+            {
+                日志文本框.AppendText(行文本);
+                日志文本框.SelectionStart = 日志文本框.TextLength;
+                日志文本框.ScrollToCaret();
+            }
+        }
+
         public 自动测试界面()
         {
             InitializeComponent();
@@ -98,6 +119,8 @@ namespace 自动测试
             取消源 = new CancellationTokenSource();
             开始测试按钮.Text = "停止测试";
             重置板状态();
+            日志文本框.Clear();
+            写入自动测试日志($"开始测试，配置：{当前配置.配置名称}");
             日志管理器.记录(日志类别.测试操作, "开始测试", 当前配置.配置名称, 权限等级.员工);
 
             try
@@ -106,10 +129,12 @@ namespace 自动测试
             }
             catch (Exception 异常)
             {
+                写入自动测试日志($"测试执行异常：{异常.Message}");
                 MessageBox.Show($"测试执行异常：{异常.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             finally
             {
+                写入自动测试日志("测试结束");
                 测试中 = false;
                 取消源.Dispose();
                 取消源 = null;
@@ -137,14 +162,21 @@ namespace 自动测试
 
                 try
                 {
+                    写入自动测试日志($"执行测试项：{项.排序} {项.名称} [{项.类型}] 设定值={项.设定值}");
                     执行检测项(项);
+                    写入自动测试日志($"完成测试项：{项.排序} {项.名称}");
                 }
                 catch (Exception 异常)
                 {
+                    写入自动测试日志($"测试项失败：{项.排序} {项.名称}，错误：{异常.Message}");
                     日志管理器.记录(日志类别.测试操作, $"执行[{项.类型}] {项.名称}失败", 异常.Message, 权限等级.员工);
                 }
 
-                if (项.延时 > 0) Thread.Sleep(项.延时);
+                if (项.延时 > 0)
+                {
+                    写入自动测试日志($"延时等待：{项.延时}ms");
+                    Thread.Sleep(项.延时);
+                }
             }
 
             for (int i = 0; i < 当前拼板数; i++)
@@ -199,6 +231,7 @@ namespace 自动测试
             {
                 string 通道文本 = string.Join(",", kv.Value.OrderBy(x => x));
                 bool[] 当前状态 = 读取线圈((byte)kv.Key, 0, 16);
+                写入自动测试日志($"继电器读取：从站{kv.Key} 通道[{通道文本}] 当前位图={位图转Hex(当前状态)}");
                 日志管理器.记录(日志类别.测试操作, "继电器读取当前状态", $"从站:{kv.Key} 通道:{通道文本} 位图:{位图转Hex(当前状态)}", 权限等级.员工);
                 foreach (int 通道 in kv.Value)
                 {
@@ -206,6 +239,7 @@ namespace 自动测试
                 }
 
                 写入多个线圈((byte)kv.Key, 0, 当前状态);
+                写入自动测试日志($"继电器写入：从站{kv.Key} 通道[{通道文本}] 目标={(目标状态 ? "ON" : "OFF")} 位图={位图转Hex(当前状态)}");
                 日志管理器.记录(日志类别.测试操作, $"执行[继电器输出] {项.名称}", $"从站{kv.Key} 已写入目标通道{kv.Value.Count}个 -> {(目标状态 ? "ON" : "OFF")} 位图:{位图转Hex(当前状态)}", 权限等级.员工);
             }
         }

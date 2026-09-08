@@ -23,7 +23,11 @@ namespace 自动测试
         private bool 测试中;
         private readonly Dictionary<int, bool> 拼版通过状态 = new();
         private readonly Dictionary<int, string> 拼版失败原因 = new();
+        // 已停用：统计改为页面生命周期累计，不再作为Total/OK/Fail来源
         private readonly List<测试结果记录> 临时统计记录 = new();
+        private int 累计总数;
+        private int 累计通过;
+        private int 累计失败;
         private DateTime 本次测试开始时间;
         private readonly Dictionary<int, string> SN串口绑定 = new();
         private readonly Dictionary<string, SerialPort> 扫码串口池 = new(StringComparer.OrdinalIgnoreCase);
@@ -56,9 +60,9 @@ namespace 自动测试
 
         private void 更新统计显示()
         {
-            int 总数 = 当前拼板数;
-            int 失败 = 拼版通过状态.Count(x => !x.Value);
-            int 通过 = Math.Max(0, 总数 - 失败);
+            int 总数 = 累计总数;
+            int 通过 = 累计通过;
+            int 失败 = 累计失败;
             double 通过率 = 总数 > 0 ? (double)通过 * 100.0 / 总数 : 0;
 
             void 更新()
@@ -71,6 +75,17 @@ namespace 自动测试
 
             if (InvokeRequired) Invoke((Action)更新);
             else 更新();
+        }
+
+        private void 累计本次统计结果()
+        {
+            int 本次总数 = 当前拼板数;
+            int 本次失败 = 拼版通过状态.Count(x => !x.Value);
+            int 本次通过 = Math.Max(0, 本次总数 - 本次失败);
+
+            累计总数 += 本次总数;
+            累计通过 += 本次通过;
+            累计失败 += 本次失败;
         }
 
         private List<(TextBox 输入框, Label 标签)> 获取SN控件列表()
@@ -92,7 +107,9 @@ namespace 自动测试
         {
             var 控件列表 = 获取SN控件列表();
             bool 单独SN = 当前配置?.单独SN记录 == true;
-            int 显示数量 = 单独SN ? 1 : Math.Max(1, Math.Min(当前拼板数, 控件列表.Count));
+            int 显示数量 = 单独SN
+                ? Math.Max(1, Math.Min(当前拼板数, 控件列表.Count))
+                : 1;
 
             for (int i = 0; i < 控件列表.Count; i++)
             {
@@ -100,6 +117,10 @@ namespace 自动测试
                 控件列表[i].输入框.Visible = 可见;
                 控件列表[i].标签.Visible = 可见;
                 控件列表[i].标签.Text = $"SN{i + 1}";
+                if (SN扫码按钮.TryGetValue(i + 1, out var 按钮))
+                {
+                    按钮.Visible = 可见;
+                }
                 if (!可见) 控件列表[i].输入框.Text = "";
             }
         }
@@ -169,6 +190,7 @@ namespace 自动测试
         private void 自动扫码定时器_Tick(object? sender, EventArgs e)
         {
             if (当前配置 == null) return;
+            if (当前配置.单独SN记录 != true) return;
             var 可见SN索引 = 获取可见SN序号();
             foreach (int sn序号 in 可见SN索引)
             {
@@ -219,14 +241,35 @@ namespace 自动测试
             string 触发方式 = 当前配置?.扫码触发方式 ?? "手动+自动";
             bool 需要自动扫码 = string.Equals(触发方式, "自动", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(触发方式, "手动+自动", StringComparison.OrdinalIgnoreCase);
+            bool 多SN模式 = 当前配置?.单独SN记录 == true;
 
             if (自动扫码切换按钮 != null)
             {
-                自动扫码切换按钮.Enabled = 需要自动扫码;
-                自动扫码切换按钮.Visible = 需要自动扫码;
+                自动扫码切换按钮.Enabled = 需要自动扫码 && 多SN模式;
+                自动扫码切换按钮.Visible = 需要自动扫码 && 多SN模式;
             }
 
             停止自动扫码();
+        }
+
+        private bool 开始测试前单次自动扫码()
+        {
+            if (当前配置 == null || 当前配置.单独SN记录) return true;
+
+            string 触发方式 = 当前配置.扫码触发方式 ?? "手动+自动";
+            bool 需要自动扫码 = string.Equals(触发方式, "自动", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(触发方式, "手动+自动", StringComparison.OrdinalIgnoreCase);
+            if (!需要自动扫码) return true;
+
+            try
+            {
+                尝试扫码并填充SN(1, true);
+                return !string.IsNullOrWhiteSpace(SN标签1.Text);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private void 尝试扫码并填充SN(int sn序号, bool 手动触发)
@@ -288,9 +331,8 @@ namespace 自动测试
                 串口.DiscardInBuffer();
                 串口.Write(打开扫码命令, 0, 打开扫码命令.Length);
 
-                var 超时 = DateTime.Now.AddMilliseconds(800);
+                var 超时 = DateTime.Now.AddSeconds(5);
                 using var 缓冲流 = new System.IO.MemoryStream();
-                int 空闲轮询次数 = 0;
                 while (DateTime.Now < 超时)
                 {
                     int 可读 = 串口.BytesToRead;
@@ -301,20 +343,41 @@ namespace 自动测试
                         if (已读 > 0)
                         {
                             缓冲流.Write(分段, 0, 已读);
-                            空闲轮询次数 = 0;
-                            Thread.Sleep(20);
-                            continue;
+                            byte[] 当前数据 = 缓冲流.ToArray();
+                            if (是否已收到扫码结果(当前数据))
+                            {
+                                string sn = 解析扫码回复ASCII(当前数据);
+                                if (!string.IsNullOrWhiteSpace(sn))
+                                {
+                                    return sn;
+                                }
+                            }
                         }
                     }
 
-                    空闲轮询次数++;
-                    if (缓冲流.Length > 0 && 空闲轮询次数 >= 3) break;
-                    Thread.Sleep(30);
+                    Thread.Sleep(20);
                 }
 
-                if (缓冲流.Length == 0) return "";
-                return 解析扫码回复ASCII(缓冲流.ToArray());
+                throw new TimeoutException("5秒内未收到扫码结果，请扫码一次");
             }
+        }
+
+        private static bool 是否已收到扫码结果(byte[] 数据)
+        {
+            if (数据.Length <= 1)
+            {
+                return false;
+            }
+
+            bool 有结束符 = 数据.Any(b => b == 0x0D || b == 0x0A);
+            bool 有可打印字符 = 数据.Any(b => b >= 32 && b <= 126);
+            if (有结束符 && 有可打印字符)
+            {
+                return true;
+            }
+
+            string 候选 = 解析扫码回复ASCII(数据);
+            return !string.IsNullOrWhiteSpace(候选) && 候选.Length >= 6;
         }
 
         private SerialPort 获取或打开扫码串口(string 串口名)
@@ -466,6 +529,12 @@ namespace 自动测试
                 return;
             }
 
+            if (!开始测试前单次自动扫码())
+            {
+                MessageBox.Show("开始前自动扫码失败，请扫码一次后重试。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             测试中 = true;
             取消源 = new CancellationTokenSource();
             开始测试按钮.Text = "停止测试";
@@ -482,7 +551,7 @@ namespace 自动测试
             string 触发方式 = 当前配置?.扫码触发方式 ?? "手动+自动";
             bool 需要自动扫码 = string.Equals(触发方式, "自动", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(触发方式, "手动+自动", StringComparison.OrdinalIgnoreCase);
-            if (需要自动扫码)
+            if (需要自动扫码 && 当前配置?.单独SN记录 == true)
             {
                 启动自动扫码();
             }
@@ -536,6 +605,19 @@ namespace 自动测试
                 {
                     写入自动测试日志($"测试项失败：{项.排序} {项.名称}，错误：{异常.Message}");
                     日志管理器.记录(日志类别.测试操作, $"执行[{项.类型}] {项.名称}失败", 异常.Message, 权限等级.员工);
+
+                    // 产品判定FAIL（业务结果）不作为软件异常中断流程
+                    bool 是业务FAIL = 异常 is InvalidOperationException
+                        && 异常.Message.Contains("测试FAIL", StringComparison.OrdinalIgnoreCase);
+
+                    if (是业务FAIL)
+                    {
+                        写入自动测试日志($"测试项{项.排序}判定FAIL，继续执行后续测试项");
+                        continue;
+                    }
+
+                    // 通讯/配置/执行故障：作为软件异常中断
+                    throw new InvalidOperationException($"测试项失败：{项.排序} {项.名称}，错误：{异常.Message}", 异常);
                 }
 
                 if (项.延时 > 0)
@@ -551,6 +633,7 @@ namespace 自动测试
                 int 板序号 = i - 1;
                 Invoke(() => 设置板状态(板序号, 通过 ? "PASS" : "FAIL"));
             }
+            累计本次统计结果();
             更新统计显示();
             保存本次测试结果();
         }
@@ -639,13 +722,13 @@ namespace 自动测试
                         bool 通过 = 实际值 >= 最小值 && 实际值 <= 最大值;
                         当前拼版通过 &= 通过;
 
-                        string 日志文本 = $"拼版{拼版号}{类型名} {地址项.地址} DATA={data} 值={实际值:F2}{(string.IsNullOrWhiteSpace(单位) ? "" : " " + 单位)} 范围[{最小值},{最大值}] => {(通过 ? "PASS" : "FAIL")}";
+                        string 日志文本 = $"拼版{拼版号}{类型名} {地址项.地址} DATA={data} 值={ 实际值:F2}{(string.IsNullOrWhiteSpace(单位) ? "" : " " + 单位)} 范围[{最小值},{最大值}] => {(通过 ? "PASS" : "FAIL")}";
                         写入自动测试日志(日志文本);
                         日志管理器.记录(日志类别.测试操作, $"执行[{类型名}] {项.名称}", 日志文本, 权限等级.员工);
 
                         if (!通过)
                         {
-                            当前拼版失败详情.Add($"拼版{拼版号}FAIL {类型名} {地址项.地址} 设定值={设定值文本} 实际值={实际值:F2}{(string.IsNullOrWhiteSpace(单位) ? "" : 单位)} 范围=[{最小值},{最大值}]");
+                            当前拼版失败详情.Add($"拼版{拼版号}FAIL {类型名} {地址项.地址} 设定值={设定值文本} 实际值={ 实际值:F2}{(string.IsNullOrWhiteSpace(单位) ? "" : 单位)} 范围=[{最小值},{最大值}]");
                         }
                     }
                 }
@@ -663,7 +746,7 @@ namespace 自动测试
             if (失败拼版.Count > 0)
             {
                 string 失败列表 = string.Join(",", 失败拼版.OrderBy(x => x).Select(x => $"拼版{x}"));
-                throw new InvalidOperationException($"{失败列表}测试FAIL");
+                写入自动测试日志($"{失败列表}测试FAIL");
             }
         }
 

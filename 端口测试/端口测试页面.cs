@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO.Ports;
+using System.Text;
 using System.Windows.Forms;
 
 namespace 自动测试
@@ -16,6 +18,7 @@ namespace 自动测试
 
         private readonly Dictionary<string, bool> 通道状态 = new();
         private SerialPort? modbus串口;
+        private SerialPort? 调试串口;
         private readonly System.Windows.Forms.Timer 输入轮询定时器 = new System.Windows.Forms.Timer();
         private readonly HashSet<Panel> 输入轮询卡片 = new HashSet<Panel>();
 
@@ -140,15 +143,63 @@ namespace 自动测试
         {
             var 按钮 = sender as Button;
             if (按钮?.Tag is not Panel 卡片) return;
-            SetCardStatus(卡片, 已连接色, "已连接");
-            展开串口通道(卡片);
-            日志管理器.记录(日志类别.硬件操作, "串口连接", "串口通讯板", 权限等级.管理员);
+
+            bool 已展开 = false;
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c is Panel p && p.Name == "通道面板")
+                {
+                    已展开 = true;
+                    break;
+                }
+            }
+
+            if (!已展开)
+            {
+                展开串口通道(卡片);
+                日志管理器.记录(日志类别.硬件操作, "串口助手展开", "请先选择COM口，再点击连接", 权限等级.管理员);
+                return;
+            }
+
+            if (!Try获取串口调试控件(卡片, out ComboBox? 通道选择框, out _, out TextBox? 接收框, out _))
+            {
+                MessageBox.Show("串口助手控件初始化失败", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (通道选择框.SelectedItem == null || !通道选择框.Enabled)
+            {
+                MessageBox.Show("无可用串口", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string 端口 = 通道选择框.SelectedItem.ToString() ?? "";
+            try
+            {
+                打开调试串口(端口);
+                SetCardStatus(卡片, 已连接色, "已连接");
+                追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] 串口已打开: {端口} {调试串口!.BaudRate},N,8,1");
+                日志管理器.记录(日志类别.硬件操作, "串口连接", $"串口通讯板 {端口}", 权限等级.管理员);
+            }
+            catch (Exception ex)
+            {
+                SetCardStatus(卡片, 错误色, "错误");
+                追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] 串口打开失败: {ex.Message}");
+                MessageBox.Show($"串口打开失败：{ex.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void 串口断开按钮_Click(object sender, EventArgs e)
         {
             var 按钮 = sender as Button;
             if (按钮?.Tag is not Panel 卡片) return;
+
+            if (Try获取串口调试控件(卡片, out ComboBox? 通道选择框, out _, out TextBox? 接收框, out _))
+            {
+                关闭调试串口();
+                追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] 串口已断开");
+            }
+
             SetCardStatus(卡片, 未连接色, "未连接");
             收起串口通道(卡片);
             日志管理器.记录(日志类别.硬件操作, "串口断开", "串口通讯板", 权限等级.管理员);
@@ -162,7 +213,7 @@ namespace 自动测试
             通道面板.Name = "通道面板";
             通道面板.Location = new Point(0, 48);
             通道面板.Width = 554;
-            通道面板.Height = 90;
+            通道面板.Height = 118;
             卡片.Height = 50 + 通道面板.Height;
 
             var 通道选择标签 = new Label();
@@ -250,6 +301,23 @@ namespace 自动测试
             接收框.ScrollBars = ScrollBars.Vertical;
             通道面板.Controls.Add(接收框);
 
+            var 发送格式标签 = new Label();
+            发送格式标签.Text = "发送格式：";
+            发送格式标签.Location = new Point(8, 90);
+            发送格式标签.Size = new Size(70, 20);
+            发送格式标签.Font = new Font("Microsoft YaHei UI", 9F);
+            通道面板.Controls.Add(发送格式标签);
+
+            var 发送格式框 = new ComboBox();
+            发送格式框.DropDownStyle = ComboBoxStyle.DropDownList;
+            发送格式框.Items.AddRange(new object[] { "HEX", "ASCII" });
+            发送格式框.SelectedIndex = 0;
+            发送格式框.Location = new Point(76, 88);
+            发送格式框.Size = new Size(90, 25);
+            发送格式框.Font = new Font("Microsoft YaHei UI", 9F);
+            发送格式框.Name = "发送格式框";
+            通道面板.Controls.Add(发送格式框);
+
             卡片.Controls.Add(通道面板);
         }
 
@@ -272,19 +340,13 @@ namespace 自动测试
             var 按钮 = sender as Button;
             if (按钮?.Tag is not Panel 卡片) return;
 
-            string 发送内容 = "";
-            string 接收内容 = "";
-            foreach (Control c in 卡片.Controls)
+            if (!Try获取串口调试控件(卡片, out ComboBox? 通道选择框, out TextBox? 发送框, out TextBox? 接收框, out ComboBox? 发送格式框))
             {
-                if (c is Panel 通道面板 && 通道面板.Name == "通道面板")
-                {
-                    foreach (Control tc in 通道面板.Controls)
-                    {
-                        if (tc.Name == "发送框") 发送内容 = tc.Text;
-                        if (tc.Name == "接收框") 接收内容 = tc.Text;
-                    }
-                }
+                MessageBox.Show("串口助手控件初始化失败", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
+
+            string 发送内容 = 发送框.Text;
 
             if (string.IsNullOrWhiteSpace(发送内容))
             {
@@ -292,21 +354,194 @@ namespace 自动测试
                 return;
             }
 
-            日志管理器.记录(日志类别.硬件操作, "串口发送报文", 发送内容, 权限等级.厂家);
+            if (通道选择框.SelectedItem == null)
+            {
+                MessageBox.Show("请先选择串口", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-            接收内容 += $"[{DateTime.Now:HH:mm:ss.fff}] 发送: {发送内容}\r\n";
-            接收内容 += $"[{DateTime.Now:HH:mm:ss.fff}] 接收: (待通讯实现)\r\n";
+            try
+            {
+                string 端口 = 通道选择框.SelectedItem.ToString() ?? "";
+                if (调试串口 == null || !调试串口.IsOpen || !string.Equals(调试串口.PortName, 端口, StringComparison.OrdinalIgnoreCase))
+                {
+                    打开调试串口(端口);
+                    通道选择框.Enabled = false;
+                }
+
+                string 发送格式 = 发送格式框.SelectedItem?.ToString() ?? "HEX";
+                byte[] tx = 解析发送数据(发送内容, 发送格式);
+                string txHex = BitConverter.ToString(tx).Replace("-", " ");
+                var sw = Stopwatch.StartNew();
+
+                调试串口!.DiscardInBuffer();
+                调试串口.Write(tx, 0, tx.Length);
+                追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] TX[{tx.Length}]: {txHex}");
+
+                System.Threading.Thread.Sleep(80);
+                var rx = new List<byte>();
+                int 空闲轮次 = 0;
+                while (空闲轮次 < 6)
+                {
+                    int 可读 = 调试串口.BytesToRead;
+                    if (可读 > 0)
+                    {
+                        byte[] buf = new byte[可读];
+                        int n = 调试串口.Read(buf, 0, 可读);
+                        if (n > 0)
+                        {
+                            for (int i = 0; i < n; i++) rx.Add(buf[i]);
+                            空闲轮次 = 0;
+                            System.Threading.Thread.Sleep(20);
+                            continue;
+                        }
+                    }
+
+                    空闲轮次++;
+                    System.Threading.Thread.Sleep(30);
+                }
+
+                sw.Stop();
+                if (rx.Count > 0)
+                {
+                    byte[] rxBytes = rx.ToArray();
+                    string rxHex = BitConverter.ToString(rxBytes).Replace("-", " ");
+                    string rxAscii = Encoding.ASCII.GetString(rxBytes);
+                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] RX[{rx.Count}]({sw.ElapsedMilliseconds}ms): {rxHex}");
+                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] RX-ASCII: {rxAscii}");
+                    日志管理器.记录(日志类别.硬件操作, "串口收发", $"{端口} TX:{txHex} RX:{rxHex}", 权限等级.厂家);
+                }
+                else
+                {
+                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] RX(超时 {sw.ElapsedMilliseconds}ms): 无数据");
+                    日志管理器.记录(日志类别.硬件操作, "串口收发", $"{端口} TX:{txHex} RX:无数据", 权限等级.厂家);
+                }
+            }
+            catch (Exception ex)
+            {
+                追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] 串口收发异常: {ex.Message}");
+                MessageBox.Show($"串口发送失败：{ex.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private bool Try获取串口调试控件(Panel 卡片, out ComboBox 通道选择框, out TextBox 发送框, out TextBox 接收框, out ComboBox 发送格式框)
+        {
+            通道选择框 = new ComboBox();
+            发送框 = new TextBox();
+            接收框 = new TextBox();
+            发送格式框 = new ComboBox();
 
             foreach (Control c in 卡片.Controls)
             {
-                if (c is Panel 通道面板 && 通道面板.Name == "通道面板")
+                if (c is not Panel 通道面板 || 通道面板.Name != "通道面板") continue;
+                foreach (Control tc in 通道面板.Controls)
                 {
-                    foreach (Control tc in 通道面板.Controls)
-                    {
-                        if (tc.Name == "接收框") tc.Text = 接收内容;
-                    }
+                    if (tc.Name == "通道选择框" && tc is ComboBox cb) 通道选择框 = cb;
+                    if (tc.Name == "发送框" && tc is TextBox tx) 发送框 = tx;
+                    if (tc.Name == "接收框" && tc is TextBox rx) 接收框 = rx;
+                    if (tc.Name == "发送格式框" && tc is ComboBox fmt) 发送格式框 = fmt;
                 }
             }
+
+            return 通道选择框.Name == "通道选择框" && 发送框.Name == "发送框" && 接收框.Name == "接收框" && 发送格式框.Name == "发送格式框";
+        }
+
+        private static byte[] 解析发送数据(string 文本, string 发送格式)
+        {
+            if (string.Equals(发送格式, "ASCII", StringComparison.OrdinalIgnoreCase))
+            {
+                return Encoding.ASCII.GetBytes(文本);
+            }
+
+            string 输入 = 文本.Trim();
+            if (string.IsNullOrWhiteSpace(输入))
+            {
+                throw new InvalidOperationException("HEX格式错误：内容为空");
+            }
+
+            输入 = 输入
+                .Replace("0x", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("，", " ")
+                .Replace("；", " ")
+                .Replace("、", " ");
+
+            string[] tokens = 输入.Split(new[] { ' ', '-', ',', ';', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (tokens.Length > 1)
+            {
+                byte[] data = new byte[tokens.Length];
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    if (tokens[i].Length > 2 || !byte.TryParse(tokens[i], System.Globalization.NumberStyles.HexNumber, null, out byte b))
+                    {
+                        throw new InvalidOperationException("HEX格式错误，请使用如 01 03 00 18 00 01 或 010300180001");
+                    }
+                    data[i] = b;
+                }
+                return data;
+            }
+
+            string 连续Hex = tokens[0];
+            if ((连续Hex.Length % 2) != 0)
+            {
+                throw new InvalidOperationException("HEX格式错误：字节数不完整（必须是偶数位）");
+            }
+
+            for (int i = 0; i < 连续Hex.Length; i++)
+            {
+                char ch = 连续Hex[i];
+                bool 是Hex字符 = (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+                if (!是Hex字符)
+                {
+                    throw new InvalidOperationException("HEX格式错误：包含非法字符");
+                }
+            }
+
+            int 字节数 = 连续Hex.Length / 2;
+            byte[] 连续数据 = new byte[字节数];
+            for (int i = 0; i < 字节数; i++)
+            {
+                string 子串 = 连续Hex.Substring(i * 2, 2);
+                连续数据[i] = byte.Parse(子串, System.Globalization.NumberStyles.HexNumber);
+            }
+
+            return 连续数据;
+        }
+
+        private static void 追加串口接收文本(TextBox 接收框, string 文本)
+        {
+            接收框.AppendText(文本 + Environment.NewLine);
+            接收框.SelectionStart = 接收框.TextLength;
+            接收框.ScrollToCaret();
+        }
+
+        private void 打开调试串口(string 端口)
+        {
+            if (string.IsNullOrWhiteSpace(端口)) throw new InvalidOperationException("未选择串口");
+
+            var 参数 = 系统配置管理.实例.基础参数;
+            调试串口 ??= new SerialPort();
+
+            if (调试串口.IsOpen)
+            {
+                if (string.Equals(调试串口.PortName, 端口, StringComparison.OrdinalIgnoreCase)) return;
+                调试串口.Close();
+            }
+
+            调试串口.PortName = 端口;
+            调试串口.BaudRate = 参数.串口波特率 > 0 ? 参数.串口波特率 : 9600;
+            调试串口.Parity = Parity.None;
+            调试串口.DataBits = 8;
+            调试串口.StopBits = StopBits.One;
+            调试串口.ReadTimeout = 300;
+            调试串口.WriteTimeout = 1000;
+            调试串口.Open();
+        }
+
+        private void 关闭调试串口()
+        {
+            if (调试串口 == null) return;
+            if (调试串口.IsOpen) 调试串口.Close();
         }
 
         private void 输入轮询定时器_Tick(object? sender, EventArgs e)
@@ -1235,6 +1470,13 @@ namespace 自动测试
                 if (modbus串口.IsOpen) modbus串口.Close();
                 modbus串口.Dispose();
                 modbus串口 = null;
+            }
+
+            if (调试串口 != null)
+            {
+                if (调试串口.IsOpen) 调试串口.Close();
+                调试串口.Dispose();
+                调试串口 = null;
             }
 
             base.OnFormClosed(e);

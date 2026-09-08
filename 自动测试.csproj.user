@@ -28,6 +28,9 @@
     <Compile Update="日志\日志页面.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="日志\测试记录页面.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="日志页面.cs">
       <SubType>Form</SubType>
     </Compile>

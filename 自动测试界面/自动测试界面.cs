@@ -65,6 +65,37 @@ namespace 自动测试
             else 更新();
         }
 
+        private List<(TextBox 输入框, Label 标签)> 获取SN控件列表()
+        {
+            return new List<(TextBox 输入框, Label 标签)>
+            {
+                (SN标签1, label2),
+                (SN标签2, label1),
+                (SN标签3, label3),
+                (SN标签4, label4),
+                (SN标签5, label5),
+                (SN标签6, label6),
+                (SN标签7, label7),
+                (SN标签8, label8)
+            };
+        }
+
+        private void 更新SN显示()
+        {
+            var 控件列表 = 获取SN控件列表();
+            bool 单独SN = 当前配置?.单独SN记录 == true;
+            int 显示数量 = 单独SN ? 1 : Math.Max(1, Math.Min(当前拼板数, 控件列表.Count));
+
+            for (int i = 0; i < 控件列表.Count; i++)
+            {
+                bool 可见 = i < 显示数量;
+                控件列表[i].输入框.Visible = 可见;
+                控件列表[i].标签.Visible = 可见;
+                控件列表[i].标签.Text = $"SN{i + 1}";
+                if (!可见) 控件列表[i].输入框.Text = "";
+            }
+        }
+
         public 自动测试界面()
         {
             InitializeComponent();
@@ -97,6 +128,8 @@ namespace 自动测试
                 int 列 = i % 8;
                 板状态容器.Controls.Add(方块, 列, 行);
             }
+
+            更新SN显示();
         }
 
         public void 设置板状态(int 板序号, string 状态)
@@ -259,11 +292,13 @@ namespace 自动测试
             double 最大值 = double.TryParse(项.最大值, out double max) ? max : double.MaxValue;
             double 最小值 = double.TryParse(项.最小值, out double min) ? min : double.MinValue;
             var 失败拼版 = new HashSet<int>();
+            string 设定值文本 = string.IsNullOrWhiteSpace(项.设定值) ? "无" : 项.设定值.Trim();
 
             foreach (var kv in 拼版地址映射.OrderBy(x => x.Key))
             {
                 int 拼版号 = kv.Key;
                 bool 当前拼版通过 = true;
+                var 当前拼版失败详情 = new List<string>();
 
                 var 分组 = new Dictionary<string, List<(string 地址, int 通道号, int 模块索引, byte 从站地址)>>();
                 foreach (string 地址 in kv.Value)
@@ -304,13 +339,21 @@ namespace 自动测试
                         string 日志文本 = $"拼版{拼版号}{类型名} {地址项.地址} DATA={data} 值={实际值:F2}{(string.IsNullOrWhiteSpace(单位) ? "" : " " + 单位)} 范围[{最小值},{最大值}] => {(通过 ? "PASS" : "FAIL")}";
                         写入自动测试日志(日志文本);
                         日志管理器.记录(日志类别.测试操作, $"执行[{类型名}] {项.名称}", 日志文本, 权限等级.员工);
+
+                        if (!通过)
+                        {
+                            当前拼版失败详情.Add($"拼版{拼版号}FAIL {类型名} {地址项.地址} 设定值={设定值文本} 实际值={实际值:F2}{(string.IsNullOrWhiteSpace(单位) ? "" : 单位)} 范围=[{最小值},{最大值}]");
+                        }
                     }
                 }
 
                 if (!当前拼版通过)
                 {
                     失败拼版.Add(拼版号);
-                    设置拼版失败(拼版号, $"{类型名}检测未通过");
+                    string 失败原因 = 当前拼版失败详情.Count > 0
+                        ? string.Join(" | ", 当前拼版失败详情)
+                        : $"拼版{拼版号}FAIL {类型名} 设定值={设定值文本} 实际值=无";
+                    设置拼版失败(拼版号, 失败原因);
                 }
             }
 
@@ -338,8 +381,33 @@ namespace 自动测试
         private void 保存本次测试结果()
         {
             string 配置名 = 当前配置?.配置名称 ?? "";
-            string sn = SN输入框.Text.Trim();
+            string sn = SN标签1.Text.Trim();
             DateTime 时间 = 本次测试开始时间 == default ? DateTime.Now : 本次测试开始时间;
+
+            bool 单独SN记录 = 当前配置?.单独SN记录 == true;
+            if (!单独SN记录)
+            {
+                int fail数量 = 拼版通过状态.Count(x => !x.Value);
+                string 汇总结果 = fail数量 == 0 ? "PASS" : "FAIL";
+                string 汇总失败详情 = string.Join(" | ",
+                    拼版失败原因
+                        .OrderBy(x => x.Key)
+                        .Select(x => $"拼版{x.Key}:{x.Value}"));
+
+                var 汇总记录 = new 测试结果记录
+                {
+                    测试时间 = 时间,
+                    测试配置 = 配置名,
+                    测试结果 = 汇总结果,
+                    SN = sn,
+                    FAIL结果 = 汇总失败详情,
+                    拼版号 = 0
+                };
+
+                配置数据库.实例.保存测试结果(汇总记录);
+                临时统计记录.Add(汇总记录);
+                return;
+            }
 
             for (int 拼版号 = 1; 拼版号 <= 当前拼板数; 拼版号++)
             {
@@ -779,6 +847,7 @@ namespace 自动测试
             当前配置 = 数据;
             当前配置标签.Text = $"当前配置: {数据.配置名称}";
             同步板状态(数据.拼板数);
+            更新SN显示();
             拼版通过状态.Clear();
             for (int i = 1; i <= 当前拼板数; i++) 拼版通过状态[i] = true;
             更新统计显示();

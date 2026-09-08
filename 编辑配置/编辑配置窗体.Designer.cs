@@ -34,6 +34,7 @@ namespace 自动测试
             当前板4框 = new RadioButton();
             当前板5框 = new RadioButton();
             当前板6框 = new RadioButton();
+            增加项按钮 = new Button();
             功能导航 = new TabControl();
             功能测试页 = new TabPage();
             工位地址标签 = new Label();
@@ -66,14 +67,6 @@ namespace 自动测试
             NG跳转标签 = new Label();
             NG跳转框 = new TextBox();
             检测设置表格 = new DataGridView();
-            增加项按钮 = new Button();
-            插入项按钮 = new Button();
-            保存项按钮 = new Button();
-            复制项按钮 = new Button();
-            粘贴项按钮 = new Button();
-            删除项按钮 = new Button();
-            启用所有按钮 = new Button();
-            停用所有按钮 = new Button();
             插入项按钮 = new Button();
             停用所有按钮 = new Button();
             粘贴项按钮 = new Button();
@@ -84,6 +77,7 @@ namespace 自动测试
             设置名称列 = new DataGridViewTextBoxColumn();
             设置值列 = new DataGridViewTextBoxColumn();
             设置说明列 = new DataGridViewTextBoxColumn();
+            单独SN标签 = new CheckBox();
             左侧面板.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)拼板数框).BeginInit();
             右侧面板.SuspendLayout();
@@ -488,6 +482,7 @@ namespace 自动测试
             // 
             // 检测设置页
             // 
+            检测设置页.Controls.Add(单独SN标签);
             检测设置页.Controls.Add(checkBox5);
             检测设置页.Controls.Add(checkBox4);
             检测设置页.Controls.Add(checkBox3);
@@ -678,6 +673,16 @@ namespace 自动测试
             设置说明列.ReadOnly = true;
             设置说明列.Width = 300;
             // 
+            // 单独SN标签
+            // 
+            单独SN标签.AutoSize = true;
+            单独SN标签.Location = new Point(16, 348);
+            单独SN标签.Name = "单独SN标签";
+            单独SN标签.Size = new Size(68, 21);
+            单独SN标签.TabIndex = 18;
+            单独SN标签.Text = "单独SN";
+            单独SN标签.UseVisualStyleBackColor = true;
+            // 
             // 编辑配置窗体
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
@@ -773,5 +778,6 @@ namespace 自动测试
         private DataGridViewTextBoxColumn 设置名称列;
         private DataGridViewTextBoxColumn 设置值列;
         private DataGridViewTextBoxColumn 设置说明列;
+        private CheckBox 单独SN标签;
     }
 }

@@ -18,6 +18,7 @@ namespace 自动测试
             public string 配置名称 { get; set; } = "";
             public DateTime 创建日期 { get; set; } = DateTime.Now;
             public int 拼板数 { get; set; } = 6;
+            public bool 单独SN记录 { get; set; } = false;
             public List<检测项数据> 检测项列表 { get; set; } = new List<检测项数据>();
         }
 
@@ -147,6 +148,7 @@ namespace 自动测试
                 配置名称 = 当前配置名,
                 创建日期 = DateTime.Now,
                 拼板数 = (int)拼板数框.Value,
+                单独SN记录 = 单独SN标签.Checked,
                 检测项列表 = new List<检测项数据>()
             };
             
@@ -205,6 +207,7 @@ namespace 自动测试
             if (数据 == null) return;
             
             拼板数框.Value = 数据.拼板数;
+            单独SN标签.Checked = 数据.单独SN记录;
             
             检测项表格.Rows.Clear();
             foreach (var 项 in 数据.检测项列表)

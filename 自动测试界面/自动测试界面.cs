@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.IO.Ports;
+using System.Text;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -24,6 +25,13 @@ namespace 自动测试
         private readonly Dictionary<int, string> 拼版失败原因 = new();
         private readonly List<测试结果记录> 临时统计记录 = new();
         private DateTime 本次测试开始时间;
+        private readonly Dictionary<int, string> SN串口绑定 = new();
+        private readonly Dictionary<string, SerialPort> 扫码串口池 = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<int, Button> SN扫码按钮 = new();
+        private readonly object 扫码串口锁 = new();
+        private System.Windows.Forms.Timer? 自动扫码定时器;
+        private Button? 自动扫码切换按钮;
+        private bool 自动扫码已开启;
 
         private void 写入自动测试日志(string 内容)
         {
@@ -99,7 +107,289 @@ namespace 自动测试
         public 自动测试界面()
         {
             InitializeComponent();
+            初始化扫码功能控件();
             界面缩放器.等比例适配屏幕(this);
+            FormClosing += 自动测试界面_FormClosing;
+        }
+
+        private void 自动测试界面_FormClosing(object? sender, FormClosingEventArgs e)
+        {
+            停止自动扫码();
+            关闭所有扫码串口();
+        }
+
+        private void 初始化扫码功能控件()
+        {
+            var 控件列表 = 获取SN控件列表();
+            for (int i = 0; i < 控件列表.Count; i++)
+            {
+                int sn序号 = i + 1;
+                var 输入框 = 控件列表[i].输入框;
+                var 按钮 = new Button
+                {
+                    Name = $"SN扫码按钮{sn序号}",
+                    Text = "扫码",
+                    Size = new Size(55, 输入框.Height + 2),
+                    Location = new Point(输入框.Right + 6, 输入框.Top - 1),
+                    Tag = sn序号
+                };
+                按钮.Click += SN扫码按钮_Click;
+                中部面板.Controls.Add(按钮);
+                按钮.BringToFront();
+                SN扫码按钮[sn序号] = 按钮;
+            }
+
+            自动扫码切换按钮 = new Button
+            {
+                Name = "自动扫码切换按钮",
+                Text = "自动扫码:关",
+                Size = new Size(100, 35),
+                Location = new Point(100, 5)
+            };
+            自动扫码切换按钮.Click += 自动扫码切换按钮_Click;
+            测试控制面板.Controls.Add(自动扫码切换按钮);
+
+            自动扫码定时器 = new System.Windows.Forms.Timer();
+            自动扫码定时器.Interval = 800;
+            自动扫码定时器.Tick += 自动扫码定时器_Tick;
+        }
+
+        private void 自动扫码切换按钮_Click(object? sender, EventArgs e)
+        {
+            if (自动扫码已开启) 停止自动扫码();
+            else 启动自动扫码();
+        }
+
+        private void SN扫码按钮_Click(object? sender, EventArgs e)
+        {
+            if (sender is not Button 按钮 || 按钮.Tag is not int sn序号) return;
+            尝试扫码并填充SN(sn序号, true);
+        }
+
+        private void 自动扫码定时器_Tick(object? sender, EventArgs e)
+        {
+            if (当前配置 == null) return;
+            var 可见SN索引 = 获取可见SN序号();
+            foreach (int sn序号 in 可见SN索引)
+            {
+                尝试扫码并填充SN(sn序号, false);
+            }
+        }
+
+        private List<int> 获取可见SN序号()
+        {
+            var 结果 = new List<int>();
+            var 列表 = 获取SN控件列表();
+            for (int i = 0; i < 列表.Count; i++)
+            {
+                if (列表[i].输入框.Visible) 结果.Add(i + 1);
+            }
+            return 结果;
+        }
+
+        private void 启动自动扫码()
+        {
+            if (自动扫码定时器 == null || 自动扫码已开启) return;
+            自动扫码已开启 = true;
+            自动扫码定时器.Start();
+            if (自动扫码切换按钮 != null) 自动扫码切换按钮.Text = "自动扫码:开";
+            写入自动测试日志("自动扫码已开启");
+        }
+
+        private void 停止自动扫码()
+        {
+            if (自动扫码定时器 == null || !自动扫码已开启) return;
+            自动扫码已开启 = false;
+            自动扫码定时器.Stop();
+            if (自动扫码切换按钮 != null) 自动扫码切换按钮.Text = "自动扫码:关";
+            写入自动测试日志("自动扫码已关闭");
+        }
+
+        private void 应用扫码配置()
+        {
+            SN串口绑定.Clear();
+            foreach (var kv in 当前配置?.SN串口绑定 ?? new Dictionary<string, string>())
+            {
+                if (!kv.Key.StartsWith("SN", StringComparison.OrdinalIgnoreCase)) continue;
+                if (!int.TryParse(kv.Key.Substring(2), out int sn序号)) continue;
+                if (string.IsNullOrWhiteSpace(kv.Value)) continue;
+                SN串口绑定[sn序号] = kv.Value.Trim();
+            }
+
+            string 触发方式 = 当前配置?.扫码触发方式 ?? "手动+自动";
+            bool 需要自动扫码 = string.Equals(触发方式, "自动", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(触发方式, "手动+自动", StringComparison.OrdinalIgnoreCase);
+
+            if (自动扫码切换按钮 != null)
+            {
+                自动扫码切换按钮.Enabled = 需要自动扫码;
+                自动扫码切换按钮.Visible = 需要自动扫码;
+            }
+
+            停止自动扫码();
+        }
+
+        private void 尝试扫码并填充SN(int sn序号, bool 手动触发)
+        {
+            if (!SN串口绑定.TryGetValue(sn序号, out string? 串口名) || string.IsNullOrWhiteSpace(串口名))
+            {
+                if (手动触发)
+                {
+                    MessageBox.Show($"SN{sn序号}未绑定COM口", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                return;
+            }
+
+            try
+            {
+                string sn = 发送扫码命令并读取SN(串口名);
+                if (string.IsNullOrWhiteSpace(sn))
+                {
+                    if (手动触发)
+                    {
+                        MessageBox.Show($"SN{sn序号}未收到有效扫码数据", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    return;
+                }
+
+                填充SN文本(sn序号, sn);
+                写入自动测试日志($"SN{sn序号}扫码成功：{sn}");
+            }
+            catch (Exception ex)
+            {
+                if (手动触发)
+                {
+                    MessageBox.Show($"SN{sn序号}扫码失败：{ex.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+        }
+
+        private void 填充SN文本(int sn序号, string sn)
+        {
+            void 设置()
+            {
+                var 列表 = 获取SN控件列表();
+                int idx = sn序号 - 1;
+                if (idx < 0 || idx >= 列表.Count) return;
+                列表[idx].输入框.Text = sn;
+            }
+
+            if (InvokeRequired) Invoke((Action)设置);
+            else 设置();
+        }
+
+        private string 发送扫码命令并读取SN(string 串口名)
+        {
+            lock (扫码串口锁)
+            {
+                var 串口 = 获取或打开扫码串口(串口名);
+                byte[] 打开扫码命令 = new byte[] { 0x1B, 0x31 };
+
+                串口.DiscardInBuffer();
+                串口.Write(打开扫码命令, 0, 打开扫码命令.Length);
+
+                var 超时 = DateTime.Now.AddMilliseconds(800);
+                using var 缓冲流 = new System.IO.MemoryStream();
+                int 空闲轮询次数 = 0;
+                while (DateTime.Now < 超时)
+                {
+                    int 可读 = 串口.BytesToRead;
+                    if (可读 > 0)
+                    {
+                        byte[] 分段 = new byte[可读];
+                        int 已读 = 串口.Read(分段, 0, 分段.Length);
+                        if (已读 > 0)
+                        {
+                            缓冲流.Write(分段, 0, 已读);
+                            空闲轮询次数 = 0;
+                            Thread.Sleep(20);
+                            continue;
+                        }
+                    }
+
+                    空闲轮询次数++;
+                    if (缓冲流.Length > 0 && 空闲轮询次数 >= 3) break;
+                    Thread.Sleep(30);
+                }
+
+                if (缓冲流.Length == 0) return "";
+                return 解析扫码回复ASCII(缓冲流.ToArray());
+            }
+        }
+
+        private SerialPort 获取或打开扫码串口(string 串口名)
+        {
+            if (!扫码串口池.TryGetValue(串口名, out SerialPort? 串口))
+            {
+                串口 = new SerialPort();
+                扫码串口池[串口名] = 串口;
+            }
+
+            var 参数 = 系统配置管理.实例.基础参数;
+            int 波特率 = 参数.串口波特率 > 0 ? 参数.串口波特率 : 9600;
+
+            if (串口.IsOpen)
+            {
+                if (string.Equals(串口.PortName, 串口名, StringComparison.OrdinalIgnoreCase)
+                    && 串口.BaudRate == 波特率)
+                {
+                    return 串口;
+                }
+                串口.Close();
+            }
+
+            串口.PortName = 串口名;
+            串口.BaudRate = 波特率;
+            串口.Parity = Parity.None;
+            串口.DataBits = 8;
+            串口.StopBits = StopBits.One;
+            串口.ReadTimeout = 200;
+            串口.WriteTimeout = 1000;
+            串口.Open();
+            return 串口;
+        }
+
+        private static string 解析扫码回复ASCII(byte[] 数据)
+        {
+            if (数据.Length == 0) return "";
+
+            string 原始ASCII = Encoding.ASCII.GetString(数据)
+                .Trim('\0', '\r', '\n', ' ');
+            if (!string.IsNullOrWhiteSpace(原始ASCII))
+            {
+                string 过滤ASCII = new string(原始ASCII.Where(ch => ch >= 32 && ch <= 126).ToArray()).Trim();
+                if (!string.IsNullOrWhiteSpace(过滤ASCII))
+                {
+                    return 过滤ASCII;
+                }
+            }
+
+            var sb = new StringBuilder();
+            for (int i = 0; i + 1 < 数据.Length; i += 2)
+            {
+                byte 高位 = 数据[i];
+                byte 低位 = 数据[i + 1];
+                if (高位 >= 32 && 高位 <= 126) sb.Append((char)高位);
+                if (低位 >= 32 && 低位 <= 126) sb.Append((char)低位);
+            }
+            return sb.ToString().Trim();
+        }
+
+        private void 关闭所有扫码串口()
+        {
+            lock (扫码串口锁)
+            {
+                foreach (var 串口 in 扫码串口池.Values)
+                {
+                    try
+                    {
+                        if (串口.IsOpen) 串口.Close();
+                    }
+                    catch { }
+                    串口.Dispose();
+                }
+                扫码串口池.Clear();
+            }
         }
 
         public void 同步板状态(int 拼板数)
@@ -154,6 +444,8 @@ namespace 自动测试
         private void 返回按钮_Click(object sender, EventArgs e)
         {
             取消源?.Cancel();
+            停止自动扫码();
+            关闭所有扫码串口();
             日志管理器.记录(日志类别.测试操作, "退出自动测试", "", 权限等级.员工);
             Form1.主窗体实例?.Show();
             Close();
@@ -170,6 +462,7 @@ namespace 自动测试
             if (测试中)
             {
                 取消源?.Cancel();
+                停止自动扫码();
                 return;
             }
 
@@ -185,6 +478,14 @@ namespace 自动测试
             本次测试开始时间 = DateTime.Now;
             写入自动测试日志($"开始测试，配置：{当前配置.配置名称}");
             日志管理器.记录(日志类别.测试操作, "开始测试", 当前配置.配置名称, 权限等级.员工);
+
+            string 触发方式 = 当前配置?.扫码触发方式 ?? "手动+自动";
+            bool 需要自动扫码 = string.Equals(触发方式, "自动", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(触发方式, "手动+自动", StringComparison.OrdinalIgnoreCase);
+            if (需要自动扫码)
+            {
+                启动自动扫码();
+            }
 
             try
             {
@@ -209,6 +510,8 @@ namespace 自动测试
                     继电器串口.Dispose();
                     继电器串口 = null;
                 }
+                停止自动扫码();
+                关闭所有扫码串口();
                 开始测试按钮.Text = "开始测试";
             }
         }
@@ -848,6 +1151,7 @@ namespace 自动测试
             当前配置标签.Text = $"当前配置: {数据.配置名称}";
             同步板状态(数据.拼板数);
             更新SN显示();
+            应用扫码配置();
             拼版通过状态.Clear();
             for (int i = 1; i <= 当前拼板数; i++) 拼版通过状态[i] = true;
             更新统计显示();

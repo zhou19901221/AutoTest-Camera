@@ -46,7 +46,9 @@ namespace 自动测试
                     配置名 TEXT PRIMARY KEY,
                     创建日期 TEXT NOT NULL,
                     拼板数 INTEGER NOT NULL,
-                    单独SN记录 INTEGER NOT NULL DEFAULT 0
+                    单独SN记录 INTEGER NOT NULL DEFAULT 0,
+                    SN串口绑定JSON TEXT,
+                    扫码触发方式 TEXT NOT NULL DEFAULT '手动+自动'
                 );
 
                 CREATE TABLE IF NOT EXISTS 检测项表 (
@@ -134,6 +136,22 @@ namespace 自动测试
                 添加单独SN列命令.ExecuteNonQuery();
             }
             catch { }
+
+            try
+            {
+                var 添加SN绑定列命令 = 连接.CreateCommand();
+                添加SN绑定列命令.CommandText = "ALTER TABLE 配置表 ADD COLUMN SN串口绑定JSON TEXT";
+                添加SN绑定列命令.ExecuteNonQuery();
+            }
+            catch { }
+
+            try
+            {
+                var 添加扫码触发列命令 = 连接.CreateCommand();
+                添加扫码触发列命令.CommandText = "ALTER TABLE 配置表 ADD COLUMN 扫码触发方式 TEXT NOT NULL DEFAULT '手动+自动'";
+                添加扫码触发列命令.ExecuteNonQuery();
+            }
+            catch { }
         }
 
         public List<string> 获取所有配置名()
@@ -160,7 +178,7 @@ namespace 自动测试
             连接.Open();
 
             var 命令 = 连接.CreateCommand();
-            命令.CommandText = "SELECT 创建日期, 拼板数, 单独SN记录 FROM 配置表 WHERE 配置名 = $配置名";
+            命令.CommandText = "SELECT 创建日期, 拼板数, 单独SN记录, SN串口绑定JSON, 扫码触发方式 FROM 配置表 WHERE 配置名 = $配置名";
             命令.Parameters.AddWithValue("$配置名", 配置名);
 
             using var 读取器 = 命令.ExecuteReader();
@@ -175,6 +193,10 @@ namespace 自动测试
                 创建日期 = DateTime.Parse(读取器.GetString(0)),
                 拼板数 = 读取器.GetInt32(1),
                 单独SN记录 = !读取器.IsDBNull(2) && 读取器.GetInt32(2) == 1,
+                SN串口绑定 = 读取器.IsDBNull(3)
+                    ? new Dictionary<string, string>()
+                    : JsonSerializer.Deserialize<Dictionary<string, string>>(读取器.GetString(3)) ?? new Dictionary<string, string>(),
+                扫码触发方式 = 读取器.IsDBNull(4) ? "手动+自动" : 读取器.GetString(4),
                 检测项列表 = new List<编辑配置窗体.检测项数据>()
             };
 
@@ -241,11 +263,13 @@ namespace 自动测试
                 删除配置命令.ExecuteNonQuery();
 
                 var 插入配置命令 = 连接.CreateCommand();
-                插入配置命令.CommandText = "INSERT INTO 配置表 (配置名, 创建日期, 拼板数, 单独SN记录) VALUES ($配置名, $创建日期, $拼板数, $单独SN记录)";
+                插入配置命令.CommandText = "INSERT INTO 配置表 (配置名, 创建日期, 拼板数, 单独SN记录, SN串口绑定JSON, 扫码触发方式) VALUES ($配置名, $创建日期, $拼板数, $单独SN记录, $SN串口绑定JSON, $扫码触发方式)";
                 插入配置命令.Parameters.AddWithValue("$配置名", 数据.配置名称);
                 插入配置命令.Parameters.AddWithValue("$创建日期", 数据.创建日期.ToString("yyyy-MM-dd HH:mm:ss"));
                 插入配置命令.Parameters.AddWithValue("$拼板数", 数据.拼板数);
                 插入配置命令.Parameters.AddWithValue("$单独SN记录", 数据.单独SN记录 ? 1 : 0);
+                插入配置命令.Parameters.AddWithValue("$SN串口绑定JSON", JsonSerializer.Serialize(数据.SN串口绑定 ?? new Dictionary<string, string>()));
+                插入配置命令.Parameters.AddWithValue("$扫码触发方式", string.IsNullOrWhiteSpace(数据.扫码触发方式) ? "手动+自动" : 数据.扫码触发方式);
                 插入配置命令.ExecuteNonQuery();
 
                 foreach (var 项 in 数据.检测项列表)

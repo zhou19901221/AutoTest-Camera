@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.IO;
+using System.IO.Ports;
+using System.Linq;
 using System.Text.Json;
 
 namespace 自动测试
@@ -9,6 +11,8 @@ namespace 自动测试
     public partial class 编辑配置窗体 : Form
     {
         private List<RadioButton> 当前板选择列表 = new List<RadioButton>();
+        private readonly Dictionary<int, ComboBox> SN串口绑定框 = new Dictionary<int, ComboBox>();
+        private ComboBox? 扫码触发方式框;
 
         private string 当前配置名 = "";
         private bool 配置已修改 = false;
@@ -19,6 +23,8 @@ namespace 自动测试
             public DateTime 创建日期 { get; set; } = DateTime.Now;
             public int 拼板数 { get; set; } = 6;
             public bool 单独SN记录 { get; set; } = false;
+            public Dictionary<string, string> SN串口绑定 { get; set; } = new Dictionary<string, string>();
+            public string 扫码触发方式 { get; set; } = "手动+自动";
             public List<检测项数据> 检测项列表 { get; set; } = new List<检测项数据>();
         }
 
@@ -96,7 +102,101 @@ namespace 自动测试
 
             工位地址框.SelectedIndexChanged += 工位地址框_SelectedIndexChanged;
 
+            初始化SN串口绑定区();
+
             加载配置列表();
+        }
+
+        private void 初始化SN串口绑定区()
+        {
+            var 区域标题 = new Label();
+            区域标题.Text = "SN绑定COM：";
+            区域标题.Location = new System.Drawing.Point(500, 24);
+            区域标题.Size = new System.Drawing.Size(100, 23);
+            检测设置页.Controls.Add(区域标题);
+
+            string[] 串口列表 = SerialPort.GetPortNames();
+            Array.Sort(串口列表, StringComparer.OrdinalIgnoreCase);
+
+            var 触发方式标签 = new Label();
+            触发方式标签.Text = "扫码触发：";
+            触发方式标签.Location = new System.Drawing.Point(680, 24);
+            触发方式标签.Size = new System.Drawing.Size(70, 23);
+            检测设置页.Controls.Add(触发方式标签);
+
+            扫码触发方式框 = new ComboBox();
+            扫码触发方式框.DropDownStyle = ComboBoxStyle.DropDownList;
+            扫码触发方式框.Location = new System.Drawing.Point(755, 24);
+            扫码触发方式框.Size = new System.Drawing.Size(120, 25);
+            扫码触发方式框.Items.AddRange(new object[] { "手动", "自动", "手动+自动" });
+            扫码触发方式框.SelectedIndex = 2;
+            扫码触发方式框.SelectedIndexChanged += (_, __) => 配置已修改 = true;
+            检测设置页.Controls.Add(扫码触发方式框);
+
+            for (int i = 1; i <= 8; i++)
+            {
+                var 标签 = new Label();
+                标签.Text = $"SN{i}";
+                标签.Location = new System.Drawing.Point(500, 24 + i * 32);
+                标签.Size = new System.Drawing.Size(40, 23);
+                检测设置页.Controls.Add(标签);
+
+                var 框 = new ComboBox();
+                框.DropDownStyle = ComboBoxStyle.DropDownList;
+                框.Location = new System.Drawing.Point(545, 24 + i * 32);
+                框.Size = new System.Drawing.Size(100, 25);
+                框.Items.Add("无");
+                if (串口列表.Length > 0) 框.Items.AddRange(串口列表);
+                框.SelectedIndex = 0;
+                框.SelectedIndexChanged += (_, __) => 配置已修改 = true;
+                框.DropDown += (_, __) => 刷新SN串口下拉项(框);
+                检测设置页.Controls.Add(框);
+                SN串口绑定框[i] = 框;
+            }
+        }
+
+        private void 刷新SN串口下拉项(ComboBox 框)
+        {
+            string 当前值 = 框.SelectedItem?.ToString() ?? "无";
+            string[] 串口列表 = SerialPort.GetPortNames();
+            Array.Sort(串口列表, StringComparer.OrdinalIgnoreCase);
+
+            框.Items.Clear();
+            框.Items.Add("无");
+            if (串口列表.Length > 0) 框.Items.AddRange(串口列表);
+
+            int idx = 框.Items.IndexOf(当前值);
+            框.SelectedIndex = idx >= 0 ? idx : 0;
+        }
+
+        private Dictionary<string, string> 获取SN串口绑定设置()
+        {
+            var 结果 = new Dictionary<string, string>();
+            foreach (var kv in SN串口绑定框)
+            {
+                string com = kv.Value.SelectedItem?.ToString() ?? "无";
+                if (!string.IsNullOrWhiteSpace(com) && com != "无")
+                {
+                    结果[$"SN{kv.Key}"] = com;
+                }
+            }
+            return 结果;
+        }
+
+        private void 应用SN串口绑定设置(Dictionary<string, string>? 绑定)
+        {
+            foreach (var kv in SN串口绑定框)
+            {
+                string key = $"SN{kv.Key}";
+                string 目标值 = "无";
+                if (绑定 != null && 绑定.TryGetValue(key, out string? com) && !string.IsNullOrWhiteSpace(com))
+                {
+                    目标值 = com;
+                }
+
+                int idx = kv.Value.Items.IndexOf(目标值);
+                kv.Value.SelectedIndex = idx >= 0 ? idx : 0;
+            }
         }
 
         private void 加载配置列表()
@@ -149,6 +249,8 @@ namespace 自动测试
                 创建日期 = DateTime.Now,
                 拼板数 = (int)拼板数框.Value,
                 单独SN记录 = 单独SN标签.Checked,
+                SN串口绑定 = 获取SN串口绑定设置(),
+                扫码触发方式 = 扫码触发方式框?.SelectedItem?.ToString() ?? "手动+自动",
                 检测项列表 = new List<检测项数据>()
             };
             
@@ -208,6 +310,13 @@ namespace 自动测试
             
             拼板数框.Value = 数据.拼板数;
             单独SN标签.Checked = 数据.单独SN记录;
+            应用SN串口绑定设置(数据.SN串口绑定);
+            if (扫码触发方式框 != null)
+            {
+                string 方式 = string.IsNullOrWhiteSpace(数据.扫码触发方式) ? "手动+自动" : 数据.扫码触发方式;
+                int idx = 扫码触发方式框.Items.IndexOf(方式);
+                扫码触发方式框.SelectedIndex = idx >= 0 ? idx : 2;
+            }
             
             检测项表格.Rows.Clear();
             foreach (var 项 in 数据.检测项列表)

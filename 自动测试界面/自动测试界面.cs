@@ -23,8 +23,6 @@ namespace 自动测试
         private bool 测试中;
         private readonly Dictionary<int, bool> 拼版通过状态 = new();
         private readonly Dictionary<int, string> 拼版失败原因 = new();
-        // 已停用：统计改为页面生命周期累计，不再作为Total/OK/Fail来源
-        private readonly List<测试结果记录> 临时统计记录 = new();
         private int 累计总数;
         private int 累计通过;
         private int 累计失败;
@@ -791,7 +789,6 @@ namespace 自动测试
                 };
 
                 配置数据库.实例.保存测试结果(汇总记录);
-                临时统计记录.Add(汇总记录);
                 return;
             }
 
@@ -812,7 +809,6 @@ namespace 自动测试
                 };
 
                 配置数据库.实例.保存测试结果(记录);
-                临时统计记录.Add(记录);
             }
         }
 
@@ -820,21 +816,6 @@ namespace 自动测试
         {
             var 窗体 = new 测试记录页面();
             窗体.ShowDialog(this);
-        }
-
-        private void 临时统计按钮_Click(object? sender, EventArgs e)
-        {
-            if (临时统计记录.Count == 0)
-            {
-                MessageBox.Show("当前自动测试页面暂无统计数据。", "临时统计", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            int 总数 = 临时统计记录.Count;
-            int pass = 临时统计记录.Count(x => x.测试结果 == "PASS");
-            int fail = 总数 - pass;
-            double passRate = 总数 > 0 ? pass * 100.0 / 总数 : 0;
-            MessageBox.Show($"总数: {总数}\nPASS: {pass}\nFAIL: {fail}\n通过率: {passRate:F1}%", "临时统计", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void 执行继电器输出(编辑配置窗体.检测项数据 项)

@@ -17,7 +17,6 @@ namespace 自动测试
         {
             顶部面板 = new Panel();
             返回按钮 = new Button();
-            临时统计按钮 = new Button();
             测试记录按钮 = new Button();
             查看调试图按钮 = new Button();
             信息标签 = new Label();
@@ -87,7 +86,6 @@ namespace 自动测试
             // 
             顶部面板.BackColor = Color.FromArgb(230, 230, 230);
             顶部面板.Controls.Add(返回按钮);
-            顶部面板.Controls.Add(临时统计按钮);
             顶部面板.Controls.Add(测试记录按钮);
             顶部面板.Controls.Add(查看调试图按钮);
             顶部面板.Controls.Add(信息标签);
@@ -110,22 +108,12 @@ namespace 自动测试
             返回按钮.UseVisualStyleBackColor = true;
             返回按钮.Click += 返回按钮_Click;
             // 
-            // 临时统计按钮
-            // 
-            临时统计按钮.Location = new Point(1160, 12);
-            临时统计按钮.Name = "临时统计按钮";
-            临时统计按钮.Size = new Size(90, 36);
-            临时统计按钮.TabIndex = 6;
-            临时统计按钮.Text = "临时统计";
-            临时统计按钮.UseVisualStyleBackColor = true;
-            临时统计按钮.Click += 临时统计按钮_Click;
-            // 
             // 测试记录按钮
             // 
-            测试记录按钮.Location = new Point(1060, 12);
+            测试记录按钮.Location = new Point(1160, 12);
             测试记录按钮.Name = "测试记录按钮";
             测试记录按钮.Size = new Size(90, 36);
-            测试记录按钮.TabIndex = 5;
+            测试记录按钮.TabIndex = 6;
             测试记录按钮.Text = "测试记录";
             测试记录按钮.UseVisualStyleBackColor = true;
             测试记录按钮.Click += 测试记录按钮_Click;
@@ -700,7 +688,6 @@ namespace 自动测试
         private Label 信息标签;
         private Button 查看调试图按钮;
         private Button 测试记录按钮;
-        private Button 临时统计按钮;
         private Button 返回按钮;
         private Panel 左侧面板;
         private DataGridView 检测项表格;

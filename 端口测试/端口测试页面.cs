@@ -740,7 +740,12 @@ namespace 自动测试
                     标记卡片连接状态(卡片, false);
                     输入轮询卡片.Remove(卡片);
                     SetCardStatus(卡片, 错误色, "错误");
-                    MessageBox.Show($"连接设备失败：{ex.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    string 卡片名 = 获取卡片名称(卡片);
+                    int 从站地址 = 获取从站地址(卡片);
+                    string 错误信息 = 是超时异常(ex)
+                        ? $"连接{卡片名}超时（从站:{从站地址}）。请检查串口参数、从站地址和接线。"
+                        : $"连接设备失败：{ex.Message}";
+                    MessageBox.Show(错误信息, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     日志管理器.记录(日志类别.硬件操作, "输入模块连接失败", ex.Message, 权限等级.管理员);
                 }
                 return;
@@ -772,7 +777,12 @@ namespace 自动测试
             {
                 标记卡片连接状态(卡片, false);
                 SetCardStatus(卡片, 错误色, "错误");
-                MessageBox.Show($"连接设备失败：{ex.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string 卡片名 = 获取卡片名称(卡片);
+                int 从站地址 = 获取从站地址(卡片);
+                string 错误信息 = 是超时异常(ex)
+                    ? $"连接{卡片名}超时（从站:{从站地址}）。请检查串口参数、从站地址和接线。"
+                    : $"连接设备失败：{ex.Message}";
+                MessageBox.Show(错误信息, "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 日志管理器.记录(日志类别.硬件操作, "模块连接失败", ex.Message, 权限等级.管理员);
             }
         }
@@ -1148,6 +1158,9 @@ namespace 自动测试
 
         private int 获取模块通道数(string 类型)
         {
+            int 括号通道数 = 提取类型中的通道数(类型);
+            if (括号通道数 > 0) return 括号通道数;
+
             return 类型 switch
             {
                 "输出模块" => 16,
@@ -1157,12 +1170,34 @@ namespace 自动测试
                 "交直流电流模块（8）" => 8,
                 "交直流电流模块（16）" => 16,
                 "脉冲声音模块" => 16,
-                _ when 类型.Contains("供电模块（8）") => 8,
-                _ when 类型.Contains("供电模块（16）") => 16,
-                _ when 类型.Contains("输出模块（16）") => 16,
-                _ when 类型.Contains("继电器模块（16）") => 16,
+                _ when 类型.Contains("供电模块") => 8,
+                _ when 类型.StartsWith("输出模块") => 16,
+                _ when 类型.StartsWith("继电器模块") => 16,
                 _ => 0
             };
+        }
+
+        private static int 提取类型中的通道数(string 类型)
+        {
+            if (string.IsNullOrWhiteSpace(类型)) return 0;
+
+            int 左括号 = 类型.IndexOf('(');
+            int 右括号 = 类型.IndexOf(')');
+            if (左括号 >= 0 && 右括号 > 左括号 + 1)
+            {
+                string 内容 = 类型.Substring(左括号 + 1, 右括号 - 左括号 - 1);
+                if (int.TryParse(内容, out int 通道数) && 通道数 > 0) return 通道数;
+            }
+
+            左括号 = 类型.IndexOf('（');
+            右括号 = 类型.IndexOf('）');
+            if (左括号 >= 0 && 右括号 > 左括号 + 1)
+            {
+                string 内容 = 类型.Substring(左括号 + 1, 右括号 - 左括号 - 1);
+                if (int.TryParse(内容, out int 通道数) && 通道数 > 0) return 通道数;
+            }
+
+            return 0;
         }
 
         private string 获取模块类型(Panel 卡片)
@@ -1367,28 +1402,51 @@ namespace 自动测试
             if (modbus串口 == null) throw new InvalidOperationException("串口未初始化");
 
             byte[] 帧 = 添加CRC(pdu);
-            modbus串口.DiscardInBuffer();
-            modbus串口.DiscardOutBuffer();
-            modbus串口.Write(帧, 0, 帧.Length);
-
-            byte[] 响应 = new byte[Math.Max(最小响应长度, 8)];
-            int 已读 = 0;
-            while (已读 < 最小响应长度)
+            Exception? 最后异常 = null;
+            for (int 尝试 = 1; 尝试 <= 2; 尝试++)
             {
-                int n = modbus串口.Read(响应, 已读, 响应.Length - 已读);
-                已读 += n;
+                try
+                {
+                    modbus串口.DiscardInBuffer();
+                    modbus串口.DiscardOutBuffer();
+                    modbus串口.Write(帧, 0, 帧.Length);
+
+                    byte[] 响应 = new byte[Math.Max(最小响应长度, 8)];
+                    int 已读 = 0;
+                    while (已读 < 最小响应长度)
+                    {
+                        int n = modbus串口.Read(响应, 已读, 响应.Length - 已读);
+                        已读 += n;
+                    }
+
+                    byte[] 有效响应 = new byte[已读];
+                    Array.Copy(响应, 0, 有效响应, 0, 已读);
+                    校验CRC(有效响应);
+
+                    if ((有效响应[1] & 0x80) != 0)
+                    {
+                        throw new InvalidOperationException($"Modbus异常码: 0x{有效响应[2]:X2}");
+                    }
+
+                    return 有效响应;
+                }
+                catch (TimeoutException ex)
+                {
+                    最后异常 = ex;
+                    if (尝试 >= 2) break;
+                }
             }
 
-            byte[] 有效响应 = new byte[已读];
-            Array.Copy(响应, 0, 有效响应, 0, 已读);
-            校验CRC(有效响应);
+            byte 从站地址 = pdu.Length > 0 ? pdu[0] : (byte)0;
+            byte 功能码 = pdu.Length > 1 ? pdu[1] : (byte)0;
+            throw new InvalidOperationException(
+                $"Modbus通讯超时（从站:{从站地址}, 功能码:0x{功能码:X2}, 串口:{modbus串口.PortName}, 波特率:{modbus串口.BaudRate}）",
+                最后异常);
+        }
 
-            if ((有效响应[1] & 0x80) != 0)
-            {
-                throw new InvalidOperationException($"Modbus异常码: 0x{有效响应[2]:X2}");
-            }
-
-            return 有效响应;
+        private static bool 是超时异常(Exception ex)
+        {
+            return ex is TimeoutException || ex.InnerException is TimeoutException;
         }
 
         private static byte[] 添加CRC(byte[] 数据)

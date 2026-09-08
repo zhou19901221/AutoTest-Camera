@@ -26,9 +26,30 @@ namespace 自动测试
             左侧面板 = new Panel();
             检测项表格 = new DataGridView();
             中部面板 = new Panel();
-            测试控制面板 = new Panel();
+            SN标签1 = new TextBox();
+            SN标签8 = new TextBox();
+            SN标签7 = new TextBox();
+            SN标签6 = new TextBox();
+            label8 = new Label();
+            SN标签5 = new TextBox();
+            label7 = new Label();
+            SN标签4 = new TextBox();
+            label6 = new Label();
+            SN标签3 = new TextBox();
+            label5 = new Label();
             SN标签2 = new TextBox();
+            label4 = new Label();
+            label2 = new Label();
+            label3 = new Label();
+            测试控制面板 = new Panel();
+            手动拼版输入框 = new TextBox();
+            手动拼版勾选框 = new CheckBox();
+            超时时间输入框 = new TextBox();
+            超时时间标签 = new Label();
+            超时勾选框 = new CheckBox();
             开始测试按钮 = new Button();
+            手动测试按钮 = new Button();
+            label1 = new Label();
             当前配置标签 = new Label();
             控制按钮面板 = new Panel();
             端口状态按钮 = new Button();
@@ -37,7 +58,6 @@ namespace 自动测试
             暂时静音框 = new CheckBox();
             图像调试框 = new CheckBox();
             显示大图按钮 = new Button();
-            手动测试按钮 = new Button();
             图像显示区 = new PictureBox();
             复位按钮 = new Button();
             右侧面板 = new Panel();
@@ -54,21 +74,6 @@ namespace 自动测试
             失败数标签 = new Label();
             OK数标签 = new Label();
             总数标签 = new Label();
-            label1 = new Label();
-            label2 = new Label();
-            SN标签1 = new TextBox();
-            label3 = new Label();
-            SN标签3 = new TextBox();
-            label4 = new Label();
-            SN标签4 = new TextBox();
-            label5 = new Label();
-            SN标签5 = new TextBox();
-            label6 = new Label();
-            SN标签6 = new TextBox();
-            label7 = new Label();
-            SN标签7 = new TextBox();
-            label8 = new Label();
-            SN标签8 = new TextBox();
             顶部面板.SuspendLayout();
             左侧面板.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)检测项表格).BeginInit();
@@ -199,6 +204,7 @@ namespace 自动测试
             中部面板.Controls.Add(SN标签7);
             中部面板.Controls.Add(SN标签6);
             中部面板.Controls.Add(label8);
+            中部面板.Controls.Add(开始测试按钮);
             中部面板.Controls.Add(SN标签5);
             中部面板.Controls.Add(label7);
             中部面板.Controls.Add(SN标签4);
@@ -219,15 +225,90 @@ namespace 自动测试
             中部面板.Size = new Size(530, 830);
             中部面板.TabIndex = 2;
             // 
-            // 测试控制面板
+            // SN标签1
             // 
-            测试控制面板.BackColor = Color.FromArgb(230, 230, 230);
-            测试控制面板.Controls.Add(开始测试按钮);
-            测试控制面板.Controls.Add(手动测试按钮);
-            测试控制面板.Location = new Point(5, 500);
-            测试控制面板.Name = "测试控制面板";
-            测试控制面板.Size = new Size(520, 50);
-            测试控制面板.TabIndex = 3;
+            SN标签1.Location = new Point(41, 556);
+            SN标签1.Name = "SN标签1";
+            SN标签1.Size = new Size(178, 23);
+            SN标签1.TabIndex = 7;
+            // 
+            // SN标签8
+            // 
+            SN标签8.Location = new Point(41, 759);
+            SN标签8.Name = "SN标签8";
+            SN标签8.Size = new Size(178, 23);
+            SN标签8.TabIndex = 7;
+            // 
+            // SN标签7
+            // 
+            SN标签7.Location = new Point(41, 730);
+            SN标签7.Name = "SN标签7";
+            SN标签7.Size = new Size(178, 23);
+            SN标签7.TabIndex = 7;
+            // 
+            // SN标签6
+            // 
+            SN标签6.Location = new Point(41, 701);
+            SN标签6.Name = "SN标签6";
+            SN标签6.Size = new Size(178, 23);
+            SN标签6.TabIndex = 7;
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(10, 762);
+            label8.Name = "label8";
+            label8.Size = new Size(25, 17);
+            label8.TabIndex = 6;
+            label8.Text = "SN";
+            // 
+            // SN标签5
+            // 
+            SN标签5.Location = new Point(41, 672);
+            SN标签5.Name = "SN标签5";
+            SN标签5.Size = new Size(178, 23);
+            SN标签5.TabIndex = 7;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(10, 733);
+            label7.Name = "label7";
+            label7.Size = new Size(25, 17);
+            label7.TabIndex = 6;
+            label7.Text = "SN";
+            // 
+            // SN标签4
+            // 
+            SN标签4.Location = new Point(41, 643);
+            SN标签4.Name = "SN标签4";
+            SN标签4.Size = new Size(178, 23);
+            SN标签4.TabIndex = 7;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(10, 704);
+            label6.Name = "label6";
+            label6.Size = new Size(25, 17);
+            label6.TabIndex = 6;
+            label6.Text = "SN";
+            // 
+            // SN标签3
+            // 
+            SN标签3.Location = new Point(41, 614);
+            SN标签3.Name = "SN标签3";
+            SN标签3.Size = new Size(178, 23);
+            SN标签3.TabIndex = 7;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(10, 675);
+            label5.Name = "label5";
+            label5.Size = new Size(25, 17);
+            label5.TabIndex = 6;
+            label5.Text = "SN";
             // 
             // SN标签2
             // 
@@ -236,19 +317,129 @@ namespace 自动测试
             SN标签2.Size = new Size(178, 23);
             SN标签2.TabIndex = 7;
             // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(10, 646);
+            label4.Name = "label4";
+            label4.Size = new Size(25, 17);
+            label4.TabIndex = 6;
+            label4.Text = "SN";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(10, 559);
+            label2.Name = "label2";
+            label2.Size = new Size(25, 17);
+            label2.TabIndex = 6;
+            label2.Text = "SN";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(10, 617);
+            label3.Name = "label3";
+            label3.Size = new Size(25, 17);
+            label3.TabIndex = 6;
+            label3.Text = "SN";
+            // 
+            // 测试控制面板
+            // 
+            测试控制面板.BackColor = Color.FromArgb(230, 230, 230);
+            测试控制面板.Controls.Add(手动拼版输入框);
+            测试控制面板.Controls.Add(手动拼版勾选框);
+            测试控制面板.Controls.Add(超时时间输入框);
+            测试控制面板.Controls.Add(超时时间标签);
+            测试控制面板.Controls.Add(超时勾选框);
+            测试控制面板.Controls.Add(手动测试按钮);
+            测试控制面板.Location = new Point(237, 500);
+            测试控制面板.Name = "测试控制面板";
+            测试控制面板.Size = new Size(288, 282);
+            测试控制面板.TabIndex = 3;
+            // 
+            // 手动拼版输入框
+            // 
+            手动拼版输入框.Location = new Point(72, 72);
+            手动拼版输入框.Name = "手动拼版输入框";
+            手动拼版输入框.Size = new Size(200, 23);
+            手动拼版输入框.TabIndex = 7;
+            手动拼版输入框.Text = "1";
+            // 
+            // 手动拼版勾选框
+            // 
+            手动拼版勾选框.AutoSize = true;
+            手动拼版勾选框.Location = new Point(87, 45);
+            手动拼版勾选框.Name = "手动拼版勾选框";
+            手动拼版勾选框.Size = new Size(75, 21);
+            手动拼版勾选框.TabIndex = 6;
+            手动拼版勾选框.Text = "指定拼版";
+            手动拼版勾选框.UseVisualStyleBackColor = true;
+            // 
+            // 超时时间输入框
+            // 
+            超时时间输入框.Location = new Point(245, 9);
+            超时时间输入框.Name = "超时时间输入框";
+            超时时间输入框.Size = new Size(36, 23);
+            超时时间输入框.TabIndex = 5;
+            超时时间输入框.Text = "5";
+            // 
+            // 超时时间标签
+            // 
+            超时时间标签.AutoSize = true;
+            超时时间标签.Location = new Point(214, 12);
+            超时时间标签.Name = "超时时间标签";
+            超时时间标签.Size = new Size(32, 17);
+            超时时间标签.TabIndex = 4;
+            超时时间标签.Text = "秒后";
+            // 
+            // 超时勾选框
+            // 
+            超时勾选框.AutoSize = true;
+            超时勾选框.Location = new Point(168, 11);
+            超时勾选框.Name = "超时勾选框";
+            超时勾选框.Size = new Size(51, 21);
+            超时勾选框.TabIndex = 3;
+            超时勾选框.Text = "超时";
+            超时勾选框.UseVisualStyleBackColor = true;
+            超时勾选框.CheckedChanged += 超时勾选框_CheckedChanged;
+            // 
             // 开始测试按钮
             // 
             开始测试按钮.BackColor = Color.FromArgb(0, 128, 0);
             开始测试按钮.FlatStyle = FlatStyle.Flat;
             开始测试按钮.Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold);
             开始测试按钮.ForeColor = Color.White;
-            开始测试按钮.Location = new Point(5, 5);
+            开始测试按钮.Location = new Point(41, 502);
             开始测试按钮.Name = "开始测试按钮";
             开始测试按钮.Size = new Size(90, 35);
             开始测试按钮.TabIndex = 1;
             开始测试按钮.Text = "开始测试";
             开始测试按钮.UseVisualStyleBackColor = false;
             开始测试按钮.Click += 开始测试按钮_Click;
+            // 
+            // 手动测试按钮
+            // 
+            手动测试按钮.BackColor = Color.FromArgb(43, 87, 154);
+            手动测试按钮.FlatStyle = FlatStyle.Flat;
+            手动测试按钮.Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold);
+            手动测试按钮.ForeColor = Color.White;
+            手动测试按钮.Location = new Point(72, 4);
+            手动测试按钮.Name = "手动测试按钮";
+            手动测试按钮.Size = new Size(90, 35);
+            手动测试按钮.TabIndex = 0;
+            手动测试按钮.Text = "手动测试";
+            手动测试按钮.UseVisualStyleBackColor = false;
+            手动测试按钮.Click += 手动测试按钮_Click;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(10, 588);
+            label1.Name = "label1";
+            label1.Size = new Size(25, 17);
+            label1.TabIndex = 6;
+            label1.Text = "SN";
             // 
             // 当前配置标签
             // 
@@ -330,19 +521,6 @@ namespace 自动测试
             显示大图按钮.TabIndex = 0;
             显示大图按钮.Text = "显示大图";
             显示大图按钮.UseVisualStyleBackColor = true;
-            // 
-            // 手动测试按钮
-            // 
-            手动测试按钮.BackColor = Color.FromArgb(43, 87, 154);
-            手动测试按钮.FlatStyle = FlatStyle.Flat;
-            手动测试按钮.Font = new Font("Microsoft YaHei UI", 10F, FontStyle.Bold);
-            手动测试按钮.ForeColor = Color.White;
-            手动测试按钮.Location = new Point(303, 5);
-            手动测试按钮.Name = "手动测试按钮";
-            手动测试按钮.Size = new Size(90, 35);
-            手动测试按钮.TabIndex = 0;
-            手动测试按钮.Text = "手动测试";
-            手动测试按钮.UseVisualStyleBackColor = false;
             // 
             // 图像显示区
             // 
@@ -526,127 +704,6 @@ namespace 自动测试
             总数标签.TabIndex = 0;
             总数标签.Text = "Total:";
             // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Location = new Point(10, 588);
-            label1.Name = "label1";
-            label1.Size = new Size(25, 17);
-            label1.TabIndex = 6;
-            label1.Text = "SN";
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(10, 559);
-            label2.Name = "label2";
-            label2.Size = new Size(25, 17);
-            label2.TabIndex = 6;
-            label2.Text = "SN";
-            // 
-            // SN标签1
-            // 
-            SN标签1.Location = new Point(41, 556);
-            SN标签1.Name = "SN标签1";
-            SN标签1.Size = new Size(178, 23);
-            SN标签1.TabIndex = 7;
-            // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Location = new Point(10, 617);
-            label3.Name = "label3";
-            label3.Size = new Size(25, 17);
-            label3.TabIndex = 6;
-            label3.Text = "SN";
-            // 
-            // SN标签3
-            // 
-            SN标签3.Location = new Point(41, 614);
-            SN标签3.Name = "SN标签3";
-            SN标签3.Size = new Size(178, 23);
-            SN标签3.TabIndex = 7;
-            // 
-            // label4
-            // 
-            label4.AutoSize = true;
-            label4.Location = new Point(10, 646);
-            label4.Name = "label4";
-            label4.Size = new Size(25, 17);
-            label4.TabIndex = 6;
-            label4.Text = "SN";
-            // 
-            // SN标签4
-            // 
-            SN标签4.Location = new Point(41, 643);
-            SN标签4.Name = "SN标签4";
-            SN标签4.Size = new Size(178, 23);
-            SN标签4.TabIndex = 7;
-            // 
-            // label5
-            // 
-            label5.AutoSize = true;
-            label5.Location = new Point(10, 675);
-            label5.Name = "label5";
-            label5.Size = new Size(25, 17);
-            label5.TabIndex = 6;
-            label5.Text = "SN";
-            // 
-            // SN标签5
-            // 
-            SN标签5.Location = new Point(41, 672);
-            SN标签5.Name = "SN标签5";
-            SN标签5.Size = new Size(178, 23);
-            SN标签5.TabIndex = 7;
-            // 
-            // label6
-            // 
-            label6.AutoSize = true;
-            label6.Location = new Point(10, 704);
-            label6.Name = "label6";
-            label6.Size = new Size(25, 17);
-            label6.TabIndex = 6;
-            label6.Text = "SN";
-            // 
-            // SN标签6
-            // 
-            SN标签6.Location = new Point(41, 701);
-            SN标签6.Name = "SN标签6";
-            SN标签6.Size = new Size(178, 23);
-            SN标签6.TabIndex = 7;
-            // 
-            // label7
-            // 
-            label7.AutoSize = true;
-            label7.Location = new Point(10, 733);
-            label7.Name = "label7";
-            label7.Size = new Size(25, 17);
-            label7.TabIndex = 6;
-            label7.Text = "SN";
-            // 
-            // SN标签7
-            // 
-            SN标签7.Location = new Point(41, 730);
-            SN标签7.Name = "SN标签7";
-            SN标签7.Size = new Size(178, 23);
-            SN标签7.TabIndex = 7;
-            // 
-            // label8
-            // 
-            label8.AutoSize = true;
-            label8.Location = new Point(10, 762);
-            label8.Name = "label8";
-            label8.Size = new Size(25, 17);
-            label8.TabIndex = 6;
-            label8.Text = "SN";
-            // 
-            // SN标签8
-            // 
-            SN标签8.Location = new Point(41, 759);
-            SN标签8.Name = "SN标签8";
-            SN标签8.Size = new Size(178, 23);
-            SN标签8.TabIndex = 7;
-            // 
             // 自动测试界面
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
@@ -669,6 +726,7 @@ namespace 自动测试
             中部面板.ResumeLayout(false);
             中部面板.PerformLayout();
             测试控制面板.ResumeLayout(false);
+            测试控制面板.PerformLayout();
             控制按钮面板.ResumeLayout(false);
             控制按钮面板.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)图像显示区).EndInit();
@@ -703,6 +761,11 @@ namespace 自动测试
         private Button 复位按钮;
         private Label 当前配置标签;
         private Panel 测试控制面板;
+        private TextBox 手动拼版输入框;
+        private CheckBox 手动拼版勾选框;
+        private TextBox 超时时间输入框;
+        private Label 超时时间标签;
+        private CheckBox 超时勾选框;
         private Button 手动测试按钮;
         private Button 开始测试按钮;
         private TextBox SN标签2;

@@ -77,11 +77,11 @@ namespace 自动测试
                     int 编号 = 0;
                     for (int i = 0; i < 功能板数; i++)
                     {
-                        if (配置.电压模块.模块列表[i].模块类型 == "输出模块" ||
-                            配置.电压模块.模块列表[i].模块类型 == "继电器模块")
+                        string 模块类型 = 配置.电压模块.模块列表[i].模块类型;
+                        if (模块类型.StartsWith("输出模块") || 模块类型.StartsWith("继电器模块"))
                         {
                             编号++;
-                            int 通道数 = 获取模块通道数(配置.电压模块.模块列表[i].模块类型);
+                            int 通道数 = 获取模块通道数(模块类型);
                             for (int ch = 0; ch < 通道数; ch++)
                                 列表.Add($"DO{编号}.{ch}");
                         }
@@ -214,12 +214,15 @@ namespace 自动测试
 
         private static int 获取模块通道数(string 模块类型)
         {
+            int 括号通道数 = 提取类型中的通道数(模块类型);
+            if (括号通道数 > 0) return 括号通道数;
+
             return 模块类型 switch
             {
                 "输出模块" => 16,
                 "继电器模块" => 16,
-                _ when 模块类型.Contains("输出模块（16）") => 16,
-                _ when 模块类型.Contains("继电器模块（16）") => 16,
+                _ when 模块类型.StartsWith("输出模块") => 16,
+                _ when 模块类型.StartsWith("继电器模块") => 16,
                 "直流电压模块（24）" => 24,
                 "交流电压模块（24）" => 24,
                 "交直流电流模块（8）" => 8,
@@ -231,6 +234,29 @@ namespace 自动测试
                 "直流供电模块（16）（2A）" => 16,
                 _ => 0
             };
+        }
+
+        private static int 提取类型中的通道数(string 模块类型)
+        {
+            if (string.IsNullOrWhiteSpace(模块类型)) return 0;
+
+            int 左括号 = 模块类型.IndexOf('(');
+            int 右括号 = 模块类型.IndexOf(')');
+            if (左括号 >= 0 && 右括号 > 左括号 + 1)
+            {
+                string 内容 = 模块类型.Substring(左括号 + 1, 右括号 - 左括号 - 1);
+                if (int.TryParse(内容, out int 通道数) && 通道数 > 0) return 通道数;
+            }
+
+            左括号 = 模块类型.IndexOf('（');
+            右括号 = 模块类型.IndexOf('）');
+            if (左括号 >= 0 && 右括号 > 左括号 + 1)
+            {
+                string 内容 = 模块类型.Substring(左括号 + 1, 右括号 - 左括号 - 1);
+                if (int.TryParse(内容, out int 通道数) && 通道数 > 0) return 通道数;
+            }
+
+            return 0;
         }
     }
 

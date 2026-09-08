@@ -563,6 +563,11 @@ namespace 自动测试
             正在刷新工位地址 = true;
             try
             {
+            工位地址框.BeginUpdate();
+            工位地址框2.BeginUpdate();
+            工位地址框3.BeginUpdate();
+            工位地址框4.BeginUpdate();
+
             工位地址框.Items.Clear();
             工位地址框2.Items.Clear();
             工位地址框3.Items.Clear();
@@ -614,23 +619,41 @@ namespace 自动测试
             string 已选3 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 3);
             string 已选4 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 4);
 
+            var 地址候选1 = new List<object>();
+            var 地址候选2 = 是继电器输出 ? new List<object>() : null;
+            var 地址候选3 = 是继电器输出 ? new List<object>() : null;
+            var 地址候选4 = 是继电器输出 ? new List<object>() : null;
+
             foreach (var 地址 in 地址列表)
             {
                 if (!同行已选地址.Contains(地址))
                 {
                     if (地址 != 已选2 && 地址 != 已选3 && 地址 != 已选4)
-                        工位地址框.Items.Add(地址);
+                        地址候选1.Add(地址);
                     
                     if (是继电器输出)
                     {
                         if (地址 != 已选1 && 地址 != 已选3 && 地址 != 已选4)
-                            工位地址框2.Items.Add(地址);
+                            地址候选2!.Add(地址);
                         if (地址 != 已选1 && 地址 != 已选2 && 地址 != 已选4)
-                            工位地址框3.Items.Add(地址);
+                            地址候选3!.Add(地址);
                         if (地址 != 已选1 && 地址 != 已选2 && 地址 != 已选3)
-                            工位地址框4.Items.Add(地址);
+                            地址候选4!.Add(地址);
                     }
                 }
+            }
+
+            if (地址候选1.Count > 0)
+                工位地址框.Items.AddRange(地址候选1.ToArray());
+
+            if (是继电器输出)
+            {
+                if (地址候选2!.Count > 0)
+                    工位地址框2.Items.AddRange(地址候选2.ToArray());
+                if (地址候选3!.Count > 0)
+                    工位地址框3.Items.AddRange(地址候选3.ToArray());
+                if (地址候选4!.Count > 0)
+                    工位地址框4.Items.AddRange(地址候选4.ToArray());
             }
 
             if (!string.IsNullOrEmpty(已选1))
@@ -683,6 +706,10 @@ namespace 自动测试
             }
             finally
             {
+                工位地址框.EndUpdate();
+                工位地址框2.EndUpdate();
+                工位地址框3.EndUpdate();
+                工位地址框4.EndUpdate();
                 正在刷新工位地址 = false;
             }
         }

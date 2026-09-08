@@ -32,8 +32,11 @@ namespace 自动测试
         private readonly Dictionary<int, Button> SN扫码按钮 = new();
         private readonly object 扫码串口锁 = new();
         private System.Windows.Forms.Timer? 自动扫码定时器;
+        private System.Windows.Forms.Timer? 手动测试超时定时器;
         private Button? 自动扫码切换按钮;
         private bool 自动扫码已开启;
+        private bool 手动测试执行中;
+        private HashSet<int>? 手动测试目标拼版;
 
         private void 写入自动测试日志(string 内容)
         {
@@ -134,6 +137,9 @@ namespace 自动测试
         private void 自动测试界面_FormClosing(object? sender, FormClosingEventArgs e)
         {
             停止自动扫码();
+            停止手动测试超时计时();
+            手动测试超时定时器?.Dispose();
+            手动测试超时定时器 = null;
             关闭所有扫码串口();
         }
 
@@ -171,6 +177,9 @@ namespace 自动测试
             自动扫码定时器 = new System.Windows.Forms.Timer();
             自动扫码定时器.Interval = 800;
             自动扫码定时器.Tick += 自动扫码定时器_Tick;
+
+            手动测试超时定时器 = new System.Windows.Forms.Timer();
+            手动测试超时定时器.Tick += 手动测试超时定时器_Tick;
         }
 
         private void 自动扫码切换按钮_Click(object? sender, EventArgs e)
@@ -534,6 +543,7 @@ namespace 自动测试
             }
 
             测试中 = true;
+            手动测试目标拼版 = null;
             取消源 = new CancellationTokenSource();
             开始测试按钮.Text = "停止测试";
             重置板状态();
@@ -581,6 +591,269 @@ namespace 自动测试
                 关闭所有扫码串口();
                 开始测试按钮.Text = "开始测试";
             }
+        }
+
+        private async void 手动测试按钮_Click(object? sender, EventArgs e)
+        {
+            if (手动测试执行中) return;
+
+            if (当前配置 == null)
+            {
+                MessageBox.Show("未加载配置，无法执行手动测试。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (测试中)
+            {
+                MessageBox.Show("自动测试进行中，暂不支持手动测试。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (!Try获取手动测试目标拼版(out HashSet<int>? 目标拼版, out string 错误信息))
+            {
+                MessageBox.Show(错误信息, "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            手动测试目标拼版 = 目标拼版;
+
+            停止手动测试超时计时();
+
+            int 行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
+            if (行索引 < 0 || 行索引 >= 检测项表格.Rows.Count)
+            {
+                MessageBox.Show("请先在左侧列表中选择一个测试项。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            int 目标排序 = 0;
+            object? 序号值 = 检测项表格.Rows[行索引].Cells["序号列"].Value;
+            if (序号值 != null) int.TryParse(序号值.ToString(), out 目标排序);
+
+            var 项 = 当前配置.检测项列表.FirstOrDefault(x => x.排序 == 目标排序);
+            if (项 == null && 行索引 < 当前配置.检测项列表.Count)
+            {
+                项 = 当前配置.检测项列表[行索引];
+            }
+
+            if (项 == null)
+            {
+                MessageBox.Show("未找到对应测试项，请刷新配置后重试。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            bool 系统异常 = false;
+            手动测试执行中 = true;
+
+            try
+            {
+                写入自动测试日志($"开始手动测试：{项.排序} {项.名称} [{项.类型}] 设定值={项.设定值}");
+                拼版通过状态.Clear();
+                拼版失败原因.Clear();
+
+                var 本次拼版 = 获取本次测试拼版列表();
+                foreach (int 拼版号 in 本次拼版) 拼版通过状态[拼版号] = true;
+                重置板状态();
+
+                await Task.Run(() => 执行检测项(项));
+
+                foreach (int i in 本次拼版)
+                {
+                    bool 通过 = !拼版通过状态.TryGetValue(i, out bool 状态) || 状态;
+                    int 板序号 = i - 1;
+                    Invoke(() => 设置板状态(板序号, 通过 ? "PASS" : "FAIL"));
+                }
+
+                写入自动测试日志($"手动测试完成：{项.排序} {项.名称}");
+            }
+            catch (Exception 异常)
+            {
+                bool 是业务FAIL = 异常 is InvalidOperationException
+                    && 异常.Message.Contains("测试FAIL", StringComparison.OrdinalIgnoreCase);
+
+                if (是业务FAIL)
+                {
+                    写入自动测试日志($"手动测试判定FAIL：{异常.Message}");
+                }
+                else
+                {
+                    系统异常 = true;
+                    写入自动测试日志($"手动测试执行异常：{异常.Message}");
+                    MessageBox.Show($"手动测试执行异常：{异常.Message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            finally
+            {
+                手动测试执行中 = false;
+                电源?.断开();
+                电源 = null;
+                if (继电器串口 != null)
+                {
+                    if (继电器串口.IsOpen) 继电器串口.Close();
+                    继电器串口.Dispose();
+                    继电器串口 = null;
+                }
+
+                if (自动选择下一测试项(行索引, out int 下一行索引))
+                {
+                    写入自动测试日志($"已自动选中下一测试项：第{下一行索引 + 1}行");
+                    if (!系统异常) 安排手动测试超时自动执行下一项();
+                }
+                else
+                {
+                    停止手动测试超时计时();
+                }
+
+                手动测试目标拼版 = null;
+            }
+        }
+
+        private bool Try获取手动测试目标拼版(out HashSet<int>? 目标拼版, out string 错误信息)
+        {
+            目标拼版 = null;
+            错误信息 = "";
+            if (!手动拼版勾选框.Checked) return true;
+
+            if (!Try解析拼版范围文本(手动拼版输入框.Text, out HashSet<int> 解析结果, out 错误信息))
+            {
+                return false;
+            }
+
+            目标拼版 = 解析结果;
+            return true;
+        }
+
+        private bool Try解析拼版范围文本(string 文本, out HashSet<int> 拼版集合, out string 错误信息)
+        {
+            拼版集合 = new HashSet<int>();
+            错误信息 = "";
+            string 内容 = (文本 ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(内容))
+            {
+                错误信息 = "请填写要测试的拼版，例如：1 或 1,3,5 或 2-4";
+                return false;
+            }
+
+            int 最大拼板 = Math.Max(1, Math.Min(当前拼板数, 32));
+            string[] 片段 = 内容.Split(new[] { ',', '，', ';', '；', '、', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string 原片段 in 片段)
+            {
+                string 片段文本 = 原片段.Trim();
+                if (片段文本.Contains('-'))
+                {
+                    string[] 范围 = 片段文本.Split('-', StringSplitOptions.RemoveEmptyEntries);
+                    if (范围.Length != 2
+                        || !int.TryParse(范围[0], out int 起始)
+                        || !int.TryParse(范围[1], out int 结束))
+                    {
+                        错误信息 = $"拼版范围格式无效：{片段文本}";
+                        return false;
+                    }
+
+                    if (起始 > 结束) (起始, 结束) = (结束, 起始);
+                    if (起始 < 1 || 结束 > 最大拼板)
+                    {
+                        错误信息 = $"拼版范围超出有效区间1-{最大拼板}：{片段文本}";
+                        return false;
+                    }
+
+                    for (int i = 起始; i <= 结束; i++) 拼版集合.Add(i);
+                }
+                else
+                {
+                    if (!int.TryParse(片段文本, out int 拼版号))
+                    {
+                        错误信息 = $"拼版编号格式无效：{片段文本}";
+                        return false;
+                    }
+
+                    if (拼版号 < 1 || 拼版号 > 最大拼板)
+                    {
+                        错误信息 = $"拼版编号超出有效区间1-{最大拼板}：{片段文本}";
+                        return false;
+                    }
+
+                    拼版集合.Add(拼版号);
+                }
+            }
+
+            if (拼版集合.Count == 0)
+            {
+                错误信息 = "未解析到有效拼版编号。";
+                return false;
+            }
+            return true;
+        }
+
+        private List<int> 获取本次测试拼版列表()
+        {
+            int 拼板数 = Math.Max(1, Math.Min(当前拼板数, 32));
+            IEnumerable<int> 拼版序号 = Enumerable.Range(1, 拼板数);
+
+            if (手动测试目标拼版 != null && 手动测试目标拼版.Count > 0)
+            {
+                拼版序号 = 拼版序号.Where(x => 手动测试目标拼版.Contains(x));
+            }
+
+            return 拼版序号.OrderBy(x => x).ToList();
+        }
+
+        private bool 自动选择下一测试项(int 当前行索引, out int 下一行索引)
+        {
+            下一行索引 = 当前行索引 + 1;
+            if (下一行索引 < 0 || 下一行索引 >= 检测项表格.Rows.Count) return false;
+
+            var 首列 = 检测项表格.Columns.GetFirstColumn(DataGridViewElementStates.Visible);
+            int 列索引 = 首列?.Index ?? 0;
+            检测项表格.CurrentCell = 检测项表格.Rows[下一行索引].Cells[列索引];
+            检测项表格.Rows[下一行索引].Selected = true;
+            return true;
+        }
+
+        private bool Try获取手动测试超时秒(out int 秒)
+        {
+            秒 = 0;
+            return int.TryParse(超时时间输入框.Text.Trim(), out 秒) && 秒 > 0;
+        }
+
+        private void 安排手动测试超时自动执行下一项()
+        {
+            if (!超时勾选框.Checked || 手动测试超时定时器 == null) return;
+            if (!Try获取手动测试超时秒(out int 秒))
+            {
+                写入自动测试日志("手动测试超时设置无效：请输入大于0的秒数");
+                return;
+            }
+
+            手动测试超时定时器.Stop();
+            手动测试超时定时器.Interval = 秒 * 1000;
+            手动测试超时定时器.Start();
+            写入自动测试日志($"已启动手动测试超时计时：{秒}秒后自动执行下一项");
+        }
+
+        private void 停止手动测试超时计时()
+        {
+            手动测试超时定时器?.Stop();
+        }
+
+        private void 超时勾选框_CheckedChanged(object? sender, EventArgs e)
+        {
+            if (!超时勾选框.Checked)
+            {
+                停止手动测试超时计时();
+                return;
+            }
+
+            if (检测项表格.CurrentCell != null) 安排手动测试超时自动执行下一项();
+        }
+
+        private void 手动测试超时定时器_Tick(object? sender, EventArgs e)
+        {
+            停止手动测试超时计时();
+            if (测试中 || 手动测试执行中) return;
+            if (当前配置 == null || 检测项表格.CurrentCell == null) return;
+
+            写入自动测试日志("手动测试超时触发：自动执行下一测试项");
+            手动测试按钮_Click(手动测试按钮, EventArgs.Empty);
         }
 
         private void 执行测试流程(CancellationToken token)
@@ -866,9 +1139,8 @@ namespace 自动测试
         private IEnumerable<string> 获取检测项地址列表(编辑配置窗体.检测项数据 项)
         {
             var 地址集合 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            int 拼板数 = Math.Max(1, Math.Min(当前拼板数, 32));
 
-            for (int p = 1; p <= 拼板数; p++)
+            foreach (int p in 获取本次测试拼版列表())
             {
                 string 主字段 = $"拼版{p}地址";
                 string 地址1 = typeof(编辑配置窗体.检测项数据).GetProperty(主字段)?.GetValue(项)?.ToString() ?? "";
@@ -890,9 +1162,8 @@ namespace 自动测试
         private Dictionary<int, List<string>> 获取检测项拼版地址映射(编辑配置窗体.检测项数据 项, string 前缀)
         {
             var 结果 = new Dictionary<int, List<string>>();
-            int 拼板数 = Math.Max(1, Math.Min(当前拼板数, 32));
 
-            for (int p = 1; p <= 拼板数; p++)
+            foreach (int p in 获取本次测试拼版列表())
             {
                 var 列表 = new List<string>();
                 var 去重 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

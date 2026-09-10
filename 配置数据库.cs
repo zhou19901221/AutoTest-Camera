@@ -151,9 +151,6 @@ namespace 自动测试
                     名称 = 检测项读取器.GetString(1),
                     类型 = 检测项读取器.GetString(2),
                     延时 = 检测项读取器.GetInt32(3),
-                    最大值 = 检测项读取器.IsDBNull(4) ? "" : 检测项读取器.GetString(4),
-                    最小值 = 检测项读取器.IsDBNull(5) ? "" : 检测项读取器.GetString(5),
-                    设定值 = 检测项读取器.IsDBNull(6) ? "" : 检测项读取器.GetString(6),
                     启用 = 检测项读取器.GetInt32(7) == 1
                 };
                 
@@ -216,9 +213,9 @@ namespace 自动测试
                     插入检测项命令.Parameters.AddWithValue("$名称", 项.名称);
                     插入检测项命令.Parameters.AddWithValue("$类型", 项.类型);
                     插入检测项命令.Parameters.AddWithValue("$延时", 项.延时);
-                    插入检测项命令.Parameters.AddWithValue("$最大值", 项.最大值 ?? "");
-                    插入检测项命令.Parameters.AddWithValue("$最小值", 项.最小值 ?? "");
-                    插入检测项命令.Parameters.AddWithValue("$设定值", 项.设定值 ?? "");
+                    插入检测项命令.Parameters.AddWithValue("$最大值", "");
+                    插入检测项命令.Parameters.AddWithValue("$最小值", "");
+                    插入检测项命令.Parameters.AddWithValue("$设定值", "");
                     插入检测项命令.Parameters.AddWithValue("$启用", 项.启用 ? 1 : 0);
                     
                     for (int p = 1; p <= 32; p++)

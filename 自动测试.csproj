@@ -8,15 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="**\*.cs" Exclude="*.cs;bin\**;obj\**" />
-    <EmbeddedResource Include="**\*.resx" Exclude="*.resx;bin\**;obj\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="MvCameraControl.Net">
@@ -31,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include=".github\copilot-instructions.md" />
+    <Compile Remove="配置数据.cs;配置管理器.cs;配置数据库.cs;系统配置数据.cs;模块配置数据.cs;模块寄存器配置.cs;日志管理器.cs;界面缩放器.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -265,6 +265,10 @@ namespace 自动测试
         public string 测试类型 = "半自动FCT";
         public string 串口端口 = "COM1";
         public int 串口波特率 = 115200;
+        public int 串口通讯板波特率 = 115200;
+        public int 串口通讯板数据位 = 8;
+        public string 串口通讯板校验 = "None";
+        public string 串口通讯板停止位 = "1";
         public string 程控电源类型 = "无程控";
         public string 程控电源品牌 = "安姆泰克";
         public string 程控校验位 = "NONE";

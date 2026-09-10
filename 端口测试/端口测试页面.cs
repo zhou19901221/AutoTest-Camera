@@ -19,6 +19,9 @@ namespace 自动测试
         private readonly Dictionary<string, bool> 通道状态 = new();
         private SerialPort? modbus串口;
         private SerialPort? 调试串口;
+        private TextBox? 调试串口接收框;
+        private readonly object 调试串口接收锁 = new object();
+        private readonly List<byte> 调试串口接收缓存 = new List<byte>();
         private readonly System.Windows.Forms.Timer 输入轮询定时器 = new System.Windows.Forms.Timer();
         private readonly HashSet<Panel> 输入轮询卡片 = new HashSet<Panel>();
 
@@ -177,8 +180,9 @@ namespace 自动测试
             try
             {
                 打开调试串口(端口);
+                调试串口接收框 = 接收框;
                 SetCardStatus(卡片, 已连接色, "已连接");
-                追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] 串口已打开: {端口} {调试串口!.BaudRate},N,8,1");
+                追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] 串口已打开: {端口} {调试串口!.BaudRate},{调试串口.Parity},{调试串口.DataBits},{调试串口.StopBits}");
                 日志管理器.记录(日志类别.硬件操作, "串口连接", $"串口通讯板 {端口}", 权限等级.管理员);
             }
             catch (Exception ex)
@@ -197,6 +201,7 @@ namespace 自动测试
             if (Try获取串口调试控件(卡片, out ComboBox? 通道选择框, out _, out TextBox? 接收框, out _))
             {
                 关闭调试串口();
+                调试串口接收框 = null;
                 追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] 串口已断开");
             }
 
@@ -310,7 +315,7 @@ namespace 自动测试
 
             var 发送格式框 = new ComboBox();
             发送格式框.DropDownStyle = ComboBoxStyle.DropDownList;
-            发送格式框.Items.AddRange(new object[] { "HEX", "ASCII" });
+            发送格式框.Items.AddRange(new object[] { "HEX", "ASC" });
             发送格式框.SelectedIndex = 0;
             发送格式框.Location = new Point(76, 88);
             发送格式框.Size = new Size(90, 25);
@@ -372,49 +377,19 @@ namespace 自动测试
                 string 发送格式 = 发送格式框.SelectedItem?.ToString() ?? "HEX";
                 byte[] tx = 解析发送数据(发送内容, 发送格式);
                 string txHex = BitConverter.ToString(tx).Replace("-", " ");
-                var sw = Stopwatch.StartNew();
+                bool 是文本发送 = string.Equals(发送格式, "ASC", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(发送格式, "ASCII", StringComparison.OrdinalIgnoreCase);
 
-                调试串口!.DiscardInBuffer();
                 调试串口.Write(tx, 0, tx.Length);
-                追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] TX[{tx.Length}]: {txHex}");
-
-                System.Threading.Thread.Sleep(80);
-                var rx = new List<byte>();
-                int 空闲轮次 = 0;
-                while (空闲轮次 < 6)
+                if (是文本发送)
                 {
-                    int 可读 = 调试串口.BytesToRead;
-                    if (可读 > 0)
-                    {
-                        byte[] buf = new byte[可读];
-                        int n = 调试串口.Read(buf, 0, 可读);
-                        if (n > 0)
-                        {
-                            for (int i = 0; i < n; i++) rx.Add(buf[i]);
-                            空闲轮次 = 0;
-                            System.Threading.Thread.Sleep(20);
-                            continue;
-                        }
-                    }
-
-                    空闲轮次++;
-                    System.Threading.Thread.Sleep(30);
-                }
-
-                sw.Stop();
-                if (rx.Count > 0)
-                {
-                    byte[] rxBytes = rx.ToArray();
-                    string rxHex = BitConverter.ToString(rxBytes).Replace("-", " ");
-                    string rxAscii = Encoding.ASCII.GetString(rxBytes);
-                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] RX[{rx.Count}]({sw.ElapsedMilliseconds}ms): {rxHex}");
-                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] RX-ASCII: {rxAscii}");
-                    日志管理器.记录(日志类别.硬件操作, "串口收发", $"{端口} TX:{txHex} RX:{rxHex}", 权限等级.厂家);
+                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] TX-ASC[{tx.Length}]: {发送内容}");
+                    日志管理器.记录(日志类别.硬件操作, "串口收发", $"{端口} TX-ASC:{发送内容}", 权限等级.厂家);
                 }
                 else
                 {
-                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] RX(超时 {sw.ElapsedMilliseconds}ms): 无数据");
-                    日志管理器.记录(日志类别.硬件操作, "串口收发", $"{端口} TX:{txHex} RX:无数据", 权限等级.厂家);
+                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] TX-HEX[{tx.Length}]: {txHex}");
+                    日志管理器.记录(日志类别.硬件操作, "串口收发", $"{端口} TX-HEX:{txHex}", 权限等级.厂家);
                 }
             }
             catch (Exception ex)
@@ -448,7 +423,8 @@ namespace 自动测试
 
         private static byte[] 解析发送数据(string 文本, string 发送格式)
         {
-            if (string.Equals(发送格式, "ASCII", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(发送格式, "ASC", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(发送格式, "ASCII", StringComparison.OrdinalIgnoreCase))
             {
                 return Encoding.ASCII.GetBytes(文本);
             }
@@ -520,6 +496,10 @@ namespace 自动测试
             if (string.IsNullOrWhiteSpace(端口)) throw new InvalidOperationException("未选择串口");
 
             var 参数 = 系统配置管理.实例.基础参数;
+            int 波特率 = 参数.串口通讯板波特率 is >= 110 and <= 2000000 ? 参数.串口通讯板波特率 : 9600;
+            int 数据位 = 参数.串口通讯板数据位 is >= 5 and <= 8 ? 参数.串口通讯板数据位 : 8;
+            Parity 校验 = 解析串口校验(参数.串口通讯板校验);
+            StopBits 停止位 = 解析串口停止位(参数.串口通讯板停止位);
             调试串口 ??= new SerialPort();
 
             if (调试串口.IsOpen)
@@ -529,19 +509,81 @@ namespace 自动测试
             }
 
             调试串口.PortName = 端口;
-            调试串口.BaudRate = 参数.串口波特率 > 0 ? 参数.串口波特率 : 9600;
-            调试串口.Parity = Parity.None;
-            调试串口.DataBits = 8;
-            调试串口.StopBits = StopBits.One;
+            调试串口.BaudRate = 波特率;
+            调试串口.Parity = 校验;
+            调试串口.DataBits = 数据位;
+            调试串口.StopBits = 停止位;
+            调试串口.DataReceived -= 调试串口_DataReceived;
+            调试串口.DataReceived += 调试串口_DataReceived;
             调试串口.ReadTimeout = 300;
             调试串口.WriteTimeout = 1000;
+            lock (调试串口接收锁)
+            {
+                调试串口接收缓存.Clear();
+            }
             调试串口.Open();
         }
 
         private void 关闭调试串口()
         {
             if (调试串口 == null) return;
+            try { 调试串口.DataReceived -= 调试串口_DataReceived; } catch { }
             if (调试串口.IsOpen) 调试串口.Close();
+            lock (调试串口接收锁)
+            {
+                调试串口接收缓存.Clear();
+            }
+        }
+
+        private void 调试串口_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            try
+            {
+                if (调试串口 == null || !调试串口.IsOpen) return;
+                int 可读 = 调试串口.BytesToRead;
+                if (可读 <= 0) return;
+
+                byte[] buf = new byte[可读];
+                int n = 调试串口.Read(buf, 0, 可读);
+                if (n <= 0) return;
+
+                var 完整行列表 = new List<string>();
+                lock (调试串口接收锁)
+                {
+                    for (int i = 0; i < n; i++)
+                    {
+                        调试串口接收缓存.Add(buf[i]);
+                    }
+
+                    while (true)
+                    {
+                        int 换行索引 = 调试串口接收缓存.IndexOf((byte)'\n');
+                        if (换行索引 < 0) break;
+
+                        byte[] 行数据 = 调试串口接收缓存.GetRange(0, 换行索引 + 1).ToArray();
+                        调试串口接收缓存.RemoveRange(0, 换行索引 + 1);
+
+                        string 行文本 = Encoding.UTF8.GetString(行数据).TrimEnd('\r', '\n');
+                        if (string.IsNullOrWhiteSpace(行文本)) continue;
+
+                        完整行列表.Add(行文本);
+                    }
+                }
+
+                if (完整行列表.Count == 0) return;
+
+                BeginInvoke(new Action(() =>
+                {
+                    if (调试串口接收框 == null || 调试串口接收框.IsDisposed) return;
+                    foreach (var 行 in 完整行列表)
+                    {
+                        追加串口接收文本(调试串口接收框, $"[{DateTime.Now:HH:mm:ss.fff}] 收←◆{行}");
+                    }
+                }));
+            }
+            catch
+            {
+            }
         }
 
         private void 输入轮询定时器_Tick(object? sender, EventArgs e)
@@ -1271,12 +1313,22 @@ namespace 自动测试
                 throw new InvalidOperationException("未配置串口端口");
             }
 
+            int 波特率 = 参数.串口通讯板波特率 is >= 110 and <= 2000000 ? 参数.串口通讯板波特率 : 9600;
+            int 数据位 = 参数.串口通讯板数据位 is >= 5 and <= 8 ? 参数.串口通讯板数据位 : 8;
+            Parity 校验 = 解析串口校验(参数.串口通讯板校验);
+            StopBits 停止位 = 解析串口停止位(参数.串口通讯板停止位);
+
             if (modbus串口 == null)
             {
                 modbus串口 = new SerialPort();
             }
 
-            if (modbus串口.IsOpen && modbus串口.PortName == 参数.串口端口 && modbus串口.BaudRate == 参数.串口波特率)
+            if (modbus串口.IsOpen &&
+                modbus串口.PortName == 参数.串口端口 &&
+                modbus串口.BaudRate == 波特率 &&
+                modbus串口.Parity == 校验 &&
+                modbus串口.DataBits == 数据位 &&
+                modbus串口.StopBits == 停止位)
             {
                 return;
             }
@@ -1287,13 +1339,35 @@ namespace 自动测试
             }
 
             modbus串口.PortName = 参数.串口端口;
-            modbus串口.BaudRate = 参数.串口波特率;
-            modbus串口.Parity = Parity.None;
-            modbus串口.DataBits = 8;
-            modbus串口.StopBits = StopBits.One;
+            modbus串口.BaudRate = 波特率;
+            modbus串口.Parity = 校验;
+            modbus串口.DataBits = 数据位;
+            modbus串口.StopBits = 停止位;
             modbus串口.ReadTimeout = 1000;
             modbus串口.WriteTimeout = 1000;
             modbus串口.Open();
+        }
+
+        private static Parity 解析串口校验(string? 校验)
+        {
+            return (校验 ?? "").Trim().ToUpperInvariant() switch
+            {
+                "ODD" => Parity.Odd,
+                "EVEN" => Parity.Even,
+                "MARK" => Parity.Mark,
+                "SPACE" => Parity.Space,
+                _ => Parity.None
+            };
+        }
+
+        private static StopBits 解析串口停止位(string? 停止位)
+        {
+            return (停止位 ?? "").Trim() switch
+            {
+                "1.5" => StopBits.OnePointFive,
+                "2" => StopBits.Two,
+                _ => StopBits.One
+            };
         }
 
         private bool[] 读取线圈(byte 从站地址, ushort 起始地址, ushort 数量)

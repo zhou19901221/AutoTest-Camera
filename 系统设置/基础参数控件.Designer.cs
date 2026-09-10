@@ -36,11 +36,20 @@ namespace 自动测试
             测试界面显示机器电压框 = new CheckBox();
             平台上升光幕保护框 = new CheckBox();
             平台下降光幕保护框 = new CheckBox();
+            串口通讯板组 = new GroupBox();
+            串口停止位 = new ComboBox();
+            串口校验 = new ComboBox();
+            串口数据位 = new ComboBox();
+            串口波特率 = new ComboBox();
+            串口校验标签 = new Label();
+            串口停止位标签 = new Label();
+            串口数据位标签 = new Label();
+            串口波特率标签2 = new Label();
             测试设置组.SuspendLayout();
             串口设置组.SuspendLayout();
-
             程控电源组.SuspendLayout();
             基础设置组.SuspendLayout();
+            串口通讯板组.SuspendLayout();
             SuspendLayout();
             // 
             // 测试设置组
@@ -81,7 +90,7 @@ namespace 自动测试
             串口设置组.Controls.Add(端口标签);
             串口设置组.Location = new Point(20, 88);
             串口设置组.Name = "串口设置组";
-            串口设置组.Size = new Size(350, 60);
+            串口设置组.Size = new Size(350, 55);
             串口设置组.TabIndex = 1;
             串口设置组.TabStop = false;
             串口设置组.Text = "串口设置";
@@ -90,7 +99,7 @@ namespace 自动测试
             // 
             波特率框.DropDownStyle = ComboBoxStyle.DropDownList;
             波特率框.FormattingEnabled = true;
-            波特率框.Items.AddRange(new object[] { "9600", "19200", "38400", "57600", "115200" });
+            波特率框.Items.AddRange(new object[] { "9600", "19200", "38400", "57600", "115200", "1000000" });
             波特率框.Location = new Point(240, 22);
             波特率框.Name = "波特率框";
             波特率框.Size = new Size(100, 25);
@@ -127,9 +136,9 @@ namespace 自动测试
             程控电源组.Controls.Add(无程控框);
             程控电源组.Controls.Add(无程控标签);
             程控电源组.Controls.Add(电源设置按钮);
-            程控电源组.Location = new Point(20, 166);
+            程控电源组.Location = new Point(20, 294);
             程控电源组.Name = "程控电源组";
-            程控电源组.Size = new Size(350, 297);
+            程控电源组.Size = new Size(350, 169);
             程控电源组.TabIndex = 2;
             程控电源组.TabStop = false;
             程控电源组.Text = "程控电源";
@@ -155,7 +164,7 @@ namespace 自动测试
             // 
             // 电源设置按钮
             // 
-            电源设置按钮.Location = new Point(80, 205);
+            电源设置按钮.Location = new Point(80, 96);
             电源设置按钮.Name = "电源设置按钮";
             电源设置按钮.Size = new Size(210, 30);
             电源设置按钮.TabIndex = 17;
@@ -264,11 +273,105 @@ namespace 自动测试
             平台下降光幕保护框.Text = "平台下降光幕保护";
             平台下降光幕保护框.UseVisualStyleBackColor = true;
             // 
+            // 串口通讯板组
+            // 
+            串口通讯板组.Controls.Add(串口停止位);
+            串口通讯板组.Controls.Add(串口校验);
+            串口通讯板组.Controls.Add(串口数据位);
+            串口通讯板组.Controls.Add(串口波特率);
+            串口通讯板组.Controls.Add(串口校验标签);
+            串口通讯板组.Controls.Add(串口停止位标签);
+            串口通讯板组.Controls.Add(串口数据位标签);
+            串口通讯板组.Controls.Add(串口波特率标签2);
+            串口通讯板组.Location = new Point(20, 149);
+            串口通讯板组.Name = "串口通讯板组";
+            串口通讯板组.Size = new Size(350, 139);
+            串口通讯板组.TabIndex = 4;
+            串口通讯板组.TabStop = false;
+            串口通讯板组.Text = "串口通讯板";
+            // 
+            // 串口停止位
+            // 
+            串口停止位.DropDownStyle = ComboBoxStyle.DropDownList;
+            串口停止位.FormattingEnabled = true;
+            串口停止位.Items.AddRange(new object[] { "1", "1.5", "2" });
+            串口停止位.Location = new Point(80, 94);
+            串口停止位.Name = "串口停止位";
+            串口停止位.Size = new Size(100, 25);
+            串口停止位.TabIndex = 4;
+            // 
+            // 串口校验
+            // 
+            串口校验.DropDownStyle = ComboBoxStyle.DropDownList;
+            串口校验.FormattingEnabled = true;
+            串口校验.Items.AddRange(new object[] { "None", "Odd", "Even", "Mark", "Space" });
+            串口校验.Location = new Point(264, 24);
+            串口校验.Name = "串口校验";
+            串口校验.Size = new Size(71, 25);
+            串口校验.TabIndex = 2;
+            // 
+            // 串口数据位
+            // 
+            串口数据位.DropDownStyle = ComboBoxStyle.DropDownList;
+            串口数据位.FormattingEnabled = true;
+            串口数据位.Items.AddRange(new object[] { "5", "6", "7", "8" });
+            串口数据位.Location = new Point(80, 58);
+            串口数据位.Name = "串口数据位";
+            串口数据位.Size = new Size(100, 25);
+            串口数据位.TabIndex = 3;
+            // 
+            // 串口波特率
+            // 
+            串口波特率.DropDownStyle = ComboBoxStyle.DropDownList;
+            串口波特率.FormattingEnabled = true;
+            串口波特率.Items.AddRange(new object[] { "9600", "19200", "38400", "57600", "115200" });
+            串口波特率.Location = new Point(80, 24);
+            串口波特率.Name = "串口波特率";
+            串口波特率.Size = new Size(100, 25);
+            串口波特率.TabIndex = 1;
+            // 
+            // 串口校验标签
+            // 
+            串口校验标签.AutoSize = true;
+            串口校验标签.Location = new Point(204, 27);
+            串口校验标签.Name = "串口校验标签";
+            串口校验标签.Size = new Size(44, 17);
+            串口校验标签.TabIndex = 7;
+            串口校验标签.Text = "校验：";
+            // 
+            // 串口停止位标签
+            // 
+            串口停止位标签.AutoSize = true;
+            串口停止位标签.Location = new Point(20, 97);
+            串口停止位标签.Name = "串口停止位标签";
+            串口停止位标签.Size = new Size(56, 17);
+            串口停止位标签.TabIndex = 6;
+            串口停止位标签.Text = "停止位：";
+            // 
+            // 串口数据位标签
+            // 
+            串口数据位标签.AutoSize = true;
+            串口数据位标签.Location = new Point(20, 61);
+            串口数据位标签.Name = "串口数据位标签";
+            串口数据位标签.Size = new Size(56, 17);
+            串口数据位标签.TabIndex = 5;
+            串口数据位标签.Text = "数据位：";
+            // 
+            // 串口波特率标签2
+            // 
+            串口波特率标签2.AutoSize = true;
+            串口波特率标签2.Location = new Point(20, 27);
+            串口波特率标签2.Name = "串口波特率标签2";
+            串口波特率标签2.Size = new Size(56, 17);
+            串口波特率标签2.TabIndex = 0;
+            串口波特率标签2.Text = "波特率：";
+            // 
             // 基础参数控件
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoScroll = true;
+            Controls.Add(串口通讯板组);
             Controls.Add(基础设置组);
             Controls.Add(程控电源组);
             Controls.Add(串口设置组);
@@ -279,10 +382,11 @@ namespace 自动测试
             测试设置组.PerformLayout();
             串口设置组.ResumeLayout(false);
             串口设置组.PerformLayout();
-
             程控电源组.ResumeLayout(false);
             基础设置组.ResumeLayout(false);
             基础设置组.PerformLayout();
+            串口通讯板组.ResumeLayout(false);
+            串口通讯板组.PerformLayout();
             ResumeLayout(false);
 
         }
@@ -308,5 +412,14 @@ namespace 自动测试
         private System.Windows.Forms.CheckBox 平台上升光幕保护框;
         private System.Windows.Forms.CheckBox 平台下降光幕保护框;
         private CheckBox 伺服框;
+        private GroupBox 串口通讯板组;
+        private ComboBox 串口停止位;
+        private ComboBox 串口校验;
+        private ComboBox 串口数据位;
+        private ComboBox 串口波特率;
+        private Label 串口校验标签;
+        private Label 串口停止位标签;
+        private Label 串口数据位标签;
+        private Label 串口波特率标签2;
     }
 }

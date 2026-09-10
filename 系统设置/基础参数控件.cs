@@ -11,8 +11,22 @@ namespace 自动测试
         public 基础参数控件()
         {
             InitializeComponent();
+            初始化波特率选项();
             端口框.Items.AddRange(SerialPort.GetPortNames());
             if (端口框.Items.Count > 0) 端口框.SelectedIndex = 0;
+            串口波特率.SelectedItem = "115200";
+            串口数据位.SelectedItem = "8";
+            串口校验.SelectedItem = "None";
+            串口停止位.SelectedItem = "1";
+        }
+
+        private void 初始化波特率选项()
+        {
+            object[] 选项 = { "110", "300", "600", "1200", "2400", "4800", "9600", "14400", "19200", "38400", "57600", "115200", "128000", "230400", "256000", "460800", "500000", "576000", "921600", "1000000", "1152000", "1500000", "2000000" };
+            波特率框.Items.Clear();
+            串口波特率.Items.Clear();
+            波特率框.Items.AddRange(选项);
+            串口波特率.Items.AddRange(选项);
         }
 
         public void 设置配置数据(系统配置数据 数据)
@@ -32,9 +46,23 @@ namespace 自动测试
             
             索引 = 波特率框.Items.IndexOf(配置数据.基础参数.串口波特率.ToString());
             if (索引 >= 0) 波特率框.SelectedIndex = 索引;
+            else 波特率框.Text = 配置数据.基础参数.串口波特率.ToString();
             
             索引 = 无程控框.Items.IndexOf(配置数据.基础参数.程控电源类型);
             if (索引 >= 0) 无程控框.SelectedIndex = 索引;
+
+            索引 = 串口波特率.Items.IndexOf(配置数据.基础参数.串口通讯板波特率.ToString());
+            if (索引 >= 0) 串口波特率.SelectedIndex = 索引;
+            else 串口波特率.Text = 配置数据.基础参数.串口通讯板波特率.ToString();
+
+            索引 = 串口数据位.Items.IndexOf(配置数据.基础参数.串口通讯板数据位.ToString());
+            if (索引 >= 0) 串口数据位.SelectedIndex = 索引;
+
+            索引 = 串口校验.Items.IndexOf(配置数据.基础参数.串口通讯板校验);
+            if (索引 >= 0) 串口校验.SelectedIndex = 索引;
+
+            索引 = 串口停止位.Items.IndexOf(配置数据.基础参数.串口通讯板停止位);
+            if (索引 >= 0) 串口停止位.SelectedIndex = 索引;
             
             
             
@@ -54,10 +82,19 @@ namespace 自动测试
             
             配置数据.基础参数.测试类型 = 测试类型框.Text;
             配置数据.基础参数.串口端口 = (string?)端口框.SelectedItem ?? "COM1";
-            if (int.TryParse(波特率框.Text, out int 波特率))
+            if (int.TryParse(波特率框.Text, out int 波特率) && 波特率 >= 110 && 波特率 <= 2000000)
                 配置数据.基础参数.串口波特率 = 波特率;
             
             配置数据.基础参数.程控电源类型 = 无程控框.Text;
+
+            if (int.TryParse(串口波特率.Text, out int 通讯板波特率) && 通讯板波特率 >= 110 && 通讯板波特率 <= 2000000)
+                配置数据.基础参数.串口通讯板波特率 = 通讯板波特率;
+
+            if (int.TryParse(串口数据位.Text, out int 通讯板数据位))
+                配置数据.基础参数.串口通讯板数据位 = 通讯板数据位;
+
+            配置数据.基础参数.串口通讯板校验 = 串口校验.Text;
+            配置数据.基础参数.串口通讯板停止位 = 串口停止位.Text;
             
             
             配置数据.基础参数.平台下降光幕保护 = 平台下降光幕保护框.Checked;

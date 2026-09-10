@@ -16,7 +16,6 @@ namespace 自动测试
         public 平台视觉类 平台视觉 = new 平台视觉类();
         public MESS设置类 MESS设置 = new MESS设置类();
         public 其他设置类 其他设置 = new 其他设置类();
-
     }
 
     public static class 系统配置管理
@@ -126,19 +125,11 @@ namespace 自动测试
                     for (int i = 0; i < 功能板数; i++)
                     {
                         string 模块类型 = 配置.电压模块.模块列表[i].模块类型;
-                        if (模块类型 == "交直流电流模块（8）")
+                        if (模块类型 == "交直流电流模块（8）" || 模块类型 == "交直流电流模块（16）")
                         {
                             编号++;
-                            for (int ch = 0; ch < 8; ch++)
-                                列表.Add($"{前缀}{编号}.{ch}");
-                        }
-                        else if (模块类型 == "交直流电流模块（16）")
-                        {
-                            编号++;
-                            for (int ch = 0; ch < 8; ch++)
-                                列表.Add($"{前缀}{编号}.{ch}");
-                            编号++;
-                            for (int ch = 0; ch < 8; ch++)
+                            int 通道数 = 获取模块通道数(模块类型);
+                            for (int ch = 0; ch < 通道数; ch++)
                                 列表.Add($"{前缀}{编号}.{ch}");
                         }
                     }
@@ -190,23 +181,6 @@ namespace 自动测试
                     }
                     break;
                 }
-                case "输入功率":
-                {
-                    for (int i = 0; i < 电源板数; i++)
-                    {
-                        int 板号 = i + 1;
-                        int 偏移 = 8 + i;
-                        string 模块类型 = 配置.电压模块.模块列表[偏移].模块类型;
-                        if (模块类型 != "无")
-                        {
-                            var 模块信息 = 模块寄存器管理.获取模块信息(模块类型);
-                            int 功率通道数 = 模块信息?.功率通道数 ?? 获取模块通道数(模块类型);
-                            for (int ch = 0; ch < 功率通道数; ch++)
-                                列表.Add($"PW{板号}.{ch}");
-                        }
-                    }
-                    break;
-                }
             }
 
             return 列表;
@@ -216,13 +190,13 @@ namespace 自动测试
         {
             return 模块类型 switch
             {
-                "输出模块" => 24,
-                "继电器模块" => 24,
+                "输出模块" => 8,
+                "继电器模块" => 8,
                 "直流电压模块（24）" => 24,
                 "交流电压模块（24）" => 24,
                 "交直流电流模块（8）" => 8,
                 "交直流电流模块（16）" => 16,
-                "脉冲声音模块" => 16,
+                "脉冲声音模块" => 4,
                 "交流供电模块（8）（5A）" => 8,
                 "交流供电模块（16）（2A）" => 16,
                 "直流供电模块（8）（5A）" => 8,
@@ -235,7 +209,7 @@ namespace 自动测试
     public class 基础参数类
     {
         public string 测试类型 = "半自动FCT";
-        public string 串口端口 = "COM1";
+        public int 串口端口 = 1;
         public int 串口波特率 = 115200;
         public string 程控电源类型 = "无程控";
         public string 程控电源品牌 = "安姆泰克";
@@ -254,7 +228,6 @@ namespace 自动测试
         public bool 全局量程 = false;
         public bool 伺服 = false;
     }
-
 
     public class 运动控制类
     {

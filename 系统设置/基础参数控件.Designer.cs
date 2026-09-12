@@ -147,7 +147,7 @@ namespace 自动测试
             // 
             无程控框.DropDownStyle = ComboBoxStyle.DropDownList;
             无程控框.FormattingEnabled = true;
-            无程控框.Items.AddRange(new object[] { "无程控", "程控", "一迈YM600-Y60-L15" });
+            无程控框.Items.AddRange(new object[] { "无程控", "程控", "一迈YM600-Y60-L15", "永鹏程控电源" });
             无程控框.Location = new Point(70, 21);
             无程控框.Name = "无程控框";
             无程控框.Size = new Size(245, 25);

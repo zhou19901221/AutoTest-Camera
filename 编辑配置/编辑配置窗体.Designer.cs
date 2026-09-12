@@ -42,6 +42,12 @@ namespace 自动测试
             工位地址框2 = new ComboBox();
             工位地址框3 = new ComboBox();
             工位地址框4 = new ComboBox();
+            发送内容标签 = new Label();
+            发送内容框 = new TextBox();
+            判定时间标签 = new Label();
+            判定时间框 = new TextBox();
+            重复次数标签 = new Label();
+            重复次数框 = new TextBox();
             顺序填充按钮 = new Button();
             间隔1填充按钮 = new Button();
             间隔2填充按钮 = new Button();
@@ -310,6 +316,12 @@ namespace 自动测试
             功能测试页.Controls.Add(工位地址框2);
             功能测试页.Controls.Add(工位地址框3);
             功能测试页.Controls.Add(工位地址框4);
+            功能测试页.Controls.Add(发送内容标签);
+            功能测试页.Controls.Add(发送内容框);
+            功能测试页.Controls.Add(判定时间标签);
+            功能测试页.Controls.Add(判定时间框);
+            功能测试页.Controls.Add(重复次数标签);
+            功能测试页.Controls.Add(重复次数框);
             功能测试页.Controls.Add(顺序填充按钮);
             功能测试页.Controls.Add(间隔1填充按钮);
             功能测试页.Controls.Add(间隔2填充按钮);
@@ -371,6 +383,62 @@ namespace 自动测试
             工位地址框4.TabIndex = 1;
             工位地址框4.Visible = false;
             工位地址框4.SelectedIndexChanged += 工位地址框4_SelectedIndexChanged;
+            // 
+            // 发送内容标签
+            // 
+            发送内容标签.AutoSize = true;
+            发送内容标签.Location = new Point(220, 24);
+            发送内容标签.Name = "发送内容标签";
+            发送内容标签.Size = new Size(68, 17);
+            发送内容标签.TabIndex = 5;
+            发送内容标签.Text = "发送内容：";
+            发送内容标签.Visible = false;
+            // 
+            // 发送内容框
+            // 
+            发送内容框.Location = new Point(292, 20);
+            发送内容框.Name = "发送内容框";
+            发送内容框.Size = new Size(290, 23);
+            发送内容框.TabIndex = 6;
+            发送内容框.Visible = false;
+            // 
+            // 判定时间标签
+            // 
+            判定时间标签.AutoSize = true;
+            判定时间标签.Location = new Point(590, 24);
+            判定时间标签.Name = "判定时间标签";
+            判定时间标签.Size = new Size(88, 17);
+            判定时间标签.TabIndex = 7;
+            判定时间标签.Text = "判定时间(ms)：";
+            判定时间标签.Visible = false;
+            // 
+            // 判定时间框
+            // 
+            判定时间框.Location = new Point(682, 20);
+            判定时间框.Name = "判定时间框";
+            判定时间框.Size = new Size(80, 23);
+            判定时间框.TabIndex = 8;
+            判定时间框.Text = "1000";
+            判定时间框.Visible = false;
+            // 
+            // 重复次数标签
+            // 
+            重复次数标签.AutoSize = true;
+            重复次数标签.Location = new Point(770, 24);
+            重复次数标签.Name = "重复次数标签";
+            重复次数标签.Size = new Size(68, 17);
+            重复次数标签.TabIndex = 9;
+            重复次数标签.Text = "重复次数：";
+            重复次数标签.Visible = false;
+            // 
+            // 重复次数框
+            // 
+            重复次数框.Location = new Point(842, 20);
+            重复次数框.Name = "重复次数框";
+            重复次数框.Size = new Size(60, 23);
+            重复次数框.TabIndex = 10;
+            重复次数框.Text = "1";
+            重复次数框.Visible = false;
             // 
             // 顺序填充按钮
             // 
@@ -739,6 +807,12 @@ namespace 自动测试
         private ComboBox 工位地址框2;
         private ComboBox 工位地址框3;
         private ComboBox 工位地址框4;
+        private Label 发送内容标签;
+        private TextBox 发送内容框;
+        private Label 判定时间标签;
+        private TextBox 判定时间框;
+        private Label 重复次数标签;
+        private TextBox 重复次数框;
         private Button 顺序填充按钮;
         private Button 间隔1填充按钮;
         private Button 间隔2填充按钮;

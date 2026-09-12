@@ -114,6 +114,11 @@ namespace 自动测试
                 new 一迈电源设置窗体().Show(this);
                 return;
             }
+            if (无程控框.Text == "永鹏程控电源")
+            {
+                MessageBox.Show("永鹏程控电源通过测试流程中的“程控电源”检测项控制，无独立设置窗体。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
             MessageBox.Show("未选择对应的程控电源", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }

@@ -10,6 +10,9 @@ namespace 自动测试
 {
     public partial class 端口测试页面 : Form
     {
+        private const float 横向缩放比例 = 1860f / 1200f;
+        private const float 纵向缩放比例 = 1020f / 750f;
+        private static readonly SizeF 布局缩放比例 = new SizeF(横向缩放比例, 纵向缩放比例);
         private static readonly Color 未连接色 = Color.FromArgb(200, 200, 200);
         private static readonly Color 已连接色 = Color.FromArgb(0, 176, 80);
         private static readonly Color 错误色 = Color.FromArgb(255, 0, 0);
@@ -41,6 +44,21 @@ namespace 自动测试
             界面缩放器.等比例适配屏幕(this);
             输入轮询定时器.Interval = 200;
             输入轮询定时器.Tick += 输入轮询定时器_Tick;
+        }
+
+        private static void 按比例缩放控件(Control 控件)
+        {
+            控件.Scale(布局缩放比例);
+        }
+
+        private static int 获取卡片标题高度(Panel 卡片)
+        {
+            foreach (Control c in 卡片.Controls)
+            {
+                if (c.Dock == DockStyle.Top) return c.Height;
+            }
+
+            return (int)Math.Round(50 * 纵向缩放比例);
         }
 
         private void 生成模块按钮()
@@ -139,6 +157,7 @@ namespace 自动测试
             }
 
             卡片.Controls.Add(标题行);
+            按比例缩放控件(卡片);
             模块面板.Controls.Add(卡片);
         }
 
@@ -216,10 +235,9 @@ namespace 自动测试
 
             var 通道面板 = new Panel();
             通道面板.Name = "通道面板";
-            通道面板.Location = new Point(0, 48);
-            通道面板.Width = 554;
-            通道面板.Height = 118;
-            卡片.Height = 50 + 通道面板.Height;
+            通道面板.Location = new Point(0, 获取卡片标题高度(卡片));
+            通道面板.Width = 984;
+            通道面板.Height = 170;
 
             var 通道选择标签 = new Label();
             通道选择标签.Text = "通道：";
@@ -297,7 +315,7 @@ namespace 自动测试
 
             var 接收框 = new TextBox();
             接收框.Location = new Point(105, 38);
-            接收框.Size = new Size(430, 46);
+            接收框.Size = new Size(860, 92);
             接收框.Multiline = true;
             接收框.ReadOnly = true;
             接收框.Font = new Font("Consolas", 9F);
@@ -308,7 +326,7 @@ namespace 自动测试
 
             var 发送格式标签 = new Label();
             发送格式标签.Text = "发送格式：";
-            发送格式标签.Location = new Point(8, 90);
+            发送格式标签.Location = new Point(8, 136);
             发送格式标签.Size = new Size(70, 20);
             发送格式标签.Font = new Font("Microsoft YaHei UI", 9F);
             通道面板.Controls.Add(发送格式标签);
@@ -317,12 +335,16 @@ namespace 自动测试
             发送格式框.DropDownStyle = ComboBoxStyle.DropDownList;
             发送格式框.Items.AddRange(new object[] { "HEX", "ASC" });
             发送格式框.SelectedIndex = 0;
-            发送格式框.Location = new Point(76, 88);
+            发送格式框.Location = new Point(76, 134);
             发送格式框.Size = new Size(90, 25);
             发送格式框.Font = new Font("Microsoft YaHei UI", 9F);
             发送格式框.Name = "发送格式框";
             通道面板.Controls.Add(发送格式框);
 
+            按比例缩放控件(通道面板);
+            通道面板.Location = new Point(0, 获取卡片标题高度(卡片));
+            卡片.Width = Math.Max(卡片.Width, 通道面板.Width);
+            卡片.Height = 获取卡片标题高度(卡片) + 通道面板.Height;
             卡片.Controls.Add(通道面板);
         }
 
@@ -337,7 +359,7 @@ namespace 自动测试
                     break;
                 }
             }
-            卡片.Height = 50;
+            卡片.Height = 获取卡片标题高度(卡片);
         }
 
         private void 串口发送按钮_Click(object sender, EventArgs e)
@@ -375,16 +397,17 @@ namespace 自动测试
                 }
 
                 string 发送格式 = 发送格式框.SelectedItem?.ToString() ?? "HEX";
-                byte[] tx = 解析发送数据(发送内容, 发送格式);
-                string txHex = BitConverter.ToString(tx).Replace("-", " ");
                 bool 是文本发送 = string.Equals(发送格式, "ASC", StringComparison.OrdinalIgnoreCase) ||
                                 string.Equals(发送格式, "ASCII", StringComparison.OrdinalIgnoreCase);
+                string 实际发送内容 = 是文本发送 ? 发送内容 + "\r" : 发送内容;
+                byte[] tx = 解析发送数据(实际发送内容, 发送格式);
+                string txHex = BitConverter.ToString(tx).Replace("-", " ");
 
                 调试串口.Write(tx, 0, tx.Length);
                 if (是文本发送)
                 {
-                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] TX-ASC[{tx.Length}]: {发送内容}");
-                    日志管理器.记录(日志类别.硬件操作, "串口收发", $"{端口} TX-ASC:{发送内容}", 权限等级.厂家);
+                    追加串口接收文本(接收框, $"[{DateTime.Now:HH:mm:ss.fff}] TX-ASC[{tx.Length}]: {发送内容}\\r");
+                    日志管理器.记录(日志类别.硬件操作, "串口收发", $"{端口} TX-ASC:{发送内容}\\r", 权限等级.厂家);
                 }
                 else
                 {
@@ -755,6 +778,7 @@ namespace 自动测试
                 }
             }
 
+            按比例缩放控件(卡片);
             模块面板.Controls.Add(卡片);
         }
 
@@ -908,14 +932,12 @@ namespace 自动测试
 
             var 通道面板 = new Panel();
             通道面板.Name = "通道面板";
-            通道面板.Location = new Point(0, 48);
+            通道面板.Location = new Point(0, 获取卡片标题高度(卡片));
             通道面板.Width = 554;
 
             if (是电源型)
             {
                 通道面板.Height = 通道数 * 32 + 30;
-                卡片.Height = 50 + 通道面板.Height;
-                卡片.Width = 560;
 
                 var 表头 = new Label();
                 表头.Text = "  通道      开关       电压(V)     电流(A)     功率(W)";
@@ -989,8 +1011,6 @@ namespace 自动测试
             else if (是脉冲型)
             {
                 通道面板.Height = 通道数 * 32 + 50;
-                卡片.Height = 50 + 通道面板.Height;
-                卡片.Width = 560;
 
                 var PO表头 = new Label();
                 PO表头.Text = "  PO通道    脉冲频率(Hz)          PI通道    声音大小(dB)";
@@ -1096,6 +1116,9 @@ namespace 自动测试
                 }
             }
 
+            按比例缩放控件(通道面板);
+            通道面板.Location = new Point(0, 获取卡片标题高度(卡片));
+            卡片.Height = 获取卡片标题高度(卡片) + 通道面板.Height;
             卡片.Controls.Add(通道面板);
         }
 
@@ -1158,7 +1181,7 @@ namespace 自动测试
                 }
             }
 
-            卡片.Height = 50;
+            卡片.Height = 获取卡片标题高度(卡片);
 
             foreach (Control c in 卡片.Controls)
             {
@@ -1313,10 +1336,10 @@ namespace 自动测试
                 throw new InvalidOperationException("未配置串口端口");
             }
 
-            int 波特率 = 参数.串口通讯板波特率 is >= 110 and <= 2000000 ? 参数.串口通讯板波特率 : 9600;
-            int 数据位 = 参数.串口通讯板数据位 is >= 5 and <= 8 ? 参数.串口通讯板数据位 : 8;
-            Parity 校验 = 解析串口校验(参数.串口通讯板校验);
-            StopBits 停止位 = 解析串口停止位(参数.串口通讯板停止位);
+            int 波特率 = 参数.串口波特率 is >= 110 and <= 2000000 ? 参数.串口波特率 : 9600;
+            const int 数据位 = 8;
+            const Parity 校验 = Parity.None;
+            const StopBits 停止位 = StopBits.One;
 
             if (modbus串口 == null)
             {

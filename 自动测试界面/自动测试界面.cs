@@ -17,7 +17,8 @@ namespace 自动测试
 
         private int 当前拼板数;
         private 编辑配置窗体.配置项数据? 当前配置;
-        private 一迈电源控制? 电源;
+        private 一迈电源控制? 一迈电源;
+        private 永鹏电源控制? 永鹏电源;
         private SerialPort? 继电器串口;
         private CancellationTokenSource? 取消源;
         private bool 测试中;
@@ -29,8 +30,10 @@ namespace 自动测试
         private DateTime 本次测试开始时间;
         private readonly Dictionary<int, string> SN串口绑定 = new();
         private readonly Dictionary<string, SerialPort> 扫码串口池 = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, SerialPort> 串口输出串口池 = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<int, Button> SN扫码按钮 = new();
         private readonly object 扫码串口锁 = new();
+        private readonly object 串口输出锁 = new();
         private System.Windows.Forms.Timer? 自动扫码定时器;
         private System.Windows.Forms.Timer? 手动测试超时定时器;
         private Button? 自动扫码切换按钮;
@@ -141,6 +144,7 @@ namespace 自动测试
             手动测试超时定时器?.Dispose();
             手动测试超时定时器 = null;
             关闭所有扫码串口();
+            关闭所有串口输出串口();
         }
 
         private void 初始化扫码功能控件()
@@ -462,6 +466,23 @@ namespace 自动测试
             }
         }
 
+        private void 关闭所有串口输出串口()
+        {
+            lock (串口输出锁)
+            {
+                foreach (var 串口 in 串口输出串口池.Values)
+                {
+                    try
+                    {
+                        if (串口.IsOpen) 串口.Close();
+                    }
+                    catch { }
+                    串口.Dispose();
+                }
+                串口输出串口池.Clear();
+            }
+        }
+
         public void 同步板状态(int 拼板数)
         {
             当前拼板数 = 拼板数;
@@ -579,8 +600,10 @@ namespace 自动测试
                 测试中 = false;
                 取消源.Dispose();
                 取消源 = null;
-                电源?.断开();
-                电源 = null;
+                一迈电源?.断开();
+                一迈电源 = null;
+                永鹏电源?.断开();
+                永鹏电源 = null;
                 if (继电器串口 != null)
                 {
                     if (继电器串口.IsOpen) 继电器串口.Close();
@@ -589,6 +612,7 @@ namespace 自动测试
                 }
                 停止自动扫码();
                 关闭所有扫码串口();
+                关闭所有串口输出串口();
                 开始测试按钮.Text = "开始测试";
             }
         }
@@ -684,14 +708,17 @@ namespace 自动测试
             finally
             {
                 手动测试执行中 = false;
-                电源?.断开();
-                电源 = null;
+                一迈电源?.断开();
+                一迈电源 = null;
+                永鹏电源?.断开();
+                永鹏电源 = null;
                 if (继电器串口 != null)
                 {
                     if (继电器串口.IsOpen) 继电器串口.Close();
                     继电器串口.Dispose();
                     继电器串口 = null;
                 }
+                关闭所有串口输出串口();
 
                 if (自动选择下一测试项(行索引, out int 下一行索引))
                 {
@@ -931,10 +958,227 @@ namespace 自动测试
                 case "程控电源":
                     执行程控电源(项);
                     break;
+                case "串口输出":
+                    执行串口输出(项);
+                    break;
                 default:
                     日志管理器.记录(日志类别.测试操作, $"执行[{项.类型}] {项.名称}", "暂未接入硬件，跳过", 权限等级.员工);
                     break;
             }
+        }
+
+        private void 执行串口输出(编辑配置窗体.检测项数据 项)
+        {
+            string 响应前缀 = (项.最大值 ?? "").Trim();
+            string 期望响应 = (项.设定值 ?? "").Trim();
+            int 默认判定毫秒 = Math.Max(200, 项.延时 > 0 ? 项.延时 : 1000);
+
+            foreach (int 拼版号 in 获取本次测试拼版列表())
+            {
+                string 地址字段 = $"拼版{拼版号}地址";
+                string 串口名 = typeof(编辑配置窗体.检测项数据).GetProperty(地址字段)?.GetValue(项)?.ToString()?.Trim() ?? "";
+                string 发送内容键 = $"拼版{拼版号}发送内容";
+                string 发送内容 = 项.扩展地址.TryGetValue(发送内容键, out string? 配置内容) ? (配置内容 ?? "").Trim() : "";
+                string 判定时间键 = $"拼版{拼版号}判定时间";
+                string 重复次数键 = $"拼版{拼版号}重复次数";
+                int 判定毫秒 = 默认判定毫秒;
+                if (项.扩展地址.TryGetValue(判定时间键, out string? 判定时间文本)
+                    && int.TryParse((判定时间文本 ?? "").Trim(), out int 已配毫秒)
+                    && 已配毫秒 > 0)
+                {
+                    判定毫秒 = 已配毫秒;
+                }
+
+                int 重复次数 = 1;
+                if (项.扩展地址.TryGetValue(重复次数键, out string? 重复次数文本)
+                    && int.TryParse((重复次数文本 ?? "").Trim(), out int 已配重复次数)
+                    && 已配重复次数 > 0)
+                {
+                    重复次数 = 已配重复次数;
+                }
+
+                if (string.IsNullOrWhiteSpace(串口名) || 串口名 == "无")
+                {
+                    设置拼版失败(拼版号, $"拼版{拼版号} 串口输出未配置串口地址");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(发送内容))
+                {
+                    设置拼版失败(拼版号, $"拼版{拼版号} 串口输出未配置发送内容");
+                    continue;
+                }
+
+                try
+                {
+                    SerialPort 串口 = 获取或打开串口输出串口(串口名);
+                    bool 已通过 = false;
+                    string 最后失败说明 = "";
+                    string 最后响应 = "";
+
+                    for (int 次数 = 1; 次数 <= 重复次数; 次数++)
+                    {
+                        串口.DiscardInBuffer();
+                        串口.DiscardOutBuffer();
+
+                        string 实际发送 = 发送内容 + "\r";
+                        byte[] tx = Encoding.ASCII.GetBytes(实际发送);
+                        串口.Write(tx, 0, tx.Length);
+                        写入自动测试日志($"拼版{拼版号}串口输出 第{次数}/{重复次数}次 TX[{串口名}] {发送内容}\\r");
+
+                        var 响应构建 = new StringBuilder();
+                        DateTime 截止时间 = DateTime.Now.AddMilliseconds(判定毫秒);
+                        bool 命中通过 = false;
+                        while (DateTime.Now < 截止时间)
+                        {
+                            string 片段 = 串口.ReadExisting();
+                            if (!string.IsNullOrEmpty(片段))
+                            {
+                                响应构建.Append(片段);
+
+                                if (Try校验串口输出响应(响应构建.ToString().Replace("\0", "").Trim(), 响应前缀, 期望响应, out _))
+                                {
+                                    命中通过 = true;
+                                    break;
+                                }
+                            }
+                            Thread.Sleep(20);
+                        }
+
+                        最后响应 = 响应构建.ToString().Replace("\0", "").Trim();
+                        写入自动测试日志($"拼版{拼版号}串口输出 第{次数}/{重复次数}次 RX[{串口名}] {最后响应}");
+
+                        if (命中通过 || Try校验串口输出响应(最后响应, 响应前缀, 期望响应, out _))
+                        {
+                            已通过 = true;
+                            break;
+                        }
+
+                        Try校验串口输出响应(最后响应, 响应前缀, 期望响应, out 最后失败说明);
+                    }
+
+                    if (!已通过)
+                    {
+                        设置拼版失败(拼版号, $"拼版{拼版号} 串口输出校验失败 重复次数={重复次数} 判定时间={判定毫秒}ms {最后失败说明} 实际={最后响应}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    设置拼版失败(拼版号, $"拼版{拼版号} 串口输出异常：{ex.Message}");
+                }
+            }
+        }
+
+        private static bool Try校验串口输出响应(string 实际响应, string 响应前缀, string 期望响应, out string 失败说明)
+        {
+            失败说明 = "";
+
+            if (string.IsNullOrWhiteSpace(期望响应) && string.IsNullOrWhiteSpace(响应前缀))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(响应前缀))
+            {
+                bool 包含 = 实际响应.IndexOf(期望响应, StringComparison.OrdinalIgnoreCase) >= 0;
+                if (!包含) 失败说明 = $"期望包含={期望响应}";
+                return 包含;
+            }
+
+            string[] 行列表 = 实际响应
+                .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
+
+            bool 找到前缀行 = false;
+            string? 最近提取值 = null;
+
+            foreach (string 原始行 in 行列表)
+            {
+                string 行 = 原始行.Trim();
+                int 前缀索引 = 行.IndexOf(响应前缀, StringComparison.OrdinalIgnoreCase);
+                if (前缀索引 < 0) continue;
+
+                找到前缀行 = true;
+
+                string 提取值 = 行.Substring(前缀索引 + 响应前缀.Length).Trim();
+                最近提取值 = 提取值;
+                if (string.IsNullOrWhiteSpace(期望响应)) return true;
+
+                if (string.Equals(提取值, 期望响应, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            if (!找到前缀行)
+            {
+                失败说明 = $"未找到前缀={响应前缀}";
+                return false;
+            }
+
+            失败说明 = $"前缀={响应前缀} 期望值={期望响应} 提取值={最近提取值 ?? ""}";
+            return false;
+        }
+
+        private SerialPort 获取或打开串口输出串口(string 串口名)
+        {
+            lock (串口输出锁)
+            {
+                if (!串口输出串口池.TryGetValue(串口名, out SerialPort? 串口))
+                {
+                    串口 = new SerialPort();
+                    串口输出串口池[串口名] = 串口;
+                }
+
+                var 参数 = 系统配置管理.实例.基础参数;
+                int 波特率 = 参数.串口通讯板波特率 is >= 110 and <= 2000000 ? 参数.串口通讯板波特率 : 9600;
+                int 数据位 = 参数.串口通讯板数据位 is >= 5 and <= 8 ? 参数.串口通讯板数据位 : 8;
+                Parity 校验 = 解析串口校验(参数.串口通讯板校验);
+                StopBits 停止位 = 解析串口停止位(参数.串口通讯板停止位);
+
+                if (串口.IsOpen
+                    && string.Equals(串口.PortName, 串口名, StringComparison.OrdinalIgnoreCase)
+                    && 串口.BaudRate == 波特率
+                    && 串口.DataBits == 数据位
+                    && 串口.Parity == 校验
+                    && 串口.StopBits == 停止位)
+                {
+                    return 串口;
+                }
+
+                if (串口.IsOpen) 串口.Close();
+
+                串口.PortName = 串口名;
+                串口.BaudRate = 波特率;
+                串口.DataBits = 数据位;
+                串口.Parity = 校验;
+                串口.StopBits = 停止位;
+                串口.ReadTimeout = 800;
+                串口.WriteTimeout = 1000;
+                串口.Open();
+                return 串口;
+            }
+        }
+
+        private static Parity 解析串口校验(string? 校验)
+        {
+            return (校验 ?? "").Trim().ToUpperInvariant() switch
+            {
+                "ODD" => Parity.Odd,
+                "EVEN" => Parity.Even,
+                "MARK" => Parity.Mark,
+                "SPACE" => Parity.Space,
+                _ => Parity.None
+            };
+        }
+
+        private static StopBits 解析串口停止位(string? 停止位)
+        {
+            return (停止位 ?? "").Trim() switch
+            {
+                "1.5" => StopBits.OnePointFive,
+                "2" => StopBits.Two,
+                _ => StopBits.One
+            };
         }
 
         private void 执行电压电流检测(编辑配置窗体.检测项数据 项, string 前缀, string 类型名)
@@ -1460,22 +1704,46 @@ namespace 自动测试
 
         private void 执行程控电源(编辑配置窗体.检测项数据 项)
         {
-            电源 ??= new 一迈电源控制();
-            if (!电源.已连接)
-            {
-                var 基础参数 = 系统配置管理.实例.基础参数;
-                电源.连接(基础参数.串口端口, 基础参数.程控波特率);
-            }
-
+            var 基础参数 = 系统配置管理.实例.基础参数;
+            bool 使用永鹏 = string.Equals(基础参数.程控电源类型, "永鹏程控电源", StringComparison.OrdinalIgnoreCase)
+                || (基础参数.程控电源品牌?.Contains("永鹏", StringComparison.OrdinalIgnoreCase) ?? false);
             float 电压 = float.TryParse(项.最大值, out float v) ? v : 0;
             float 电流 = float.TryParse(项.最小值, out float c) ? c : 0;
-
-            if (电压 > 0) 电源.设置输出电压(电压);
-            if (电流 > 0) 电源.设置输出电流(电流);
-
             bool 打开 = bool.TryParse(项.设定值, out bool 开) && 开;
-            if (打开) 电源.启动电源();
-            else 电源.停止电源();
+
+            if (使用永鹏)
+            {
+                永鹏电源 ??= new 永鹏电源控制();
+                if (!永鹏电源.已连接)
+                {
+                    永鹏电源.连接(基础参数.串口端口, 基础参数.程控波特率);
+                }
+
+                if (打开)
+                {
+                    if (电压 > 0) 永鹏电源.设置电压(电压);
+                    float 频率 = 基础参数.程控频率 > 0 ? 基础参数.程控频率 : 50;
+                    永鹏电源.设置频率(频率);
+                    永鹏电源.启动电源();
+                }
+                else
+                {
+                    永鹏电源.停止电源();
+                }
+            }
+            else
+            {
+                一迈电源 ??= new 一迈电源控制();
+                if (!一迈电源.已连接)
+                {
+                    一迈电源.连接(基础参数.串口端口, 基础参数.程控波特率);
+                }
+
+                if (电压 > 0) 一迈电源.设置输出电压(电压);
+                if (电流 > 0) 一迈电源.设置输出电流(电流);
+                if (打开) 一迈电源.启动电源();
+                else 一迈电源.停止电源();
+            }
 
             日志管理器.记录(日志类别.测试操作, $"执行[程控电源] {项.名称}", $"电压:{电压}V 电流:{电流}A {(打开 ? "打开" : "关闭")}", 权限等级.员工);
         }

@@ -101,6 +101,9 @@ namespace 自动测试
             拼板数框.ValueChanged += 拼板数框_ValueChanged;
 
             工位地址框.SelectedIndexChanged += 工位地址框_SelectedIndexChanged;
+            发送内容框.TextChanged += 发送内容框_TextChanged;
+            判定时间框.TextChanged += 判定时间框_TextChanged;
+            重复次数框.TextChanged += 重复次数框_TextChanged;
 
             初始化SN串口绑定区();
 
@@ -295,6 +298,36 @@ namespace 自动测试
                             项.扩展地址[字段名] = 地址;
                         }
                     }
+
+                    string 发送内容字段名 = $"拼版{p}发送内容";
+                    if (检测项表格.Columns.Contains(发送内容字段名))
+                    {
+                        string 发送内容 = row.Cells[发送内容字段名].Value?.ToString() ?? "";
+                        if (!string.IsNullOrWhiteSpace(发送内容))
+                        {
+                            项.扩展地址[发送内容字段名] = 发送内容;
+                        }
+                    }
+
+                    string 判定时间字段名 = $"拼版{p}判定时间";
+                    if (检测项表格.Columns.Contains(判定时间字段名))
+                    {
+                        string 判定时间 = row.Cells[判定时间字段名].Value?.ToString() ?? "";
+                        if (!string.IsNullOrWhiteSpace(判定时间))
+                        {
+                            项.扩展地址[判定时间字段名] = 判定时间;
+                        }
+                    }
+
+                    string 重复次数字段名 = $"拼版{p}重复次数";
+                    if (检测项表格.Columns.Contains(重复次数字段名))
+                    {
+                        string 重复次数 = row.Cells[重复次数字段名].Value?.ToString() ?? "";
+                        if (!string.IsNullOrWhiteSpace(重复次数))
+                        {
+                            项.扩展地址[重复次数字段名] = 重复次数;
+                        }
+                    }
                 }
                 
                 数据.检测项列表.Add(项);
@@ -427,8 +460,9 @@ namespace 自动测试
             bool 需要布尔值 = 类型 == "继电器输出" || 类型 == "电源输出" || 类型 == "程控电源";
             bool 需要文本值 = 类型 == "相机检测" || 类型 == "串口输出";
             bool 保留最大最小 = 类型 == "电源输出" || 类型 == "输入功率" || 类型 == "程控电源";
+            bool 串口输出前缀校验 = 类型 == "串口输出";
             
-            row.Cells["最大值"].ReadOnly = !(需要数值范围 || 保留最大最小);
+            row.Cells["最大值"].ReadOnly = !(需要数值范围 || 保留最大最小 || 串口输出前缀校验);
             row.Cells["最小值"].ReadOnly = !(需要数值范围 || 保留最大最小);
             
             if (需要布尔值)
@@ -536,6 +570,9 @@ namespace 自动测试
         private void 检测项表格_SelectionChanged(object sender, EventArgs e)
         {
             保存当前工位地址();
+            保存当前发送内容();
+            保存当前判定时间();
+            保存当前重复次数();
             更新工位地址下拉框();
         }
 
@@ -553,6 +590,9 @@ namespace 自动测试
             if (按钮 != null && 按钮.Checked)
             {
                 保存当前工位地址(上次拼版);
+                保存当前发送内容(上次拼版);
+                保存当前判定时间(上次拼版);
+                保存当前重复次数(上次拼版);
                 上次拼版 = 获取当前选中拼版();
                 更新工位地址下拉框();
             }
@@ -585,12 +625,30 @@ namespace 自动测试
             int 当前拼版 = 获取当前选中拼版();
             if (当前拼版 < 1) return;
 
-            List<string> 地址列表 = 系统配置管理.获取可用地址列表(类型);
+            List<string> 地址列表;
+            if (类型 == "串口输出")
+            {
+                地址列表 = SerialPort.GetPortNames()
+                    .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+            else
+            {
+                地址列表 = 系统配置管理.获取可用地址列表(类型);
+            }
             
             bool 是继电器输出 = 类型 == "继电器输出";
+            bool 是串口输出 = 类型 == "串口输出";
             工位地址框2.Visible = 是继电器输出;
             工位地址框3.Visible = 是继电器输出;
             工位地址框4.Visible = 是继电器输出;
+            发送内容标签.Visible = 是串口输出;
+            发送内容框.Visible = 是串口输出;
+            判定时间标签.Visible = 是串口输出;
+            判定时间框.Visible = 是串口输出;
+            重复次数标签.Visible = 是串口输出;
+            重复次数框.Visible = 是串口输出;
+            工位地址标签.Text = 是串口输出 ? "串口地址：" : "工位地址：";
 
             工位地址框.Items.Add("无");
             if (是继电器输出)
@@ -604,6 +662,9 @@ namespace 自动测试
             顺序填充按钮.Location = new Point(填充起始X, 18);
             间隔1填充按钮.Location = new Point(填充起始X + 85, 18);
             间隔2填充按钮.Location = new Point(填充起始X + 170, 18);
+            顺序填充按钮.Visible = !是串口输出;
+            间隔1填充按钮.Visible = !是串口输出;
+            间隔2填充按钮.Visible = !是串口输出;
 
             if (地址列表.Count == 0)
             {
@@ -703,6 +764,19 @@ namespace 自动测试
                 }
             }
 
+            if (是串口输出)
+            {
+                发送内容框.Text = 获取当前检测项拼版发送内容(当前行索引, 当前拼版);
+                判定时间框.Text = 获取当前检测项拼版判定时间(当前行索引, 当前拼版);
+                重复次数框.Text = 获取当前检测项拼版重复次数(当前行索引, 当前拼版);
+            }
+            else
+            {
+                发送内容框.Text = "";
+                判定时间框.Text = "1000";
+                重复次数框.Text = "1";
+            }
+
             }
             finally
             {
@@ -769,6 +843,161 @@ namespace 自动测试
         private void 保存当前工位地址(int 拼版号 = 0)
         {
             保存指定工位地址(工位地址框, 拼版号, 1);
+        }
+
+        private string 获取当前检测项拼版发送内容(int 行索引, int 拼版号)
+        {
+            if (行索引 < 0 || 行索引 >= 检测项表格.Rows.Count) return "";
+            var 行 = 检测项表格.Rows[行索引];
+            if (行.IsNewRow) return "";
+
+            string 字段名 = $"拼版{拼版号}发送内容";
+            if (!检测项表格.Columns.Contains(字段名)) return "";
+            return 行.Cells[字段名].Value?.ToString() ?? "";
+        }
+
+        private void 保存当前发送内容(int 拼版号 = 0)
+        {
+            int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
+            if (当前行索引 < 0 || 当前行索引 >= 检测项表格.Rows.Count) return;
+
+            var 行 = 检测项表格.Rows[当前行索引];
+            if (行.IsNewRow) return;
+
+            string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
+            if (类型 != "串口输出") return;
+
+            if (拼版号 == 0) 拼版号 = 获取当前选中拼版();
+            string 字段名 = $"拼版{拼版号}发送内容";
+
+            if (!检测项表格.Columns.Contains(字段名))
+            {
+                var 列 = new DataGridViewTextBoxColumn
+                {
+                    Name = 字段名,
+                    HeaderText = 字段名,
+                    Visible = false
+                };
+                检测项表格.Columns.Add(列);
+            }
+
+            string 内容 = 发送内容框.Text?.Trim() ?? "";
+            行.Cells[字段名].Value = 内容;
+            配置已修改 = true;
+        }
+
+        private string 获取当前检测项拼版判定时间(int 行索引, int 拼版号)
+        {
+            if (行索引 < 0 || 行索引 >= 检测项表格.Rows.Count) return "1000";
+            var 行 = 检测项表格.Rows[行索引];
+            if (行.IsNewRow) return "1000";
+
+            string 字段名 = $"拼版{拼版号}判定时间";
+            if (!检测项表格.Columns.Contains(字段名)) return "1000";
+            string 文本 = 行.Cells[字段名].Value?.ToString() ?? "";
+            return string.IsNullOrWhiteSpace(文本) ? "1000" : 文本;
+        }
+
+        private void 保存当前判定时间(int 拼版号 = 0)
+        {
+            int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
+            if (当前行索引 < 0 || 当前行索引 >= 检测项表格.Rows.Count) return;
+
+            var 行 = 检测项表格.Rows[当前行索引];
+            if (行.IsNewRow) return;
+
+            string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
+            if (类型 != "串口输出") return;
+
+            if (拼版号 == 0) 拼版号 = 获取当前选中拼版();
+            string 字段名 = $"拼版{拼版号}判定时间";
+
+            if (!检测项表格.Columns.Contains(字段名))
+            {
+                var 列 = new DataGridViewTextBoxColumn
+                {
+                    Name = 字段名,
+                    HeaderText = 字段名,
+                    Visible = false
+                };
+                检测项表格.Columns.Add(列);
+            }
+
+            string 文本 = 判定时间框.Text?.Trim() ?? "";
+            if (!int.TryParse(文本, out int 毫秒) || 毫秒 <= 0)
+            {
+                毫秒 = 1000;
+                文本 = "1000";
+                正在刷新工位地址 = true;
+                try
+                {
+                    判定时间框.Text = 文本;
+                }
+                finally
+                {
+                    正在刷新工位地址 = false;
+                }
+            }
+
+            行.Cells[字段名].Value = 文本;
+            配置已修改 = true;
+        }
+
+        private string 获取当前检测项拼版重复次数(int 行索引, int 拼版号)
+        {
+            if (行索引 < 0 || 行索引 >= 检测项表格.Rows.Count) return "1";
+            var 行 = 检测项表格.Rows[行索引];
+            if (行.IsNewRow) return "1";
+
+            string 字段名 = $"拼版{拼版号}重复次数";
+            if (!检测项表格.Columns.Contains(字段名)) return "1";
+            string 文本 = 行.Cells[字段名].Value?.ToString() ?? "";
+            return string.IsNullOrWhiteSpace(文本) ? "1" : 文本;
+        }
+
+        private void 保存当前重复次数(int 拼版号 = 0)
+        {
+            int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
+            if (当前行索引 < 0 || 当前行索引 >= 检测项表格.Rows.Count) return;
+
+            var 行 = 检测项表格.Rows[当前行索引];
+            if (行.IsNewRow) return;
+
+            string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
+            if (类型 != "串口输出") return;
+
+            if (拼版号 == 0) 拼版号 = 获取当前选中拼版();
+            string 字段名 = $"拼版{拼版号}重复次数";
+
+            if (!检测项表格.Columns.Contains(字段名))
+            {
+                var 列 = new DataGridViewTextBoxColumn
+                {
+                    Name = 字段名,
+                    HeaderText = 字段名,
+                    Visible = false
+                };
+                检测项表格.Columns.Add(列);
+            }
+
+            string 文本 = 重复次数框.Text?.Trim() ?? "";
+            if (!int.TryParse(文本, out int 次数) || 次数 < 1)
+            {
+                次数 = 1;
+                文本 = "1";
+                正在刷新工位地址 = true;
+                try
+                {
+                    重复次数框.Text = 文本;
+                }
+                finally
+                {
+                    正在刷新工位地址 = false;
+                }
+            }
+
+            行.Cells[字段名].Value = 文本;
+            配置已修改 = true;
         }
 
 
@@ -877,6 +1106,24 @@ namespace 自动测试
             if (正在刷新工位地址) return;
             保存指定工位地址(工位地址框4, 0, 4);
             刷新继电器地址互斥();
+        }
+
+        private void 发送内容框_TextChanged(object? sender, EventArgs e)
+        {
+            if (正在刷新工位地址) return;
+            保存当前发送内容();
+        }
+
+        private void 判定时间框_TextChanged(object? sender, EventArgs e)
+        {
+            if (正在刷新工位地址) return;
+            保存当前判定时间();
+        }
+
+        private void 重复次数框_TextChanged(object? sender, EventArgs e)
+        {
+            if (正在刷新工位地址) return;
+            保存当前重复次数();
         }
 
         private void 刷新继电器地址互斥()

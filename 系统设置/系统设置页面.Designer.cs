@@ -18,8 +18,6 @@ namespace 自动测试
             标签导航 = new TabControl();
             基础参数页 = new TabPage();
             基础参数控件1 = new 基础参数控件();
-            运动控制页 = new TabPage();
-            运动控制控件1 = new 运动控制控件();
             电压模块页 = new TabPage();
             电压模块控件1 = new 电压模块控件();
             MESS设置页 = new TabPage();
@@ -30,7 +28,6 @@ namespace 自动测试
             取消按钮 = new Button();
             标签导航.SuspendLayout();
             基础参数页.SuspendLayout();
-            运动控制页.SuspendLayout();
             电压模块页.SuspendLayout();
             MESS设置页.SuspendLayout();
             其他设置页.SuspendLayout();
@@ -39,7 +36,6 @@ namespace 自动测试
             // 标签导航
             // 
             标签导航.Controls.Add(基础参数页);
-            标签导航.Controls.Add(运动控制页);
             标签导航.Controls.Add(电压模块页);
             标签导航.Controls.Add(MESS设置页);
             标签导航.Controls.Add(其他设置页);
@@ -71,26 +67,6 @@ namespace 自动测试
             基础参数控件1.Size = new Size(1776, 917);
             基础参数控件1.TabIndex = 0;
             基础参数控件1.Load += 基础参数控件1_Load;
-            // 
-            // 运动控制页
-            // 
-            运动控制页.AutoScroll = true;
-            运动控制页.Controls.Add(运动控制控件1);
-            运动控制页.Location = new Point(4, 26);
-            运动控制页.Name = "运动控制页";
-            运动控制页.Size = new Size(1782, 923);
-            运动控制页.TabIndex = 1;
-            运动控制页.Text = "运动控制";
-            运动控制页.UseVisualStyleBackColor = true;
-            // 
-            // 运动控制控件1
-            // 
-            运动控制控件1.AutoScroll = true;
-            运动控制控件1.Dock = DockStyle.Fill;
-            运动控制控件1.Location = new Point(0, 0);
-            运动控制控件1.Name = "运动控制控件1";
-            运动控制控件1.Size = new Size(1782, 923);
-            运动控制控件1.TabIndex = 0;
             // 
             // 电压模块页
             // 
@@ -193,7 +169,6 @@ namespace 自动测试
             Text = "高级系统设置";
             标签导航.ResumeLayout(false);
             基础参数页.ResumeLayout(false);
-            运动控制页.ResumeLayout(false);
             电压模块页.ResumeLayout(false);
             MESS设置页.ResumeLayout(false);
             其他设置页.ResumeLayout(false);
@@ -203,8 +178,6 @@ namespace 自动测试
         private System.Windows.Forms.TabControl 标签导航;
         private System.Windows.Forms.TabPage 基础参数页;
         private 基础参数控件 基础参数控件1;
-        private System.Windows.Forms.TabPage 运动控制页;
-        private 运动控制控件 运动控制控件1;
         private System.Windows.Forms.TabPage 电压模块页;
         private 电压模块控件 电压模块控件1;
 

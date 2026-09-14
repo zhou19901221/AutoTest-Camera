@@ -40,9 +40,6 @@
     <Compile Update="系统设置\系统设置页面.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="系统设置\运动控制控件.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
     <Compile Update="编辑配置\编辑配置窗体.cs">
       <SubType>Form</SubType>
     </Compile>

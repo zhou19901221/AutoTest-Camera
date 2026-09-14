@@ -18,8 +18,6 @@ namespace 自动测试
             标签导航 = new TabControl();
             基础参数页 = new TabPage();
             基础参数控件1 = new 基础参数控件();
-            检测设置页 = new TabPage();
-            检测设置控件1 = new 检测设置控件();
             运动控制页 = new TabPage();
             运动控制控件1 = new 运动控制控件();
             电压模块页 = new TabPage();
@@ -32,7 +30,6 @@ namespace 自动测试
             取消按钮 = new Button();
             标签导航.SuspendLayout();
             基础参数页.SuspendLayout();
-            检测设置页.SuspendLayout();
             运动控制页.SuspendLayout();
             电压模块页.SuspendLayout();
             MESS设置页.SuspendLayout();
@@ -42,7 +39,6 @@ namespace 自动测试
             // 标签导航
             // 
             标签导航.Controls.Add(基础参数页);
-            标签导航.Controls.Add(检测设置页);
             标签导航.Controls.Add(运动控制页);
             标签导航.Controls.Add(电压模块页);
             标签导航.Controls.Add(MESS设置页);
@@ -75,26 +71,6 @@ namespace 自动测试
             基础参数控件1.Size = new Size(1776, 917);
             基础参数控件1.TabIndex = 0;
             基础参数控件1.Load += 基础参数控件1_Load;
-            // 
-            // 检测设置页
-            // 
-            检测设置页.AutoScroll = true;
-            检测设置页.Controls.Add(检测设置控件1);
-            检测设置页.Location = new Point(4, 26);
-            检测设置页.Name = "检测设置页";
-            检测设置页.Size = new Size(1782, 923);
-            检测设置页.TabIndex = 2;
-            检测设置页.Text = "检测设置";
-            检测设置页.UseVisualStyleBackColor = true;
-            // 
-            // 检测设置控件1
-            // 
-            检测设置控件1.AutoScroll = true;
-            检测设置控件1.Dock = DockStyle.Fill;
-            检测设置控件1.Location = new Point(0, 0);
-            检测设置控件1.Name = "检测设置控件1";
-            检测设置控件1.Size = new Size(1782, 923);
-            检测设置控件1.TabIndex = 0;
             // 
             // 运动控制页
             // 
@@ -217,7 +193,6 @@ namespace 自动测试
             Text = "高级系统设置";
             标签导航.ResumeLayout(false);
             基础参数页.ResumeLayout(false);
-            检测设置页.ResumeLayout(false);
             运动控制页.ResumeLayout(false);
             电压模块页.ResumeLayout(false);
             MESS设置页.ResumeLayout(false);
@@ -228,8 +203,6 @@ namespace 自动测试
         private System.Windows.Forms.TabControl 标签导航;
         private System.Windows.Forms.TabPage 基础参数页;
         private 基础参数控件 基础参数控件1;
-        private System.Windows.Forms.TabPage 检测设置页;
-        private 检测设置控件 检测设置控件1;
         private System.Windows.Forms.TabPage 运动控制页;
         private 运动控制控件 运动控制控件1;
         private System.Windows.Forms.TabPage 电压模块页;

@@ -1,6 +1,7 @@
 ﻿﻿using MvCamCtrl.NET;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using MV_CC_PIXEL_FORMAT_PARAM = MvCamCtrl.NET.MyCamera.MV_PIXEL_CONVERT_PARAM;
 
 namespace 自动测试
 {

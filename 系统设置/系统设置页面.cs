@@ -83,10 +83,23 @@ namespace 自动测试
             return new TextBox { Text = 默认值, Location = new Point(x, y), Size = new Size(宽度, 23) };
         }
 
-        private NumericUpDown 创建数字框(decimal 默认值, decimal 最大值, decimal 步进, int x, int y)
+        private NumericUpDown 创建数字框<T默认, T最大, T步进>(T默认 默认值, T最大 最大值, T步进 步进, int x, int y)
+            where T默认 : IConvertible
+            where T最大 : IConvertible
+            where T步进 : IConvertible
         {
-            var 控件 = new NumericUpDown { Maximum = 最大值, Increment = 步进, Location = new Point(x, y), Size = new Size(80, 23) };
-            控件.Value = 默认值;
+            decimal 默认值Decimal = Convert.ToDecimal(默认值);
+            decimal 最大值Decimal = Convert.ToDecimal(最大值);
+            decimal 步进Decimal = Convert.ToDecimal(步进);
+
+            var 控件 = new NumericUpDown
+            {
+                Maximum = 最大值Decimal,
+                Increment = 步进Decimal,
+                Location = new Point(x, y),
+                Size = new Size(80, 23)
+            };
+            控件.Value = 默认值Decimal;
             return 控件;
         }
 

@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,13 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Libs\**\*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Compile Remove="配置数据.cs;配置管理器.cs;配置数据库.cs;系统配置数据.cs;模块配置数据.cs;模块寄存器配置.cs;日志管理器.cs;界面缩放器.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="配置数据.cs;配置管理器.cs;配置数据库.cs;系统配置数据.cs;模块配置数据.cs;模块寄存器配置.cs;日志管理器.cs;界面缩放器.cs" />
+    <None Include="Libs\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

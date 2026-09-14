@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.IO.Ports;
 using System.Windows.Forms;
 
@@ -12,12 +13,30 @@ namespace 自动测试
         {
             InitializeComponent();
             初始化波特率选项();
-            端口框.Items.AddRange(SerialPort.GetPortNames());
+            初始化串口端口选项();
             if (端口框.Items.Count > 0) 端口框.SelectedIndex = 0;
             串口波特率.SelectedItem = "115200";
             串口数据位.SelectedItem = "8";
             串口校验.SelectedItem = "None";
             串口停止位.SelectedItem = "1";
+        }
+
+        private void 初始化串口端口选项()
+        {
+            端口框.Items.Clear();
+
+            try
+            {
+                端口框.Items.AddRange(SerialPort.GetPortNames());
+            }
+            catch (FileNotFoundException)
+            {
+                // 运行环境缺少 System.IO.Ports 时，避免设置页面初始化直接崩溃。
+            }
+            catch
+            {
+                // 串口枚举失败时保留空列表，交由上层提示或后续重试。
+            }
         }
 
         private void 初始化波特率选项()

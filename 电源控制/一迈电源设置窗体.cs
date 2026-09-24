@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO.Ports;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace 自动测试
@@ -11,6 +13,8 @@ namespace 自动测试
         private readonly 一迈电源控制 电源 = new 一迈电源控制();
         private readonly Dictionary<string, Label> 状态值标签 = new Dictionary<string, Label>();
         private readonly System.Windows.Forms.Timer 状态刷新定时器 = new System.Windows.Forms.Timer();
+        private int 刷新中 = 0;
+        private CancellationTokenSource? 刷新取消源;
 
         public 一迈电源设置窗体()
         {
@@ -20,6 +24,13 @@ namespace 自动测试
             if (端口框.Items.Count > 0) 端口框.SelectedIndex = 0;
             状态刷新定时器.Interval = 1000;
             状态刷新定时器.Tick += 状态刷新定时器_Tick;
+            FormClosed += (_, _) =>
+            {
+                状态刷新定时器.Stop();
+                刷新取消源?.Cancel();
+                刷新取消源?.Dispose();
+                刷新取消源 = null;
+            };
             界面缩放器.等比例适配屏幕(this);
         }
 
@@ -90,39 +101,67 @@ namespace 自动测试
 
             通讯状态标签.Text = "已连接";
             通讯状态标签.ForeColor = Color.Green;
+            刷新取消源?.Cancel();
+            刷新取消源?.Dispose();
+            刷新取消源 = new CancellationTokenSource();
             状态刷新定时器.Start();
         }
 
         private void 断开按钮_Click(object? sender, EventArgs e)
         {
             状态刷新定时器.Stop();
-            电源.断开();
+            刷新取消源?.Cancel();
+            try
+            {
+                电源.断开();
+            }
+            catch
+            {
+                // 断开过程异常不阻塞UI
+            }
             通讯状态标签.Text = "未连接";
             通讯状态标签.ForeColor = Color.Red;
         }
 
-        private void 状态刷新定时器_Tick(object? sender, EventArgs e)
+        private async void 状态刷新定时器_Tick(object? sender, EventArgs e)
         {
+            if (Interlocked.Exchange(ref 刷新中, 1) == 1) return;
             try
             {
-                ushort 字1 = 电源.读状态字1();
-                ushort 字2 = 电源.读状态字2();
-                float 温度 = 电源.读内部温度();
-                float 电压 = 电源.读实际输出电压();
-                float 电流 = 电源.读实际输出电流();
-                ushort 控制字 = 电源.读保持寄存器(一迈电源控制.寄存器控制字, 1)[0];
-                更新状态(字1, 字2, 温度, 电压, 电流);
-                控制字标签.Text = $"控制字:0x{控制字:X4}";
+                var cts = 刷新取消源;
+                var token = cts?.Token ?? CancellationToken.None;
+                var 快照 = await Task.Run(() =>
+                {
+                    token.ThrowIfCancellationRequested();
+                    ushort 字1 = 电源.读状态字1();
+                    ushort 字2 = 电源.读状态字2();
+                    float 温度 = 电源.读内部温度();
+                    float 电压 = 电源.读实际输出电压();
+                    float 电流 = 电源.读实际输出电流();
+                    ushort 控制字 = 电源.读保持寄存器(一迈电源控制.寄存器控制字, 1)[0];
+                    return (字1, 字2, 温度, 电压, 电流, 控制字);
+                }, token);
+
+                更新状态(快照.字1, 快照.字2, 快照.温度, 快照.电压, 快照.电流);
+                控制字标签.Text = $"控制字:0x{快照.控制字:X4}";
                 if (通讯状态标签.Text != "已连接")
                 {
                     通讯状态标签.Text = "已连接";
                     通讯状态标签.ForeColor = Color.Green;
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // 正常取消
+            }
             catch
             {
                 通讯状态标签.Text = "通讯异常";
                 通讯状态标签.ForeColor = Color.Red;
+            }
+            finally
+            {
+                Interlocked.Exchange(ref 刷新中, 0);
             }
         }
 
@@ -169,7 +208,7 @@ namespace 自动测试
             电压设置框.Value = (decimal)Math.Min(电源.读输出电压设置(), (float)电压设置框.Maximum);
             电流设置框.Value = (decimal)Math.Min(电源.读输出电流设置(), (float)电流设置框.Maximum);
             过压保护框.Value = (decimal)Math.Min(电源.读过压保护(), (float)过压保护框.Maximum);
-            过流保护框.Value = (decimal)Math.Min(电源.读过压保护(), (float)过流保护框.Maximum);
+            过流保护框.Value = (decimal)Math.Min(电源.读过流保护(), (float)过流保护框.Maximum);
             默认限压框.Value = (decimal)Math.Min(电源.读默认输出限压(), (float)默认限压框.Maximum);
             默认限流框.Value = (decimal)Math.Min(电源.读默认输出限流(), (float)默认限流框.Maximum);
             PWM周期框.Value = Math.Min(电源.读PWM周期(), PWM周期框.Maximum);

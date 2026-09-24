@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
 using System.IO.Ports;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace 自动测试
@@ -9,6 +11,8 @@ namespace 自动测试
     {
         private readonly 永鹏电源控制 电源 = new 永鹏电源控制();
         private readonly System.Windows.Forms.Timer 刷新定时器 = new System.Windows.Forms.Timer();
+        private int 刷新中 = 0;
+        private CancellationTokenSource? 刷新取消源;
 
         private readonly ComboBox 端口框 = new ComboBox();
         private readonly ComboBox 波特率框 = new ComboBox();
@@ -29,7 +33,7 @@ namespace 自动测试
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            ClientSize = new Size(760, 460);
+            ClientSize = new Size(1936, 1048);
 
             初始化界面();
             初始化事件();
@@ -39,7 +43,7 @@ namespace 自动测试
             波特率框.SelectedItem = "9600";
 
             刷新定时器.Interval = 1000;
-            刷新定时器.Tick += (_, _) => 刷新状态();
+            刷新定时器.Tick += async (_, _) => await 刷新状态();
 
             界面缩放器.等比例适配屏幕(this);
         }
@@ -150,6 +154,7 @@ namespace 自动测试
             FormClosed += (_, _) =>
             {
                 刷新定时器.Stop();
+                刷新取消源?.Cancel();
                 电源.断开();
             };
         }
@@ -178,7 +183,10 @@ namespace 自动测试
                 电源.连接((string)端口框.SelectedItem, int.Parse(波特率框.Text));
                 通讯状态标签.Text = "已连接";
                 通讯状态标签.ForeColor = Color.Green;
-                刷新状态();
+                刷新取消源?.Cancel();
+                刷新取消源?.Dispose();
+                刷新取消源 = new CancellationTokenSource();
+                _ = 刷新状态();
                 刷新定时器.Start();
             }
             catch (Exception ex)
@@ -209,7 +217,7 @@ namespace 自动测试
 
                 电源.设置电压((float)电压框.Value);
                 电源.设置频率((float)频率框.Value);
-                刷新状态();
+                _ = 刷新状态();
             }
             catch (Exception ex)
             {
@@ -230,7 +238,7 @@ namespace 自动测试
                 电源.设置电压((float)电压框.Value);
                 电源.设置频率((float)频率框.Value);
                 电源.启动电源();
-                刷新状态();
+                _ = 刷新状态();
             }
             catch (Exception ex)
             {
@@ -249,7 +257,7 @@ namespace 自动测试
                 }
 
                 电源.停止电源();
-                刷新状态();
+                _ = 刷新状态();
             }
             catch (Exception ex)
             {
@@ -257,17 +265,26 @@ namespace 自动测试
             }
         }
 
-        private void 刷新状态()
+        private async Task 刷新状态()
         {
             if (!电源.已连接) return;
 
             try
             {
-                ushort 工作状态 = 电源.读工作状态();
-                float 输出电压 = 电源.读输出电压();
-                float 输出频率 = 电源.读输出频率();
-                float 输出电流 = 电源.读输出电流();
-                float 输出功率 = 电源.读输出有功功率();
+                ushort 工作状态 = 0;
+                float 输出电压 = 0;
+                float 输出频率 = 0;
+                float 输出电流 = 0;
+                float 输出功率 = 0;
+
+                await Task.Run(() =>
+                {
+                    工作状态 = 电源.读工作状态();
+                    输出电压 = 电源.读输出电压();
+                    输出频率 = 电源.读输出频率();
+                    输出电流 = 电源.读输出电流();
+                    输出功率 = 电源.读输出有功功率();
+                });
 
                 工作状态值.Text = 工作状态 == 1 ? "高档" : "低档/停止";
                 输出电压值.Text = $"{输出电压:F1} V";

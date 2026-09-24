@@ -27,7 +27,8 @@ namespace 自动测试
     public static class 日志管理器
     {
         private static readonly string 数据库路径 = Path.Combine(Application.StartupPath, "操作日志.db");
-        private static 权限等级 当前权限 = 权限等级.管理员;
+        private static 权限等级 当前权限 = 权限等级.员工;
+        private static string 当前用户名 = "未登录";
 
         public static 权限等级 当前用户权限
         {
@@ -41,6 +42,23 @@ namespace 自动测试
                     记录(日志类别.用户操作, "权限切换", $"{旧权限} → {value}", 权限等级.厂家);
                 }
             }
+        }
+
+        public static string 当前登录用户 => 当前用户名;
+
+        public static void 设置当前用户(string 用户名, 权限等级 权限)
+        {
+            当前用户名 = string.IsNullOrWhiteSpace(用户名) ? "未登录" : 用户名.Trim();
+            当前用户权限 = 权限;
+            记录(日志类别.用户操作, "用户登录", $"用户: {当前用户名}, 权限: {权限}", 权限等级.员工);
+        }
+
+        public static void 退出登录()
+        {
+            string 原用户 = 当前用户名;
+            当前用户名 = "未登录";
+            当前用户权限 = 权限等级.员工;
+            记录(日志类别.用户操作, "用户退出", $"用户: {原用户}", 权限等级.员工);
         }
 
         public static void 初始化()
@@ -80,7 +98,7 @@ namespace 自动测试
                 命令.Parameters.AddWithValue("$类别", 类别.ToString());
                 命令.Parameters.AddWithValue("$操作", 操作);
                 命令.Parameters.AddWithValue("$详情", 详情 ?? "");
-                命令.Parameters.AddWithValue("$用户", Environment.UserName);
+                命令.Parameters.AddWithValue("$用户", 当前用户名);
                 命令.Parameters.AddWithValue("$权限要求", 最低可见权限.ToString());
                 命令.ExecuteNonQuery();
             }

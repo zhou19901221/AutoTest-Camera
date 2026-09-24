@@ -1,5 +1,6 @@
 ﻿using MvCamCtrl.NET;
 using System.Runtime.InteropServices;
+using System.Drawing.Drawing2D;
 
 namespace 自动测试
 {
@@ -10,6 +11,7 @@ namespace 自动测试
         private bool 相机已连接 = false;
         private string 操作日志内容 = "";
         private 编辑配置窗体.配置项数据? 当前配置 = null;
+        private Button? 当前导航选中按钮;
 
         public static Form1? 主窗体实例 = null;
 
@@ -18,17 +20,151 @@ namespace 自动测试
             InitializeComponent();
             主窗体实例 = this;
             this.Load += Form1_Load;
-            界面缩放器.等比例适配屏幕(this);
+            pictureBox1.Paint += 顶栏面板_Paint;
+        }
+
+        private void 顶栏面板_Paint(object? sender, PaintEventArgs e)
+        {
+            if (sender is not PictureBox 顶栏容器) return;
+            var 顶栏区域 = 顶栏容器.ClientRectangle;
+            using var 顶部渐变刷 = new System.Drawing.Drawing2D.LinearGradientBrush(
+                顶栏区域,
+                ColorTranslator.FromHtml("#FEFEFF"),
+                ColorTranslator.FromHtml("#E6EAEE"),
+                90f);
+            e.Graphics.FillRectangle(顶部渐变刷, 顶栏区域);
+
+            using var 边框笔 = new Pen(ColorTranslator.FromHtml("#E2E7EE"), 1f);
+            var rect = 顶栏区域;
+            rect.Width -= 1;
+            rect.Height -= 1;
+            e.Graphics.DrawRectangle(边框笔, rect);
         }
 
         private void Form1_Load(object? sender, EventArgs e)
         {
             日志管理器.初始化();
+            用户管理器.初始化();
+            日志管理器.设置当前用户("临时管理员", 权限等级.管理员);
             日志管理器.记录(日志类别.系统操作, "软件启动", $"版本: {Application.ProductVersion}", 权限等级.厂家);
             配置管理器.获取实例().加载配置();
+            初始化主界面样式();
             更新权限显示();
             初始化相机();
             尝试恢复上次配置();
+        }
+
+        private void 初始化主界面样式()
+        {
+            当前配置显示.EnableHeadersVisualStyles = false;
+            当前配置显示.ColumnHeadersDefaultCellStyle.BackColor = Color.White;
+            当前配置显示.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(51, 51, 51);
+            当前配置显示.ColumnHeadersDefaultCellStyle.Font = new Font("宋体", 18F, FontStyle.Bold);
+            当前配置显示.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            当前配置显示.DefaultCellStyle.BackColor = Color.White;
+            当前配置显示.DefaultCellStyle.ForeColor = Color.FromArgb(51, 51, 51);
+            当前配置显示.DefaultCellStyle.Font = new Font("宋体", 14F, FontStyle.Regular);
+            当前配置显示.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            当前配置显示.DefaultCellStyle.SelectionBackColor = Color.FromArgb(227, 244, 255);
+            当前配置显示.DefaultCellStyle.SelectionForeColor = Color.FromArgb(51, 51, 51);
+            当前配置显示.RowTemplate.Height = 44;
+
+            当前操作日志.Padding = new Padding(4, 0, 4, 4);
+            操作日志文本框.BorderStyle = BorderStyle.None;
+            操作日志文本框.BackColor = Color.White;
+            操作日志文本框.Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Regular);
+
+            当前配置信息.Padding = new Padding(10, 10, 10, 10);
+            当前配置信息.Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold);
+            当前操作日志.Font = new Font("Microsoft YaHei UI", 12F, FontStyle.Bold);
+
+            进入自动测试.FlatAppearance.BorderSize = 0;
+            进入自动测试.FlatAppearance.MouseOverBackColor = Color.FromArgb(98, 188, 255);
+            进入自动测试.FlatAppearance.MouseDownBackColor = Color.FromArgb(72, 167, 245);
+
+            初始化导航按钮样式();
+        }
+
+        private void 初始化导航按钮样式()
+        {
+            var 导航按钮 = new[] { 编辑配置, 视觉测试, 端口测试, 日志, 设置按钮, 用户 };
+            foreach (var 按钮 in 导航按钮)
+            {
+                按钮.FlatAppearance.BorderSize = 0;
+                按钮.FlatAppearance.MouseOverBackColor = Color.Transparent;
+                按钮.FlatAppearance.MouseDownBackColor = Color.Transparent;
+                按钮.ForeColor = Color.FromArgb(51, 51, 51);
+                按钮.BackgroundImage = null;
+                按钮.BackgroundImageLayout = ImageLayout.Stretch;
+                按钮.MouseEnter -= 导航按钮_MouseEnter;
+                按钮.MouseLeave -= 导航按钮_MouseLeave;
+                按钮.MouseEnter += 导航按钮_MouseEnter;
+                按钮.MouseLeave += 导航按钮_MouseLeave;
+            }
+
+            当前导航选中按钮 = null;
+        }
+
+        private static Bitmap 创建导航悬停背景(Size 尺寸)
+        {
+            var 位图 = new Bitmap(Math.Max(1, 尺寸.Width), Math.Max(1, 尺寸.Height));
+            using var g = Graphics.FromImage(位图);
+            using var 渐变刷 = new LinearGradientBrush(
+                new Rectangle(0, 0, 位图.Width, 位图.Height),
+                ColorTranslator.FromHtml("#86C8FF"),
+                ColorTranslator.FromHtml("#6CB8FF"),
+                90f);
+            g.FillRectangle(渐变刷, 0, 0, 位图.Width, 位图.Height);
+            return 位图;
+        }
+
+        private static Bitmap 创建导航选中背景(Size 尺寸)
+        {
+            var 位图 = new Bitmap(Math.Max(1, 尺寸.Width), Math.Max(1, 尺寸.Height));
+            using var g = Graphics.FromImage(位图);
+            using var 渐变刷 = new LinearGradientBrush(
+                new Rectangle(0, 0, 位图.Width, 位图.Height),
+                ColorTranslator.FromHtml("#6CB8FF"),
+                ColorTranslator.FromHtml("#4FA0EE"),
+                90f);
+            g.FillRectangle(渐变刷, 0, 0, 位图.Width, 位图.Height);
+            return 位图;
+        }
+
+        private void 设置导航按钮选中(Button 按钮)
+        {
+            if (当前导航选中按钮 == 按钮) return;
+
+            var 导航按钮 = new[] { 编辑配置, 视觉测试, 端口测试, 日志, 设置按钮, 用户 };
+            foreach (var b in 导航按钮)
+            {
+                if (!ReferenceEquals(b, 按钮))
+                {
+                    b.BackgroundImage = null;
+                    b.ForeColor = Color.FromArgb(51, 51, 51);
+                }
+            }
+
+            按钮.BackgroundImage?.Dispose();
+            按钮.BackgroundImage = 创建导航选中背景(按钮.ClientSize);
+            按钮.ForeColor = Color.White;
+            当前导航选中按钮 = 按钮;
+        }
+
+        private void 导航按钮_MouseEnter(object? sender, EventArgs e)
+        {
+            if (sender is not Button 按钮 || ReferenceEquals(按钮, 当前导航选中按钮)) return;
+            按钮.BackgroundImage?.Dispose();
+            按钮.BackgroundImage = 创建导航悬停背景(按钮.ClientSize);
+            按钮.ForeColor = Color.White;
+        }
+
+        private void 导航按钮_MouseLeave(object? sender, EventArgs e)
+        {
+            if (sender is not Button 按钮 || ReferenceEquals(按钮, 当前导航选中按钮)) return;
+            按钮.BackgroundImage?.Dispose();
+            按钮.BackgroundImage = null;
+            按钮.ForeColor = Color.FromArgb(51, 51, 51);
         }
 
         private void 尝试恢复上次配置()
@@ -47,6 +183,9 @@ namespace 自动测试
         private void 更新权限显示()
         {
             日志.Visible = 日志管理器.当前用户权限 != 权限等级.员工;
+            用户.Text = 日志管理器.当前用户权限 == 权限等级.员工
+                ? "用户登录"
+                : $"用户:{日志管理器.当前登录用户}";
         }
 
         private void 初始化相机()
@@ -163,30 +302,10 @@ namespace 自动测试
             var 设置页面 = new 系统设置页面();
             设置页面.Show();
         }
-        private void 文件_Click(object sender, EventArgs e)
-        {
-            // 在标签下方显示上下文菜单
-            文件菜单.Show(文件, new Point(0, 文件.Height));
-        }
-
-        private void 新建ToolStripMenuItem_Click(object? sender, EventArgs e)
-        {
-            MessageBox.Show("新建 被点击");
-        }
-
-        private void 打开ToolStripMenuItem_Click(object? sender, EventArgs e)
-        {
-            MessageBox.Show("打开 被点击");
-        }
-
-        private void 退出ToolStripMenuItem_Click(object? sender, EventArgs e)
-        {
-            日志管理器.记录(日志类别.系统操作, "软件退出", "", 权限等级.厂家);
-            Close();
-        }
 
         private void 视觉测试_Click(object sender, EventArgs e)
         {
+            设置导航按钮选中(视觉测试);
             日志管理器.记录(日志类别.调试操作, "打开视觉设置页面");
             var visualDebug = new 视觉调试页面();
             visualDebug.Show();
@@ -194,6 +313,7 @@ namespace 自动测试
 
         private void 编辑配置_Click(object sender, EventArgs e)
         {
+            设置导航按钮选中(编辑配置);
             日志管理器.记录(日志类别.配置操作, "打开编辑配置", "", 权限等级.厂家);
             var 配置窗体 = new 编辑配置窗体();
             配置窗体.ShowDialog();
@@ -201,6 +321,7 @@ namespace 自动测试
 
         private void 端口测试_Click(object sender, EventArgs e)
         {
+            设置导航按钮选中(端口测试);
             日志管理器.记录(日志类别.硬件操作, "打开端口测试", "", 权限等级.管理员);
             var 端口测试页 = new 端口测试页面();
             端口测试页.Show();
@@ -208,6 +329,7 @@ namespace 自动测试
 
         private void 日志_Click(object sender, EventArgs e)
         {
+            设置导航按钮选中(日志);
             日志管理器.记录(日志类别.系统操作, "打开日志页面", "", 权限等级.厂家);
             var 日志窗体 = new 日志页面();
             日志窗体.Show();
@@ -303,32 +425,37 @@ namespace 自动测试
             var 序号列 = new DataGridViewTextBoxColumn();
             序号列.HeaderText = "序号";
             序号列.Name = "序号列";
-            序号列.Width = 50;
+            序号列.Width = 70;
             序号列.ReadOnly = true;
+            序号列.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             var 名称列 = new DataGridViewTextBoxColumn();
             名称列.HeaderText = "名称";
             名称列.Name = "名称列";
-            名称列.Width = 120;
+            名称列.Width = 170;
             名称列.ReadOnly = true;
+            名称列.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             var 类型列 = new DataGridViewTextBoxColumn();
             类型列.HeaderText = "类型";
             类型列.Name = "类型列";
-            类型列.Width = 100;
+            类型列.Width = 120;
             类型列.ReadOnly = true;
+            类型列.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             var 延时列 = new DataGridViewTextBoxColumn();
             延时列.HeaderText = "延时";
             延时列.Name = "延时列";
-            延时列.Width = 50;
+            延时列.Width = 70;
             延时列.ReadOnly = true;
+            延时列.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             var 启用列 = new DataGridViewCheckBoxColumn();
             启用列.HeaderText = "启用";
             启用列.Name = "启用列";
-            启用列.Width = 45;
+            启用列.Width = 70;
             启用列.ReadOnly = true;
+            启用列.SortMode = DataGridViewColumnSortMode.NotSortable;
 
             当前配置显示.Columns.AddRange(new DataGridViewColumn[] { 序号列, 名称列, 类型列, 延时列, 启用列 });
 
@@ -353,6 +480,55 @@ namespace 自动测试
                 测试界面.加载配置(当前配置);
             测试界面.Show();
             Hide();
+        }
+
+        private void 设置按钮_Click(object sender, EventArgs e)
+        {
+            设置_Click(sender, e);
+        }
+
+        private void 用户_Click(object sender, EventArgs e)
+        {
+            if (日志管理器.当前用户权限 == 权限等级.员工)
+            {
+                using var 登录窗体 = new 用户登录窗体();
+                if (登录窗体.ShowDialog(this) == DialogResult.OK && 登录窗体.登录用户 != null)
+                {
+                    日志管理器.设置当前用户(登录窗体.登录用户.用户名, 登录窗体.登录用户.权限);
+                    更新权限显示();
+                }
+                return;
+            }
+
+            var 结果 = MessageBox.Show("是：退出登录\n否：进入用户管理", "用户操作", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+            if (结果 == DialogResult.Yes)
+            {
+                日志管理器.退出登录();
+                更新权限显示();
+                return;
+            }
+
+            if (结果 == DialogResult.No)
+            {
+                if (日志管理器.当前用户权限 == 权限等级.员工)
+                {
+                    MessageBox.Show("当前用户无权限进入管理", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                using var 管理窗体 = new 用户管理窗体();
+                管理窗体.ShowDialog(this);
+            }
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_Load_1(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -48,7 +48,10 @@ namespace 自动测试
                     拼板数 INTEGER NOT NULL,
                     单独SN记录 INTEGER NOT NULL DEFAULT 0,
                     SN串口绑定JSON TEXT,
-                    扫码触发方式 TEXT NOT NULL DEFAULT '手动+自动'
+                    扫码触发方式 TEXT NOT NULL DEFAULT '手动+自动',
+                    NG结束启用 INTEGER NOT NULL DEFAULT 0,
+                    NG跳转启用 INTEGER NOT NULL DEFAULT 0,
+                    NG跳转序号 INTEGER NOT NULL DEFAULT 0
                 );
 
                 CREATE TABLE IF NOT EXISTS 检测项表 (
@@ -152,6 +155,30 @@ namespace 自动测试
                 添加扫码触发列命令.ExecuteNonQuery();
             }
             catch { }
+
+            try
+            {
+                var 添加NG结束列命令 = 连接.CreateCommand();
+                添加NG结束列命令.CommandText = "ALTER TABLE 配置表 ADD COLUMN NG结束启用 INTEGER NOT NULL DEFAULT 0";
+                添加NG结束列命令.ExecuteNonQuery();
+            }
+            catch { }
+
+            try
+            {
+                var 添加NG跳转启用列命令 = 连接.CreateCommand();
+                添加NG跳转启用列命令.CommandText = "ALTER TABLE 配置表 ADD COLUMN NG跳转启用 INTEGER NOT NULL DEFAULT 0";
+                添加NG跳转启用列命令.ExecuteNonQuery();
+            }
+            catch { }
+
+            try
+            {
+                var 添加NG跳转序号列命令 = 连接.CreateCommand();
+                添加NG跳转序号列命令.CommandText = "ALTER TABLE 配置表 ADD COLUMN NG跳转序号 INTEGER NOT NULL DEFAULT 0";
+                添加NG跳转序号列命令.ExecuteNonQuery();
+            }
+            catch { }
         }
 
         public List<string> 获取所有配置名()
@@ -178,7 +205,7 @@ namespace 自动测试
             连接.Open();
 
             var 命令 = 连接.CreateCommand();
-            命令.CommandText = "SELECT 创建日期, 拼板数, 单独SN记录, SN串口绑定JSON, 扫码触发方式 FROM 配置表 WHERE 配置名 = $配置名";
+            命令.CommandText = "SELECT 创建日期, 拼板数, 单独SN记录, SN串口绑定JSON, 扫码触发方式, NG结束启用, NG跳转启用, NG跳转序号 FROM 配置表 WHERE 配置名 = $配置名";
             命令.Parameters.AddWithValue("$配置名", 配置名);
 
             using var 读取器 = 命令.ExecuteReader();
@@ -197,6 +224,9 @@ namespace 自动测试
                     ? new Dictionary<string, string>()
                     : JsonSerializer.Deserialize<Dictionary<string, string>>(读取器.GetString(3)) ?? new Dictionary<string, string>(),
                 扫码触发方式 = 读取器.IsDBNull(4) ? "手动+自动" : 读取器.GetString(4),
+                NG结束启用 = !读取器.IsDBNull(5) && 读取器.GetInt32(5) == 1,
+                NG跳转启用 = !读取器.IsDBNull(6) && 读取器.GetInt32(6) == 1,
+                NG跳转序号 = 读取器.IsDBNull(7) ? 0 : 读取器.GetInt32(7),
                 检测项列表 = new List<编辑配置窗体.检测项数据>()
             };
 
@@ -263,13 +293,16 @@ namespace 自动测试
                 删除配置命令.ExecuteNonQuery();
 
                 var 插入配置命令 = 连接.CreateCommand();
-                插入配置命令.CommandText = "INSERT INTO 配置表 (配置名, 创建日期, 拼板数, 单独SN记录, SN串口绑定JSON, 扫码触发方式) VALUES ($配置名, $创建日期, $拼板数, $单独SN记录, $SN串口绑定JSON, $扫码触发方式)";
+                插入配置命令.CommandText = "INSERT INTO 配置表 (配置名, 创建日期, 拼板数, 单独SN记录, SN串口绑定JSON, 扫码触发方式, NG结束启用, NG跳转启用, NG跳转序号) VALUES ($配置名, $创建日期, $拼板数, $单独SN记录, $SN串口绑定JSON, $扫码触发方式, $NG结束启用, $NG跳转启用, $NG跳转序号)";
                 插入配置命令.Parameters.AddWithValue("$配置名", 数据.配置名称);
                 插入配置命令.Parameters.AddWithValue("$创建日期", 数据.创建日期.ToString("yyyy-MM-dd HH:mm:ss"));
                 插入配置命令.Parameters.AddWithValue("$拼板数", 数据.拼板数);
                 插入配置命令.Parameters.AddWithValue("$单独SN记录", 数据.单独SN记录 ? 1 : 0);
                 插入配置命令.Parameters.AddWithValue("$SN串口绑定JSON", JsonSerializer.Serialize(数据.SN串口绑定 ?? new Dictionary<string, string>()));
                 插入配置命令.Parameters.AddWithValue("$扫码触发方式", string.IsNullOrWhiteSpace(数据.扫码触发方式) ? "手动+自动" : 数据.扫码触发方式);
+                插入配置命令.Parameters.AddWithValue("$NG结束启用", 数据.NG结束启用 ? 1 : 0);
+                插入配置命令.Parameters.AddWithValue("$NG跳转启用", 数据.NG跳转启用 ? 1 : 0);
+                插入配置命令.Parameters.AddWithValue("$NG跳转序号", Math.Max(0, 数据.NG跳转序号));
                 插入配置命令.ExecuteNonQuery();
 
                 foreach (var 项 in 数据.检测项列表)

@@ -58,9 +58,9 @@
             // 
             // 视觉显示图像
             // 
-            视觉显示图像.Location = new Point(12, 50);
+            视觉显示图像.Location = new Point(16, 16);
             视觉显示图像.Name = "视觉显示图像";
-            视觉显示图像.Size = new Size(800, 600);
+            视觉显示图像.Size = new Size(1231, 977);
             视觉显示图像.SizeMode = PictureBoxSizeMode.Zoom;
             视觉显示图像.TabIndex = 1;
             视觉显示图像.TabStop = false;
@@ -82,7 +82,7 @@
             相机数据.Controls.Add(相机设置);
             相机数据.Controls.Add(抓取图像);
             相机数据.Controls.Add(加载图像);
-            相机数据.Location = new Point(847, 39);
+            相机数据.Location = new Point(1263, 16);
             相机数据.Name = "相机数据";
             相机数据.Size = new Size(471, 110);
             相机数据.TabIndex = 3;
@@ -117,7 +117,7 @@
             图像源容器.Controls.Add(图片目录标签);
             图像源容器.Controls.Add(图像源选择);
             图像源容器.Controls.Add(图像源标签);
-            图像源容器.Location = new Point(847, 160);
+            图像源容器.Location = new Point(1263, 190);
             图像源容器.Name = "图像源容器";
             图像源容器.Size = new Size(471, 250);
             图像源容器.TabIndex = 4;
@@ -127,9 +127,10 @@
             // 图片列表
             // 
             图片列表.FormattingEnabled = true;
+            图片列表.ItemHeight = 17;
             图片列表.Location = new Point(6, 81);
             图片列表.Name = "图片列表";
-            图片列表.Size = new Size(459, 160);
+            图片列表.Size = new Size(459, 157);
             图片列表.TabIndex = 5;
             图片列表.SelectedIndexChanged += 图片列表_SelectedIndexChanged;
             // 
@@ -167,7 +168,7 @@
             图像源选择.Items.AddRange(new object[] { "相机", "照片" });
             图像源选择.Location = new Point(80, 22);
             图像源选择.Name = "图像源选择";
-            图像源选择.Size = new Size(100, 23);
+            图像源选择.Size = new Size(100, 25);
             图像源选择.TabIndex = 1;
             图像源选择.SelectedIndexChanged += 图像源选择_SelectedIndexChanged;
             // 
@@ -184,10 +185,11 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1350, 729);
+            ClientSize = new Size(1920, 1008);
             Controls.Add(图像源容器);
             Controls.Add(相机数据);
             Controls.Add(视觉显示图像);
+            FormBorderStyle = FormBorderStyle.None;
             Name = "视觉调试页面";
             Text = "视觉调试页面";
             ((System.ComponentModel.ISupportInitialize)视觉显示图像).EndInit();

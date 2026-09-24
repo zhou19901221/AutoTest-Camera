@@ -9,12 +9,20 @@ namespace 自动测试
     {
         private 系统配置数据 配置数据;
         private bool 配置已修改 = false;
+        private readonly bool 可修改配置;
 
         public 系统设置页面()
         {
             InitializeComponent();
+            可修改配置 = 日志管理器.当前用户权限 >= 权限等级.管理员;
             配置数据 = 系统配置管理.实例;
             加载配置数据();
+
+            if (!可修改配置)
+            {
+                保存按钮.Enabled = false;
+                保存按钮.Text = "仅查看";
+            }
         }
 
         private void 初始化所有标签页()
@@ -26,16 +34,21 @@ namespace 自动测试
             基础参数控件1.设置配置数据(配置数据);
             电压模块控件1.设置配置数据(配置数据);
             MESS设置控件1.设置配置数据(配置数据);
-            其他设置控件1.设置配置数据(配置数据);
+            基础参数控件1.设置条码枪组(MESS设置控件1.提取条码枪组());
             界面缩放器.等比例适配屏幕(this);
         }
 
         private void 保存按钮_Click(object? sender, EventArgs e)
         {
+            if (!可修改配置)
+            {
+                MessageBox.Show("当前用户仅可查看配置，需管理员及以上权限才能修改。", "权限不足", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             基础参数控件1.保存配置();
             电压模块控件1.保存配置();
             MESS设置控件1.保存配置();
-            其他设置控件1.保存配置();
 
             系统配置管理.保存(配置数据);
             MessageBox.Show("配置已保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);

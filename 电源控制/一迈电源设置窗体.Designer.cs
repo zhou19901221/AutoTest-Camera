@@ -663,7 +663,7 @@ namespace 自动测试
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(240, 240, 240);
-            ClientSize = new Size(1120, 800);
+            ClientSize = new Size(1936, 1048);
             Controls.Add(通信保护组);
             Controls.Add(PWM设置组);
             Controls.Add(输出设置组);

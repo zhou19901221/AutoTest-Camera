@@ -13,9 +13,11 @@ namespace 自动测试
         private List<RadioButton> 当前板选择列表 = new List<RadioButton>();
         private readonly Dictionary<int, ComboBox> SN串口绑定框 = new Dictionary<int, ComboBox>();
         private ComboBox? 扫码触发方式框;
+        private CheckBox? 屏蔽扫码勾选框;
 
         private string 当前配置名 = "";
         private bool 配置已修改 = false;
+        private readonly bool 可修改配置;
 
         public class 配置项数据
         {
@@ -25,6 +27,9 @@ namespace 自动测试
             public bool 单独SN记录 { get; set; } = false;
             public Dictionary<string, string> SN串口绑定 { get; set; } = new Dictionary<string, string>();
             public string 扫码触发方式 { get; set; } = "手动+自动";
+            public bool NG结束启用 { get; set; } = false;
+            public bool NG跳转启用 { get; set; } = false;
+            public int NG跳转序号 { get; set; } = 0;
             public List<检测项数据> 检测项列表 { get; set; } = new List<检测项数据>();
         }
 
@@ -76,8 +81,57 @@ namespace 自动测试
         public 编辑配置窗体()
         {
             InitializeComponent();
+            可修改配置 = 日志管理器.当前用户权限 >= 权限等级.管理员;
             初始化界面();
+            if (!可修改配置)
+            {
+                应用只读模式();
+            }
             界面缩放器.等比例适配屏幕(this);
+        }
+
+        private bool 校验配置修改权限()
+        {
+            if (可修改配置) return true;
+            MessageBox.Show("当前用户仅可查看配置，需管理员及以上权限才能修改。", "权限不足", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return false;
+        }
+
+        private void 应用只读模式()
+        {
+            Text += "（只读）";
+
+            拼板数框.Enabled = false;
+            检测项表格.ReadOnly = true;
+            检测项表格.AllowUserToAddRows = false;
+            检测项表格.AllowUserToDeleteRows = false;
+
+            增加配置按钮.Enabled = false;
+            复制配置按钮.Enabled = false;
+            删除配置按钮.Enabled = false;
+            导入配置按钮.Enabled = false;
+
+            顺序填充按钮.Enabled = false;
+            间隔1填充按钮.Enabled = false;
+            间隔2填充按钮.Enabled = false;
+
+            增加项按钮.Enabled = false;
+            插入项按钮.Enabled = false;
+            保存项按钮.Enabled = false;
+            复制项按钮.Enabled = false;
+            粘贴项按钮.Enabled = false;
+            删除项按钮.Enabled = false;
+            启用所有按钮.Enabled = false;
+            停用所有按钮.Enabled = false;
+
+            if (屏蔽扫码勾选框 != null)
+            {
+                屏蔽扫码勾选框.Enabled = false;
+            }
+
+            NG结束勾选框.Enabled = false;
+            NG跳转勾选框.Enabled = false;
+            NG跳转框.Enabled = false;
         }
 
         private void 初始化界面()
@@ -88,10 +142,10 @@ namespace 自动测试
             拼板数框.Value = 6;
 
             初始化当前板选择();
-            
+
             配置名列表.SelectedIndexChanged += 配置名列表_SelectedIndexChanged;
             配置名列表.DoubleClick += 配置名列表_DoubleClick;
-            
+
             检测项表格.RowsAdded += 检测项表格_RowsAdded;
             检测项表格.CellValueChanged += 检测项表格_CellValueChanged;
             检测项表格.CurrentCellDirtyStateChanged += 检测项表格_CurrentCellDirtyStateChanged;
@@ -104,6 +158,18 @@ namespace 自动测试
             发送内容框.TextChanged += 发送内容框_TextChanged;
             判定时间框.TextChanged += 判定时间框_TextChanged;
             重复次数框.TextChanged += 重复次数框_TextChanged;
+
+            NG结束勾选框.CheckedChanged += (_, __) =>
+            {
+                更新NG联动状态();
+                配置已修改 = true;
+            };
+            NG跳转勾选框.CheckedChanged += (_, __) =>
+            {
+                更新NG联动状态();
+                配置已修改 = true;
+            };
+            NG跳转框.TextChanged += (_, __) => 配置已修改 = true;
 
             初始化SN串口绑定区();
 
@@ -135,6 +201,20 @@ namespace 自动测试
             扫码触发方式框.SelectedIndex = 2;
             扫码触发方式框.SelectedIndexChanged += (_, __) => 配置已修改 = true;
             检测设置页.Controls.Add(扫码触发方式框);
+
+            屏蔽扫码勾选框 = new CheckBox();
+            屏蔽扫码勾选框.Text = "屏蔽扫码";
+            屏蔽扫码勾选框.Location = new System.Drawing.Point(885, 26);
+            屏蔽扫码勾选框.Size = new System.Drawing.Size(90, 20);
+            屏蔽扫码勾选框.CheckedChanged += (_, __) =>
+            {
+                if (扫码触发方式框 != null)
+                {
+                    扫码触发方式框.Enabled = !屏蔽扫码勾选框.Checked;
+                }
+                配置已修改 = true;
+            };
+            检测设置页.Controls.Add(屏蔽扫码勾选框);
 
             for (int i = 1; i <= 8; i++)
             {
@@ -170,6 +250,18 @@ namespace 自动测试
 
             int idx = 框.Items.IndexOf(当前值);
             框.SelectedIndex = idx >= 0 ? idx : 0;
+        }
+
+        private void 更新NG联动状态()
+        {
+            bool 启用NG结束 = NG结束勾选框.Checked;
+            NG跳转勾选框.Enabled = 启用NG结束;
+            if (!启用NG结束)
+            {
+                NG跳转勾选框.Checked = false;
+            }
+
+            NG跳转框.Enabled = 启用NG结束 && NG跳转勾选框.Checked;
         }
 
         private Dictionary<string, string> 获取SN串口绑定设置()
@@ -215,12 +307,12 @@ namespace 自动测试
         private void 配置名列表_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (配置名列表.SelectedIndex == -1) return;
-            
+
             if (配置已修改 && !string.IsNullOrEmpty(当前配置名))
             {
-                var result = MessageBox.Show($"配置 \"{当前配置名}\" 已修改，是否保存？", "保存提示", 
+                var result = MessageBox.Show($"配置 \"{当前配置名}\" 已修改，是否保存？", "保存提示",
                     MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-                
+
                 if (result == DialogResult.Yes)
                 {
                     保存当前配置数据();
@@ -231,7 +323,7 @@ namespace 自动测试
                     return;
                 }
             }
-            
+
             当前配置名 = 配置名列表.SelectedItem?.ToString() ?? "";
             加载配置数据(当前配置名);
             配置已修改 = false;
@@ -239,13 +331,14 @@ namespace 自动测试
 
         private void 保存当前配置数据()
         {
+            if (!可修改配置) return;
             if (string.IsNullOrEmpty(当前配置名)) return;
 
             Validate();
             检测项表格.EndEdit();
-            
+
             日志管理器.记录(日志类别.配置操作, "保存配置", 当前配置名);
-            
+
             var 数据 = new 配置项数据
             {
                 配置名称 = 当前配置名,
@@ -253,14 +346,19 @@ namespace 自动测试
                 拼板数 = (int)拼板数框.Value,
                 单独SN记录 = 单独SN标签.Checked,
                 SN串口绑定 = 获取SN串口绑定设置(),
-                扫码触发方式 = 扫码触发方式框?.SelectedItem?.ToString() ?? "手动+自动",
+                扫码触发方式 = 屏蔽扫码勾选框?.Checked == true
+                    ? "屏蔽扫码"
+                    : (扫码触发方式框?.SelectedItem?.ToString() ?? "手动+自动"),
+                NG结束启用 = NG结束勾选框.Checked,
+                NG跳转启用 = NG跳转勾选框.Checked,
+                NG跳转序号 = int.TryParse(NG跳转框.Text.Trim(), out int 跳转序号) ? Math.Max(0, 跳转序号) : 0,
                 检测项列表 = new List<检测项数据>()
             };
-            
+
             foreach (DataGridViewRow row in 检测项表格.Rows)
             {
                 if (row.IsNewRow) continue;
-                
+
                 检测项数据 项 = new 检测项数据
                 {
                     名称 = row.Cells["名称列"].Value?.ToString() ?? "",
@@ -272,7 +370,7 @@ namespace 自动测试
                     设定值 = row.Cells["设定值"].Value?.ToString() ?? "",
                     启用 = bool.TryParse(row.Cells["启用列"].Value?.ToString(), out bool 启用) ? 启用 : false
                 };
-                
+
                 for (int p = 1; p <= 32; p++)
                 {
                     string 字段名 = $"拼版{p}地址";
@@ -329,7 +427,7 @@ namespace 自动测试
                         }
                     }
                 }
-                
+
                 数据.检测项列表.Add(项);
             }
 
@@ -340,24 +438,38 @@ namespace 自动测试
         {
             var 数据 = 配置数据库.实例.加载配置(配置名);
             if (数据 == null) return;
-            
+
             拼板数框.Value = 数据.拼板数;
             单独SN标签.Checked = 数据.单独SN记录;
             应用SN串口绑定设置(数据.SN串口绑定);
+
+            NG结束勾选框.Checked = 数据.NG结束启用;
+            NG跳转勾选框.Checked = 数据.NG跳转启用;
+            NG跳转框.Text = 数据.NG跳转序号 > 0 ? 数据.NG跳转序号.ToString() : "";
+            更新NG联动状态();
+
             if (扫码触发方式框 != null)
             {
                 string 方式 = string.IsNullOrWhiteSpace(数据.扫码触发方式) ? "手动+自动" : 数据.扫码触发方式;
-                int idx = 扫码触发方式框.Items.IndexOf(方式);
+                bool 屏蔽扫码 = string.Equals(方式, "屏蔽扫码", StringComparison.OrdinalIgnoreCase);
+                if (屏蔽扫码勾选框 != null)
+                {
+                    屏蔽扫码勾选框.Checked = 屏蔽扫码;
+                }
+
+                string 下拉方式 = 屏蔽扫码 ? "手动+自动" : 方式;
+                int idx = 扫码触发方式框.Items.IndexOf(下拉方式);
                 扫码触发方式框.SelectedIndex = idx >= 0 ? idx : 2;
+                扫码触发方式框.Enabled = !屏蔽扫码;
             }
-            
+
             检测项表格.Rows.Clear();
             foreach (var 项 in 数据.检测项列表)
             {
                 int 新索引 = 检测项表格.Rows.Add(项.排序, 项.名称, 项.类型, 项.延时, 项.最大值, 项.最小值, 项.设定值, 项.启用);
                 var 行 = 检测项表格.Rows[新索引];
                 更新行显示根据类型(行, 项.类型);
-                
+
                 for (int p = 1; p <= 32; p++)
                 {
                     string 字段名 = $"拼版{p}地址";
@@ -423,25 +535,25 @@ namespace 自动测试
                 MessageBox.Show("请先选择或创建一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-            
+
             var row = 检测项表格.Rows[e.RowIndex];
             if (row.IsNewRow) return;
-            
+
             if (检测项表格.Columns[e.ColumnIndex].Name == "类型列")
             {
                 string 类型 = row.Cells["类型列"].Value?.ToString() ?? "";
                 更新行显示根据类型(row, 类型);
                 同步检测设置表格();
-                日志管理器.记录(日志类别.配置操作, "修改检测项类型", $"{当前配置名} 行{e.RowIndex+1} → {类型}");
+                日志管理器.记录(日志类别.配置操作, "修改检测项类型", $"{当前配置名} 行{e.RowIndex + 1} → {类型}");
             }
-            
+
             if (检测项表格.Columns[e.ColumnIndex].Name == "排序列")
             {
                 return;
             }
-            
+
             for (int i = 0; i < 检测项表格.Rows.Count; i++)
             {
                 if (!检测项表格.Rows[i].IsNewRow)
@@ -449,7 +561,7 @@ namespace 自动测试
                     检测项表格.Rows[i].Cells["排序列"].Value = i + 1;
                 }
             }
-            
+
             配置已修改 = true;
         }
 
@@ -461,10 +573,10 @@ namespace 自动测试
             bool 需要文本值 = 类型 == "相机检测" || 类型 == "串口输出";
             bool 保留最大最小 = 类型 == "电源输出" || 类型 == "输入功率" || 类型 == "程控电源";
             bool 串口输出前缀校验 = 类型 == "串口输出";
-            
+
             row.Cells["最大值"].ReadOnly = !(需要数值范围 || 保留最大最小 || 串口输出前缀校验);
             row.Cells["最小值"].ReadOnly = !(需要数值范围 || 保留最大最小);
-            
+
             if (需要布尔值)
             {
                 var comboBoxCell = new DataGridViewComboBoxCell();
@@ -531,14 +643,21 @@ namespace 自动测试
 
         private void 更新当前板选择显示(int 数量)
         {
+            const int 起始X = 20;
+            const int 起始Y = 56;
+            const int 每行数量 = 16;
+            const int 横向间距 = 90;
+            const int 纵向间距 = 40;
+            var 选框尺寸 = new System.Drawing.Size(55, 30);
+
             while (当前板选择列表.Count < 数量)
             {
                 int 索引 = 当前板选择列表.Count;
                 RadioButton 新按钮 = new RadioButton();
                 新按钮.Text = (索引 + 1).ToString();
-                新按钮.Size = new System.Drawing.Size(40, 24);
+                新按钮.Size = 选框尺寸;
                 新按钮.Tag = 索引;
-                新按钮.Location = new System.Drawing.Point(20 + (索引 % 16) * 70, 20 + (索引 / 16) * 30);
+                新按钮.Location = new System.Drawing.Point(起始X + (索引 % 每行数量) * 横向间距, 起始Y + (索引 / 每行数量) * 纵向间距);
                 新按钮.CheckedChanged += 当前板选择_CheckedChanged;
                 当前板选择组.Controls.Add(新按钮);
                 当前板选择列表.Add(新按钮);
@@ -546,7 +665,10 @@ namespace 自动测试
 
             for (int i = 0; i < 当前板选择列表.Count; i++)
             {
+                当前板选择列表[i].Size = 选框尺寸;
+                当前板选择列表[i].Location = new System.Drawing.Point(起始X + (i % 每行数量) * 横向间距, 起始Y + (i / 每行数量) * 纵向间距);
                 当前板选择列表[i].Visible = i < 数量;
+                当前板选择列表[i].Enabled = i < 数量;
             }
 
             if (数量 > 0 && !当前板选择列表[0].Checked)
@@ -603,179 +725,179 @@ namespace 自动测试
             正在刷新工位地址 = true;
             try
             {
-            工位地址框.BeginUpdate();
-            工位地址框2.BeginUpdate();
-            工位地址框3.BeginUpdate();
-            工位地址框4.BeginUpdate();
+                工位地址框.BeginUpdate();
+                工位地址框2.BeginUpdate();
+                工位地址框3.BeginUpdate();
+                工位地址框4.BeginUpdate();
 
-            工位地址框.Items.Clear();
-            工位地址框2.Items.Clear();
-            工位地址框3.Items.Clear();
-            工位地址框4.Items.Clear();
+                工位地址框.Items.Clear();
+                工位地址框2.Items.Clear();
+                工位地址框3.Items.Clear();
+                工位地址框4.Items.Clear();
 
-            int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
-            if (当前行索引 < 0 || 当前行索引 >= 检测项表格.Rows.Count) return;
+                int 当前行索引 = 检测项表格.CurrentCell?.RowIndex ?? -1;
+                if (当前行索引 < 0 || 当前行索引 >= 检测项表格.Rows.Count) return;
 
-            var 行 = 检测项表格.Rows[当前行索引];
-            if (行.IsNewRow) return;
+                var 行 = 检测项表格.Rows[当前行索引];
+                if (行.IsNewRow) return;
 
-            string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
-            if (string.IsNullOrEmpty(类型)) return;
+                string 类型 = 行.Cells["类型列"].Value?.ToString() ?? "";
+                if (string.IsNullOrEmpty(类型)) return;
 
-            int 当前拼版 = 获取当前选中拼版();
-            if (当前拼版 < 1) return;
+                int 当前拼版 = 获取当前选中拼版();
+                if (当前拼版 < 1) return;
 
-            List<string> 地址列表;
-            if (类型 == "串口输出")
-            {
-                地址列表 = SerialPort.GetPortNames()
-                    .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-            }
-            else
-            {
-                地址列表 = 系统配置管理.获取可用地址列表(类型);
-            }
-            
-            bool 是继电器输出 = 类型 == "继电器输出";
-            bool 是串口输出 = 类型 == "串口输出";
-            工位地址框2.Visible = 是继电器输出;
-            工位地址框3.Visible = 是继电器输出;
-            工位地址框4.Visible = 是继电器输出;
-            发送内容标签.Visible = 是串口输出;
-            发送内容框.Visible = 是串口输出;
-            判定时间标签.Visible = 是串口输出;
-            判定时间框.Visible = 是串口输出;
-            重复次数标签.Visible = 是串口输出;
-            重复次数框.Visible = 是串口输出;
-            工位地址标签.Text = 是串口输出 ? "串口地址：" : "工位地址：";
-
-            工位地址框.Items.Add("无");
-            if (是继电器输出)
-            {
-                工位地址框2.Items.Add("无");
-                工位地址框3.Items.Add("无");
-                工位地址框4.Items.Add("无");
-            }
-
-            int 填充起始X = 是继电器输出 ? 590 : 220;
-            顺序填充按钮.Location = new Point(填充起始X, 18);
-            间隔1填充按钮.Location = new Point(填充起始X + 85, 18);
-            间隔2填充按钮.Location = new Point(填充起始X + 170, 18);
-            顺序填充按钮.Visible = !是串口输出;
-            间隔1填充按钮.Visible = !是串口输出;
-            间隔2填充按钮.Visible = !是串口输出;
-
-            if (地址列表.Count == 0)
-            {
-                工位地址框.Items.Add("未安装对应模块");
-                工位地址框.SelectedIndex = 0;
-                return;
-            }
-
-            HashSet<string> 同行已选地址 = 获取同行已选地址(当前行索引, 当前拼版);
-
-            string 已选1 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 1);
-            string 已选2 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 2);
-            string 已选3 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 3);
-            string 已选4 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 4);
-
-            var 地址候选1 = new List<object>();
-            var 地址候选2 = 是继电器输出 ? new List<object>() : null;
-            var 地址候选3 = 是继电器输出 ? new List<object>() : null;
-            var 地址候选4 = 是继电器输出 ? new List<object>() : null;
-
-            foreach (var 地址 in 地址列表)
-            {
-                if (!同行已选地址.Contains(地址))
+                List<string> 地址列表;
+                if (类型 == "串口输出")
                 {
-                    if (地址 != 已选2 && 地址 != 已选3 && 地址 != 已选4)
-                        地址候选1.Add(地址);
-                    
-                    if (是继电器输出)
+                    地址列表 = SerialPort.GetPortNames()
+                        .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                }
+                else
+                {
+                    地址列表 = 系统配置管理.获取可用地址列表(类型);
+                }
+
+                bool 是继电器输出 = 类型 == "继电器输出";
+                bool 是串口输出 = 类型 == "串口输出";
+                工位地址框2.Visible = 是继电器输出;
+                工位地址框3.Visible = 是继电器输出;
+                工位地址框4.Visible = 是继电器输出;
+                发送内容标签.Visible = 是串口输出;
+                发送内容框.Visible = 是串口输出;
+                判定时间标签.Visible = 是串口输出;
+                判定时间框.Visible = 是串口输出;
+                重复次数标签.Visible = 是串口输出;
+                重复次数框.Visible = 是串口输出;
+                工位地址标签.Text = 是串口输出 ? "串口地址：" : "工位地址：";
+
+                工位地址框.Items.Add("无");
+                if (是继电器输出)
+                {
+                    工位地址框2.Items.Add("无");
+                    工位地址框3.Items.Add("无");
+                    工位地址框4.Items.Add("无");
+                }
+
+                int 填充起始X = 是继电器输出 ? 750 : 300;
+                顺序填充按钮.Location = new Point(填充起始X, 22);
+                间隔1填充按钮.Location = new Point(填充起始X + 120, 22);
+                间隔2填充按钮.Location = new Point(填充起始X + 240, 22);
+                顺序填充按钮.Visible = !是串口输出;
+                间隔1填充按钮.Visible = !是串口输出;
+                间隔2填充按钮.Visible = !是串口输出;
+
+                if (地址列表.Count == 0)
+                {
+                    工位地址框.Items.Add("未安装对应模块");
+                    工位地址框.SelectedIndex = 0;
+                    return;
+                }
+
+                HashSet<string> 同行已选地址 = 获取同行已选地址(当前行索引, 当前拼版);
+
+                string 已选1 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 1);
+                string 已选2 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 2);
+                string 已选3 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 3);
+                string 已选4 = 获取当前检测项拼版子地址(当前行索引, 当前拼版, 4);
+
+                var 地址候选1 = new List<object>();
+                var 地址候选2 = 是继电器输出 ? new List<object>() : null;
+                var 地址候选3 = 是继电器输出 ? new List<object>() : null;
+                var 地址候选4 = 是继电器输出 ? new List<object>() : null;
+
+                foreach (var 地址 in 地址列表)
+                {
+                    if (!同行已选地址.Contains(地址))
                     {
-                        if (地址 != 已选1 && 地址 != 已选3 && 地址 != 已选4)
-                            地址候选2!.Add(地址);
-                        if (地址 != 已选1 && 地址 != 已选2 && 地址 != 已选4)
-                            地址候选3!.Add(地址);
-                        if (地址 != 已选1 && 地址 != 已选2 && 地址 != 已选3)
-                            地址候选4!.Add(地址);
+                        if (地址 != 已选2 && 地址 != 已选3 && 地址 != 已选4)
+                            地址候选1.Add(地址);
+
+                        if (是继电器输出)
+                        {
+                            if (地址 != 已选1 && 地址 != 已选3 && 地址 != 已选4)
+                                地址候选2!.Add(地址);
+                            if (地址 != 已选1 && 地址 != 已选2 && 地址 != 已选4)
+                                地址候选3!.Add(地址);
+                            if (地址 != 已选1 && 地址 != 已选2 && 地址 != 已选3)
+                                地址候选4!.Add(地址);
+                        }
                     }
                 }
-            }
 
-            if (地址候选1.Count > 0)
-                工位地址框.Items.AddRange(地址候选1.ToArray());
+                if (地址候选1.Count > 0)
+                    工位地址框.Items.AddRange(地址候选1.ToArray());
 
-            if (是继电器输出)
-            {
-                if (地址候选2!.Count > 0)
-                    工位地址框2.Items.AddRange(地址候选2.ToArray());
-                if (地址候选3!.Count > 0)
-                    工位地址框3.Items.AddRange(地址候选3.ToArray());
-                if (地址候选4!.Count > 0)
-                    工位地址框4.Items.AddRange(地址候选4.ToArray());
-            }
-
-            if (!string.IsNullOrEmpty(已选1))
-            {
-                if (!工位地址框.Items.Contains(已选1))
-                    工位地址框.Items.Insert(0, 已选1);
-                工位地址框.SelectedItem = 已选1;
-            }
-            else
-            {
-                工位地址框.SelectedItem = "无";
-            }
-
-            if (是继电器输出)
-            {
-                if (!string.IsNullOrEmpty(已选2))
+                if (是继电器输出)
                 {
-                    if (!工位地址框2.Items.Contains(已选2))
-                        工位地址框2.Items.Insert(0, 已选2);
-                    工位地址框2.SelectedItem = 已选2;
+                    if (地址候选2!.Count > 0)
+                        工位地址框2.Items.AddRange(地址候选2.ToArray());
+                    if (地址候选3!.Count > 0)
+                        工位地址框3.Items.AddRange(地址候选3.ToArray());
+                    if (地址候选4!.Count > 0)
+                        工位地址框4.Items.AddRange(地址候选4.ToArray());
+                }
+
+                if (!string.IsNullOrEmpty(已选1))
+                {
+                    if (!工位地址框.Items.Contains(已选1))
+                        工位地址框.Items.Insert(0, 已选1);
+                    工位地址框.SelectedItem = 已选1;
                 }
                 else
                 {
-                    工位地址框2.SelectedItem = "无";
+                    工位地址框.SelectedItem = "无";
                 }
 
-                if (!string.IsNullOrEmpty(已选3))
+                if (是继电器输出)
                 {
-                    if (!工位地址框3.Items.Contains(已选3))
-                        工位地址框3.Items.Insert(0, 已选3);
-                    工位地址框3.SelectedItem = 已选3;
+                    if (!string.IsNullOrEmpty(已选2))
+                    {
+                        if (!工位地址框2.Items.Contains(已选2))
+                            工位地址框2.Items.Insert(0, 已选2);
+                        工位地址框2.SelectedItem = 已选2;
+                    }
+                    else
+                    {
+                        工位地址框2.SelectedItem = "无";
+                    }
+
+                    if (!string.IsNullOrEmpty(已选3))
+                    {
+                        if (!工位地址框3.Items.Contains(已选3))
+                            工位地址框3.Items.Insert(0, 已选3);
+                        工位地址框3.SelectedItem = 已选3;
+                    }
+                    else
+                    {
+                        工位地址框3.SelectedItem = "无";
+                    }
+
+                    if (!string.IsNullOrEmpty(已选4))
+                    {
+                        if (!工位地址框4.Items.Contains(已选4))
+                            工位地址框4.Items.Insert(0, 已选4);
+                        工位地址框4.SelectedItem = 已选4;
+                    }
+                    else
+                    {
+                        工位地址框4.SelectedItem = "无";
+                    }
+                }
+
+                if (是串口输出)
+                {
+                    发送内容框.Text = 获取当前检测项拼版发送内容(当前行索引, 当前拼版);
+                    判定时间框.Text = 获取当前检测项拼版判定时间(当前行索引, 当前拼版);
+                    重复次数框.Text = 获取当前检测项拼版重复次数(当前行索引, 当前拼版);
                 }
                 else
                 {
-                    工位地址框3.SelectedItem = "无";
+                    发送内容框.Text = "";
+                    判定时间框.Text = "1000";
+                    重复次数框.Text = "1";
                 }
-
-                if (!string.IsNullOrEmpty(已选4))
-                {
-                    if (!工位地址框4.Items.Contains(已选4))
-                        工位地址框4.Items.Insert(0, 已选4);
-                    工位地址框4.SelectedItem = 已选4;
-                }
-                else
-                {
-                    工位地址框4.SelectedItem = "无";
-                }
-            }
-
-            if (是串口输出)
-            {
-                发送内容框.Text = 获取当前检测项拼版发送内容(当前行索引, 当前拼版);
-                判定时间框.Text = 获取当前检测项拼版判定时间(当前行索引, 当前拼版);
-                重复次数框.Text = 获取当前检测项拼版重复次数(当前行索引, 当前拼版);
-            }
-            else
-            {
-                发送内容框.Text = "";
-                判定时间框.Text = "1000";
-                重复次数框.Text = "1";
-            }
 
             }
             finally
@@ -831,7 +953,7 @@ namespace 自动测试
             if (行.IsNewRow) return "";
 
             string 地址字段名 = 子序号 == 1 ? $"拼版{拼版号}地址" : $"拼版{拼版号}地址_{子序号}";
-            
+
             if (检测项表格.Columns.Contains(地址字段名))
             {
                 return 行.Cells[地址字段名].Value?.ToString() ?? "";
@@ -1134,15 +1256,15 @@ namespace 自动测试
             try
             {
 
-            string 选1 = 工位地址框.SelectedItem?.ToString() ?? "";
-            string 选2 = 工位地址框2.SelectedItem?.ToString() ?? "";
-            string 选3 = 工位地址框3.SelectedItem?.ToString() ?? "";
-            string 选4 = 工位地址框4.SelectedItem?.ToString() ?? "";
+                string 选1 = 工位地址框.SelectedItem?.ToString() ?? "";
+                string 选2 = 工位地址框2.SelectedItem?.ToString() ?? "";
+                string 选3 = 工位地址框3.SelectedItem?.ToString() ?? "";
+                string 选4 = 工位地址框4.SelectedItem?.ToString() ?? "";
 
-            移除其他框中的地址(工位地址框, 选2, 选3, 选4);
-            移除其他框中的地址(工位地址框2, 选1, 选3, 选4);
-            移除其他框中的地址(工位地址框3, 选1, 选2, 选4);
-            移除其他框中的地址(工位地址框4, 选1, 选2, 选3);
+                移除其他框中的地址(工位地址框, 选2, 选3, 选4);
+                移除其他框中的地址(工位地址框2, 选1, 选3, 选4);
+                移除其他框中的地址(工位地址框3, 选1, 选2, 选4);
+                移除其他框中的地址(工位地址框4, 选1, 选2, 选3);
             }
             finally
             {
@@ -1402,6 +1524,7 @@ namespace 自动测试
 
         private void 保存配置按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             if (配置已修改 && !string.IsNullOrEmpty(当前配置名))
             {
                 保存当前配置数据();
@@ -1416,6 +1539,7 @@ namespace 自动测试
 
         private void 增加配置按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             string 新配置名 = "新配置" + (配置名列表.Items.Count + 1);
             日志管理器.记录(日志类别.配置操作, "新建配置", 新配置名);
             var 新数据 = new 配置项数据
@@ -1425,7 +1549,7 @@ namespace 自动测试
                 拼板数 = 6,
                 检测项列表 = new List<检测项数据>()
             };
-            
+
             配置数据库.实例.保存配置(新数据);
             配置名列表.Items.Add(新配置名);
             配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
@@ -1433,6 +1557,7 @@ namespace 自动测试
 
         private void 复制配置按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             if (配置名列表.SelectedIndex == -1)
             {
                 MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1449,7 +1574,7 @@ namespace 自动测试
             }
 
             string 新配置名 = 源配置名 + "_复制";
-            
+
             var 新数据 = new 配置项数据
             {
                 配置名称 = 新配置名,
@@ -1457,7 +1582,7 @@ namespace 自动测试
                 拼板数 = 源数据.拼板数,
                 检测项列表 = new List<检测项数据>(源数据.检测项列表)
             };
-            
+
             配置数据库.实例.保存配置(新数据);
             配置名列表.Items.Add(新配置名);
             配置名列表.SelectedIndex = 配置名列表.Items.Count - 1;
@@ -1499,6 +1624,7 @@ namespace 自动测试
 
         private void 删除配置按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             if (配置名列表.SelectedIndex == -1)
             {
                 MessageBox.Show("请先选择一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1520,6 +1646,7 @@ namespace 自动测试
 
         private void 导入配置按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             日志管理器.记录(日志类别.数据操作, "导入配置", "", 权限等级.管理员);
             using (var dialog = new OpenFileDialog())
             {
@@ -1548,24 +1675,26 @@ namespace 自动测试
 
         private void 增加项按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             if (配置名列表.SelectedIndex == -1)
             {
                 MessageBox.Show("请先选择或创建一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             int 新序号 = 检测项表格.Rows.Count + 1;
             检测项表格.Rows.Add(新序号, $"检测项{新序号}", "继电器输出", 0, "", "", "false", false);
         }
 
         private void 插入项按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             if (配置名列表.SelectedIndex == -1)
             {
                 MessageBox.Show("请先选择或创建一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             if (检测项表格.SelectedRows.Count > 0)
             {
                 int 索引 = 检测项表格.SelectedRows[0].Index;
@@ -1579,12 +1708,13 @@ namespace 自动测试
 
         private void 保存项按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             if (配置名列表.SelectedIndex == -1)
             {
                 MessageBox.Show("请先选择或创建一个配置", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             保存当前配置数据();
             配置已修改 = false;
             MessageBox.Show("检测项已保存", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1592,16 +1722,19 @@ namespace 自动测试
 
         private void 复制项按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             MessageBox.Show("检测项已复制", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void 粘贴项按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             MessageBox.Show("检测项已粘贴", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void 删除项按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             if (检测项表格.SelectedRows.Count > 0)
             {
                 foreach (DataGridViewRow row in 检测项表格.SelectedRows)
@@ -1618,6 +1751,7 @@ namespace 自动测试
 
         private void 启用所有按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             foreach (DataGridViewRow row in 检测项表格.Rows)
             {
                 if (!row.IsNewRow)
@@ -1629,6 +1763,7 @@ namespace 自动测试
 
         private void 停用所有按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             foreach (DataGridViewRow row in 检测项表格.Rows)
             {
                 if (!row.IsNewRow)
@@ -1686,6 +1821,7 @@ namespace 自动测试
 
         private void 保存项参数按钮_Click(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             MessageBox.Show("项参数已保存", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -1702,6 +1838,13 @@ namespace 自动测试
 
         private void 关闭并保存按钮_Click(object sender, EventArgs e)
         {
+            if (!可修改配置)
+            {
+                DialogResult = DialogResult.OK;
+                Close();
+                return;
+            }
+
             if (配置已修改 && !string.IsNullOrEmpty(当前配置名))
             {
                 保存当前配置数据();
@@ -1739,16 +1882,17 @@ namespace 自动测试
 
         private void 右侧面板_Paint(object sender, PaintEventArgs e)
         {
-            
+
         }
 
         private void 配置名列表_DoubleClick(object sender, EventArgs e)
         {
+            if (!校验配置修改权限()) return;
             if (配置名列表.SelectedIndex == -1) return;
 
             string? 原配置名 = 配置名列表.SelectedItem?.ToString();
             if (string.IsNullOrEmpty(原配置名)) return;
-            
+
             using (var 对话框 = new Form())
             {
                 对话框.Text = "修改配置名称";
@@ -1816,10 +1960,10 @@ namespace 自动测试
                             配置数据.配置名称 = 新配置名;
                             配置数据库.实例.保存配置(配置数据);
                             配置数据库.实例.删除配置(原配置名);
-                            
+
                             配置名列表.Items[配置名列表.SelectedIndex] = 新配置名;
                             当前配置名 = 新配置名;
-                            
+
                             日志管理器.记录(日志类别.配置操作, "重命名配置", $"{原配置名} → {新配置名}");
                             MessageBox.Show("配置名称已修改", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
@@ -1830,6 +1974,15 @@ namespace 自动测试
                     }
                 }
             }
+        }
+
+        private void 检测项页_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void 标签导航_SelectedIndexChanged(object? sender, EventArgs e)
+        {
         }
     }
 }

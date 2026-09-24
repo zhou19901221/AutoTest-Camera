@@ -22,6 +22,22 @@ namespace 自动测试
             端口标签 = new Label();
             IP地址框 = new TextBox();
             IP地址标签 = new Label();
+            SQL账号框 = new TextBox();
+            SQL账号标签 = new Label();
+            SQL密码框 = new TextBox();
+            SQL密码标签 = new Label();
+            SQL数据库框 = new TextBox();
+            SQL数据库标签 = new Label();
+            SQL数据表框 = new TextBox();
+            SQL数据表标签 = new Label();
+            CheckStation框 = new TextBox();
+            CheckStation标签 = new Label();
+            CheckStation测试项名框 = new TextBox();
+            CheckStation测试项名标签 = new Label();
+            PCBVer测试项名框 = new TextBox();
+            PCBVer测试项名标签 = new Label();
+            Mac测试项名框 = new TextBox();
+            Mac测试项名标签 = new Label();
             条码枪组 = new GroupBox();
             端口8框 = new NumericUpDown();
             端口8标签 = new Label();
@@ -87,9 +103,25 @@ namespace 自动测试
             服务器组.Controls.Add(端口标签);
             服务器组.Controls.Add(IP地址框);
             服务器组.Controls.Add(IP地址标签);
+            服务器组.Controls.Add(SQL账号框);
+            服务器组.Controls.Add(SQL账号标签);
+            服务器组.Controls.Add(SQL密码框);
+            服务器组.Controls.Add(SQL密码标签);
+            服务器组.Controls.Add(SQL数据库框);
+            服务器组.Controls.Add(SQL数据库标签);
+            服务器组.Controls.Add(SQL数据表框);
+            服务器组.Controls.Add(SQL数据表标签);
+            服务器组.Controls.Add(CheckStation框);
+            服务器组.Controls.Add(CheckStation标签);
+            服务器组.Controls.Add(CheckStation测试项名框);
+            服务器组.Controls.Add(CheckStation测试项名标签);
+            服务器组.Controls.Add(PCBVer测试项名框);
+            服务器组.Controls.Add(PCBVer测试项名标签);
+            服务器组.Controls.Add(Mac测试项名框);
+            服务器组.Controls.Add(Mac测试项名标签);
             服务器组.Location = new Point(20, 90);
             服务器组.Name = "服务器组";
-            服务器组.Size = new Size(827, 80);
+            服务器组.Size = new Size(827, 300);
             服务器组.TabIndex = 1;
             服务器组.TabStop = false;
             服务器组.Text = "服务器设置";
@@ -129,6 +161,143 @@ namespace 自动测试
             IP地址标签.TabIndex = 0;
             IP地址标签.Text = "IP地址：";
             // 
+            // SQL账号框
+            // 
+            SQL账号框.Location = new Point(100, 82);
+            SQL账号框.Name = "SQL账号框";
+            SQL账号框.Size = new Size(200, 23);
+            SQL账号框.TabIndex = 4;
+            SQL账号框.Text = "check";
+            // 
+            // SQL账号标签
+            // 
+            SQL账号标签.AutoSize = true;
+            SQL账号标签.Location = new Point(20, 85);
+            SQL账号标签.Name = "SQL账号标签";
+            SQL账号标签.Size = new Size(67, 17);
+            SQL账号标签.TabIndex = 5;
+            SQL账号标签.Text = "SQL账号：";
+            // 
+            // SQL密码框
+            // 
+            SQL密码框.Location = new Point(420, 82);
+            SQL密码框.Name = "SQL密码框";
+            SQL密码框.Size = new Size(200, 23);
+            SQL密码框.TabIndex = 6;
+            SQL密码框.Text = "Check123";
+            SQL密码框.UseSystemPasswordChar = true;
+            // 
+            // SQL密码标签
+            // 
+            SQL密码标签.AutoSize = true;
+            SQL密码标签.Location = new Point(340, 85);
+            SQL密码标签.Name = "SQL密码标签";
+            SQL密码标签.Size = new Size(67, 17);
+            SQL密码标签.TabIndex = 7;
+            SQL密码标签.Text = "SQL密码：";
+            // 
+            // SQL数据库框
+            // 
+            SQL数据库框.Location = new Point(100, 112);
+            SQL数据库框.Name = "SQL数据库框";
+            SQL数据库框.Size = new Size(200, 23);
+            SQL数据库框.TabIndex = 8;
+            SQL数据库框.Text = "ATE";
+            // 
+            // SQL数据库标签
+            // 
+            SQL数据库标签.AutoSize = true;
+            SQL数据库标签.Location = new Point(20, 115);
+            SQL数据库标签.Name = "SQL数据库标签";
+            SQL数据库标签.Size = new Size(79, 17);
+            SQL数据库标签.TabIndex = 9;
+            SQL数据库标签.Text = "SQL数据库：";
+            // 
+            // SQL数据表框
+            // 
+            SQL数据表框.Location = new Point(420, 112);
+            SQL数据表框.Name = "SQL数据表框";
+            SQL数据表框.Size = new Size(200, 23);
+            SQL数据表框.TabIndex = 10;
+            SQL数据表框.Text = "dbo.CheckSerial";
+            // 
+            // SQL数据表标签
+            // 
+            SQL数据表标签.AutoSize = true;
+            SQL数据表标签.Location = new Point(340, 115);
+            SQL数据表标签.Name = "SQL数据表标签";
+            SQL数据表标签.Size = new Size(79, 17);
+            SQL数据表标签.TabIndex = 11;
+            SQL数据表标签.Text = "SQL数据表：";
+            // 
+            // CheckStation框
+            // 
+            CheckStation框.Location = new Point(100, 145);
+            CheckStation框.Name = "CheckStation框";
+            CheckStation框.Size = new Size(200, 23);
+            CheckStation框.TabIndex = 11;
+            CheckStation框.Text = "PCB_ATE_36";
+            // 
+            // CheckStation标签
+            // 
+            CheckStation标签.AutoSize = true;
+            CheckStation标签.Location = new Point(20, 148);
+            CheckStation标签.Name = "CheckStation标签";
+            CheckStation标签.Size = new Size(44, 17);
+            CheckStation标签.TabIndex = 12;
+            CheckStation标签.Text = "工序：";
+            // 
+            // CheckStation测试项名框
+            // 
+            CheckStation测试项名框.Location = new Point(489, 225);
+            CheckStation测试项名框.Name = "CheckStation测试项名框";
+            CheckStation测试项名框.Size = new Size(111, 23);
+            CheckStation测试项名框.TabIndex = 0;
+            CheckStation测试项名框.Visible = false;
+            // 
+            // CheckStation测试项名标签
+            // 
+            CheckStation测试项名标签.AutoSize = true;
+            CheckStation测试项名标签.Location = new Point(0, 0);
+            CheckStation测试项名标签.Name = "CheckStation测试项名标签";
+            CheckStation测试项名标签.Size = new Size(0, 17);
+            CheckStation测试项名标签.TabIndex = 0;
+            CheckStation测试项名标签.Visible = false;
+            // 
+            // PCBVer测试项名框
+            // 
+            PCBVer测试项名框.Location = new Point(137, 172);
+            PCBVer测试项名框.Name = "PCBVer测试项名框";
+            PCBVer测试项名框.Size = new Size(130, 23);
+            PCBVer测试项名框.TabIndex = 13;
+            PCBVer测试项名框.Text = "PCBVer";
+            // 
+            // PCBVer测试项名标签
+            // 
+            PCBVer测试项名标签.AutoSize = true;
+            PCBVer测试项名标签.Location = new Point(20, 178);
+            PCBVer测试项名标签.Name = "PCBVer测试项名标签";
+            PCBVer测试项名标签.Size = new Size(111, 17);
+            PCBVer测试项名标签.TabIndex = 14;
+            PCBVer测试项名标签.Text = "PCBVer测试项名：";
+            // 
+            // Mac测试项名框
+            // 
+            Mac测试项名框.Location = new Point(137, 205);
+            Mac测试项名框.Name = "Mac测试项名框";
+            Mac测试项名框.Size = new Size(130, 23);
+            Mac测试项名框.TabIndex = 15;
+            Mac测试项名框.Text = "Mac";
+            // 
+            // Mac测试项名标签
+            // 
+            Mac测试项名标签.AutoSize = true;
+            Mac测试项名标签.Location = new Point(20, 208);
+            Mac测试项名标签.Name = "Mac测试项名标签";
+            Mac测试项名标签.Size = new Size(93, 17);
+            Mac测试项名标签.TabIndex = 16;
+            Mac测试项名标签.Text = "Mac测试项名：";
+            // 
             // 条码枪组
             // 
             条码枪组.Controls.Add(端口8框);
@@ -153,7 +322,7 @@ namespace 自动测试
             条码枪组.Controls.Add(条码枪数量标签);
             条码枪组.Controls.Add(条码枪类型框);
             条码枪组.Controls.Add(条码枪类型标签);
-            条码枪组.Location = new Point(20, 180);
+            条码枪组.Location = new Point(20, 418);
             条码枪组.Name = "条码枪组";
             条码枪组.Size = new Size(827, 200);
             条码枪组.TabIndex = 2;
@@ -367,7 +536,7 @@ namespace 自动测试
             Controls.Add(服务器组);
             Controls.Add(MESS网络组);
             Name = "MESS设置控件";
-            Size = new Size(1200, 500);
+            Size = new Size(1200, 822);
             MESS网络组.ResumeLayout(false);
             MESS网络组.PerformLayout();
             服务器组.ResumeLayout(false);
@@ -396,6 +565,22 @@ namespace 自动测试
         private System.Windows.Forms.Label 端口标签;
         private System.Windows.Forms.TextBox IP地址框;
         private System.Windows.Forms.Label IP地址标签;
+        private System.Windows.Forms.TextBox SQL账号框;
+        private System.Windows.Forms.Label SQL账号标签;
+        private System.Windows.Forms.TextBox SQL密码框;
+        private System.Windows.Forms.Label SQL密码标签;
+        private System.Windows.Forms.TextBox SQL数据库框;
+        private System.Windows.Forms.Label SQL数据库标签;
+        private System.Windows.Forms.TextBox SQL数据表框;
+        private System.Windows.Forms.Label SQL数据表标签;
+        private System.Windows.Forms.TextBox CheckStation框;
+        private System.Windows.Forms.Label CheckStation标签;
+        private System.Windows.Forms.TextBox CheckStation测试项名框;
+        private System.Windows.Forms.Label CheckStation测试项名标签;
+        private System.Windows.Forms.TextBox PCBVer测试项名框;
+        private System.Windows.Forms.Label PCBVer测试项名标签;
+        private System.Windows.Forms.TextBox Mac测试项名框;
+        private System.Windows.Forms.Label Mac测试项名标签;
         private System.Windows.Forms.GroupBox 条码枪组;
         private System.Windows.Forms.NumericUpDown 端口8框;
         private System.Windows.Forms.Label 端口8标签;

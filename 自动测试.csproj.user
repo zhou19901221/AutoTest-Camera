@@ -4,6 +4,12 @@
     <Compile Update="主界面\Form1.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="主界面\用户登录窗体.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="主界面\用户管理窗体.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="其它模块控件.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -26,9 +32,6 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="系统设置\MESS设置控件.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="系统设置\其他设置控件.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="系统设置\基础参数控件.cs">
@@ -55,5 +58,10 @@
     <Compile Update="视觉调试\视觉调试页面.cs">
       <SubType>Form</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="系统设置\运动控制控件.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

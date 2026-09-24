@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO.Ports;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace 自动测试
@@ -27,6 +29,10 @@ namespace 自动测试
         private readonly List<byte> 调试串口接收缓存 = new List<byte>();
         private readonly System.Windows.Forms.Timer 输入轮询定时器 = new System.Windows.Forms.Timer();
         private readonly HashSet<Panel> 输入轮询卡片 = new HashSet<Panel>();
+        private readonly Dictionary<Panel, int> 输入轮询超时次数 = new Dictionary<Panel, int>();
+        private readonly Dictionary<Panel, DateTime> 输入轮询冷却截止 = new Dictionary<Panel, DateTime>();
+        private volatile bool 正在断开串口;
+        private int 输入轮询执行中 = 0;
 
         private class 模块卡片信息
         {
@@ -43,7 +49,7 @@ namespace 自动测试
             生成模块按钮();
             界面缩放器.等比例适配屏幕(this);
             输入轮询定时器.Interval = 200;
-            输入轮询定时器.Tick += 输入轮询定时器_Tick;
+            输入轮询定时器.Tick += 输入轮询定时器_安全_Tick;
         }
 
         private static void 按比例缩放控件(Control 控件)
@@ -147,7 +153,7 @@ namespace 自动测试
             断开按钮.Font = new Font("Microsoft YaHei UI", 9F);
             断开按钮.Name = "断开按钮";
             断开按钮.Tag = 卡片;
-            断开按钮.Click += 串口断开按钮_Click;
+            断开按钮.Click += 串口断开按钮_安全_Click;
             标题行.Controls.Add(断开按钮);
 
             bool 有可用串口 = SerialPort.GetPortNames().Length > 0;
@@ -159,6 +165,227 @@ namespace 自动测试
             卡片.Controls.Add(标题行);
             按比例缩放控件(卡片);
             模块面板.Controls.Add(卡片);
+        }
+
+        private async void 串口断开按钮_安全_Click(object? sender, EventArgs e)
+        {
+            if (正在断开串口) return;
+            正在断开串口 = true;
+            var 按钮 = sender as Button;
+            var 卡片 = 按钮?.Tag as Panel;
+
+            // 先更新UI，避免“点击无反应”的体感
+            if (卡片 != null) 更新串口卡片状态_安全版(卡片, "断开中...", Color.Orange);
+
+            输入轮询定时器.Stop();
+            输入轮询卡片.Clear();
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        if (调试串口 != null)
+                        {
+                            try { if (调试串口.IsOpen) 调试串口.Close(); } catch { }
+                            try { 调试串口.Dispose(); } catch { }
+                            调试串口 = null;
+                        }
+
+                        if (modbus串口 != null)
+                        {
+                            try { if (modbus串口.IsOpen) modbus串口.Close(); } catch { }
+                            try { modbus串口.Dispose(); } catch { }
+                            modbus串口 = null;
+                        }
+                    }
+                    catch
+                    {
+                        // 断开异常不再阻塞UI
+                    }
+                });
+
+                调试串口接收框 = null;
+                lock (调试串口接收锁)
+                {
+                    调试串口接收缓存.Clear();
+                }
+
+                if (卡片 != null) 更新串口卡片状态_安全版(卡片, "未连接", 未连接色);
+            }
+            finally
+            {
+                正在断开串口 = false;
+            }
+        }
+
+        private int 输入轮询索引 = 0;
+
+        private static TimeSpan 计算超时冷却(int 连续超时次数)
+        {
+            int 秒 = 连续超时次数 switch
+            {
+                <= 2 => 0,
+                3 => 1,
+                4 => 2,
+                5 => 4,
+                _ => 8
+            };
+            return TimeSpan.FromSeconds(秒);
+        }
+
+        private void 记录输入轮询成功(Panel 卡片)
+        {
+            输入轮询超时次数[卡片] = 0;
+            输入轮询冷却截止.Remove(卡片);
+        }
+
+        private void 记录输入轮询超时(Panel 卡片)
+        {
+            输入轮询超时次数.TryGetValue(卡片, out int 当前次数);
+            int 新次数 = 当前次数 + 1;
+            输入轮询超时次数[卡片] = 新次数;
+
+            var 冷却 = 计算超时冷却(新次数);
+            if (冷却 > TimeSpan.Zero)
+            {
+                输入轮询冷却截止[卡片] = DateTime.Now + 冷却;
+            }
+        }
+
+        private bool 处于输入轮询冷却期(Panel 卡片, out int 剩余秒)
+        {
+            剩余秒 = 0;
+            if (!输入轮询冷却截止.TryGetValue(卡片, out DateTime 截止))
+            {
+                return false;
+            }
+
+            var 剩余 = 截止 - DateTime.Now;
+            if (剩余 <= TimeSpan.Zero)
+            {
+                输入轮询冷却截止.Remove(卡片);
+                return false;
+            }
+
+            剩余秒 = (int)Math.Ceiling(剩余.TotalSeconds);
+            return true;
+        }
+
+        private void 移除输入轮询卡片(Panel 卡片)
+        {
+            输入轮询卡片.Remove(卡片);
+            输入轮询超时次数.Remove(卡片);
+            输入轮询冷却截止.Remove(卡片);
+        }
+
+        private void 输入轮询定时器_安全_Tick(object? sender, EventArgs e)
+        {
+            if (正在断开串口) return;
+            if (Interlocked.Exchange(ref 输入轮询执行中, 1) == 1) return;
+
+            try
+            {
+                输入轮询定时器.Stop();
+
+                var 轮询开始 = Environment.TickCount;
+                var 轮询快照 = new List<Panel>(输入轮询卡片);
+
+                try
+                {
+                    if (轮询快照.Count > 0)
+                    {
+                        if (输入轮询索引 >= 轮询快照.Count)
+                        {
+                            输入轮询索引 = 0;
+                        }
+
+                        var 单卡 = 轮询快照[输入轮询索引];
+                        输入轮询索引++;
+
+                        if (!卡片已连接(单卡))
+                        {
+                            移除输入轮询卡片(单卡);
+                        }
+                        else
+                        {
+                            if (处于输入轮询冷却期(单卡, out int 剩余秒))
+                            {
+                                SetCardStatus(单卡, Color.Goldenrod, $"重试中({剩余秒}s)");
+                            }
+                            else
+                            {
+                                读取并刷新输入模块(单卡);
+                                记录输入轮询成功(单卡);
+                                SetCardStatus(单卡, 已连接色, "已连接");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (轮询快照.Count > 0)
+                    {
+                        int 索引 = Math.Max(0, Math.Min(输入轮询索引 - 1, 轮询快照.Count - 1));
+                        var 异常卡片 = 轮询快照[索引];
+
+                        if (是超时异常(ex))
+                        {
+                            记录输入轮询超时(异常卡片);
+                            输入轮询超时次数.TryGetValue(异常卡片, out int 次数);
+                            var 状态文本 = 次数 >= 3 ? "熔断重试" : "超时重试";
+                            SetCardStatus(异常卡片, Color.Goldenrod, 状态文本);
+                        }
+                        else
+                        {
+                            标记卡片连接状态(异常卡片, false);
+                            移除输入轮询卡片(异常卡片);
+                            SetCardStatus(异常卡片, 错误色, "错误");
+                        }
+                    }
+                }
+
+                int 耗时 = Environment.TickCount - 轮询开始;
+                int 目标间隔 = 轮询快照.Count switch
+                {
+                    <= 1 => 220,
+                    <= 4 => 480,
+                    _ => 720
+                };
+                if (耗时 > 目标间隔)
+                {
+                    目标间隔 = Math.Min(1600, 耗时 + 120);
+                }
+                输入轮询定时器.Interval = 目标间隔;
+                if (!正在断开串口 && 输入轮询卡片.Count > 0) 输入轮询定时器.Start();
+            }
+            catch
+            {
+                // 忽略偶发异常，保持UI可响应
+            }
+            finally
+            {
+                Interlocked.Exchange(ref 输入轮询执行中, 0);
+            }
+        }
+
+        private static void 更新串口卡片状态_安全版(Panel 卡片, string 文本, Color 指示色)
+        {
+            var 标题行 = 卡片.Controls.Count > 0 ? 卡片.Controls[0] : null;
+            if (标题行 == null) return;
+
+            foreach (Control c in 标题行.Controls)
+            {
+                if (c.Name == "状态标签" && c is Label lbl)
+                {
+                    lbl.Text = 文本;
+                }
+                else if (c.Name == "状态指示" && c is Panel p)
+                {
+                    p.BackColor = 指示色;
+                }
+            }
         }
 
         private void 串口连接按钮_Click(object sender, EventArgs e)
@@ -796,15 +1023,15 @@ namespace 自动测试
                     展开通道面板(卡片);
                     标记卡片连接状态(卡片, true);
                     输入轮询卡片.Add(卡片);
+                    记录输入轮询成功(卡片);
                     if (!输入轮询定时器.Enabled) 输入轮询定时器.Start();
                     SetCardStatus(卡片, 已连接色, "已连接");
-                    读取并刷新输入模块(卡片);
                     日志管理器.记录(日志类别.硬件操作, "输入模块连接并开始轮询", 获取卡片名称(卡片), 权限等级.管理员);
                 }
                 catch (Exception ex)
                 {
                     标记卡片连接状态(卡片, false);
-                    输入轮询卡片.Remove(卡片);
+                    移除输入轮询卡片(卡片);
                     SetCardStatus(卡片, 错误色, "错误");
                     string 卡片名 = 获取卡片名称(卡片);
                     int 从站地址 = 获取从站地址(卡片);
@@ -860,7 +1087,7 @@ namespace 自动测试
             SetCardStatus(卡片, 未连接色, "未连接");
             收起通道面板(卡片);
             标记卡片连接状态(卡片, false);
-            输入轮询卡片.Remove(卡片);
+            移除输入轮询卡片(卡片);
             if (输入轮询卡片.Count == 0 && 输入轮询定时器.Enabled) 输入轮询定时器.Stop();
             日志管理器.记录(日志类别.硬件操作, "模块断开", 获取卡片名称(卡片), 权限等级.管理员);
         }
@@ -1202,7 +1429,8 @@ namespace 自动测试
         private bool 是输入模块(string 类型)
         {
             return 类型 == "直流电压模块（24）" || 类型 == "交流电压模块（24）" ||
-                   类型 == "交直流电流模块（8）" || 类型 == "交直流电流模块（16）";
+                   类型 == "交直流电流模块（8）" || 类型 == "交直流电流模块（16）" ||
+                   类型 == "直流电流模块（24）" || 类型 == "交流电流模块（24）";
         }
 
         private bool 是电源模块(string 类型)
@@ -1215,6 +1443,8 @@ namespace 自动测试
             if (类型 == "输出模块" || 类型 == "继电器模块") return "DO";
             if (类型 == "直流电压模块（24）") return "VD";
             if (类型 == "交流电压模块（24）") return "VA";
+            if (类型 == "直流电流模块（24）") return "CD";
+            if (类型 == "交流电流模块（24）") return "CA";
             if (类型.Contains("交直流电流")) return "CD";
             if (类型 == "脉冲声音模块") return "PO";
             if (类型.Contains("供电模块")) return "PS";
@@ -1234,6 +1464,8 @@ namespace 自动测试
                 "交流电压模块（24）" => 24,
                 "交直流电流模块（8）" => 8,
                 "交直流电流模块（16）" => 16,
+                "直流电流模块（24）" => 24,
+                "交流电流模块（24）" => 24,
                 "脉冲声音模块" => 16,
                 _ when 类型.Contains("供电模块") => 8,
                 _ when 类型.StartsWith("输出模块") => 16,
@@ -1619,6 +1851,8 @@ namespace 自动测试
         {
             if (输入轮询定时器.Enabled) 输入轮询定时器.Stop();
             输入轮询卡片.Clear();
+            输入轮询超时次数.Clear();
+            输入轮询冷却截止.Clear();
 
             if (modbus串口 != null)
             {

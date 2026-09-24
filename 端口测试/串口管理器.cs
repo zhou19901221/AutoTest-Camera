@@ -37,6 +37,7 @@ namespace 自动测试
             try { lock (_sync) { _内部接收使能 = enabled; } } catch { }
         }
 
+
         public string[] 获取串口列表()
         {
             try

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.IO.Ports;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace 自动测试
@@ -82,17 +83,6 @@ namespace 自动测试
 
             索引 = 串口停止位.Items.IndexOf(配置数据.基础参数.串口通讯板停止位);
             if (索引 >= 0) 串口停止位.SelectedIndex = 索引;
-            
-            
-            
-            平台下降光幕保护框.Checked = 配置数据.基础参数.平台下降光幕保护;
-            平台上升光幕保护框.Checked = 配置数据.基础参数.平台上升光幕保护;
-            测试界面显示机器电压框.Checked = 配置数据.基础参数.测试界面显示机器电压;
-            安全门框.Checked = 配置数据.基础参数.安全门;
-            显示环境温度湿度框.Checked = 配置数据.基础参数.显示环境温度湿度;
-            开机自动运行框.Checked = 配置数据.基础参数.开机自动运行;
-            全局量程框.Checked = 配置数据.基础参数.全局量程;
-            伺服框.Checked = 配置数据.基础参数.伺服;
         }
 
         public void 保存配置()
@@ -114,16 +104,6 @@ namespace 自动测试
 
             配置数据.基础参数.串口通讯板校验 = 串口校验.Text;
             配置数据.基础参数.串口通讯板停止位 = 串口停止位.Text;
-            
-            
-            配置数据.基础参数.平台下降光幕保护 = 平台下降光幕保护框.Checked;
-            配置数据.基础参数.平台上升光幕保护 = 平台上升光幕保护框.Checked;
-            配置数据.基础参数.测试界面显示机器电压 = 测试界面显示机器电压框.Checked;
-            配置数据.基础参数.安全门 = 安全门框.Checked;
-            配置数据.基础参数.显示环境温度湿度 = 显示环境温度湿度框.Checked;
-            配置数据.基础参数.开机自动运行 = 开机自动运行框.Checked;
-            配置数据.基础参数.全局量程 = 全局量程框.Checked;
-            配置数据.基础参数.伺服 = 伺服框.Checked;
         }
 
         private void 电源设置按钮_Click(object? sender, EventArgs e)
@@ -139,6 +119,18 @@ namespace 自动测试
                 return;
             }
             MessageBox.Show("未选择对应的程控电源", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        public void 设置条码枪组(GroupBox 条码枪组)
+        {
+            if (条码枪组 == null) return;
+
+            if (!Controls.Contains(条码枪组))
+            {
+                条码枪组.Location = new Point(390, 20);
+                Controls.Add(条码枪组);
+                条码枪组.BringToFront();
+            }
         }
     }
 }

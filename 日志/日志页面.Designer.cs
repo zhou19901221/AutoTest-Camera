@@ -166,7 +166,7 @@ namespace 自动测试
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1200, 700);
+            ClientSize = new Size(1936, 1048);
             Controls.Add(日志表格);
             Controls.Add(筛选面板);
             Name = "日志页面";

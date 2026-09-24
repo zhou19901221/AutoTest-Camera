@@ -141,6 +141,13 @@ namespace 自动测试
                             for (int ch = 0; ch < 8; ch++)
                                 列表.Add($"{前缀}{编号}.{ch}");
                         }
+                        else if (模块类型 == "直流电流模块（24）" || 模块类型 == "交流电流模块（24）")
+                        {
+                            编号++;
+                            int 通道数 = 获取模块通道数(模块类型);
+                            for (int ch = 0; ch < 通道数; ch++)
+                                列表.Add($"{前缀}{编号}.{ch}");
+                        }
                     }
                     break;
                 }
@@ -227,6 +234,8 @@ namespace 自动测试
                 "交流电压模块（24）" => 24,
                 "交直流电流模块（8）" => 8,
                 "交直流电流模块（16）" => 16,
+                "直流电流模块（24）" => 24,
+                "交流电流模块（24）" => 24,
                 "脉冲声音模块" => 16,
                 "交流供电模块（8）（5A）" => 8,
                 "交流供电模块（16）（2A）" => 16,
@@ -437,6 +446,18 @@ namespace 自动测试
         public bool MESS功能开启 = false;
         public string 服务器IP = "192.168.2.100";
         public int 服务器端口 = 1000;
+        public string SQL服务器地址 = "192.168.128.10";
+        public int SQL端口 = 1433;
+        public string SQL账号 = "check";
+        public string SQL密码 = "Check123";
+        public string SQL数据库 = "ATE";
+        public string SQL数据表 = "dbo.CheckSerial";
+        public string 检测工位 = "PCB_ATE_36";
+        public string PCB版本 = "";
+        public string Mac地址 = "";
+        public string CheckStation测试项名 = "CheckStation";
+        public string PCBVer测试项名 = "PCBVer";
+        public string Mac测试项名 = "Mac";
         public string 条码枪类型 = "USB";
         public int 条码枪数量 = 0;
         public int 条码枪波特率 = 115200;

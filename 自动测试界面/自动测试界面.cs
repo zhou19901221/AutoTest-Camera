@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO.Ports;
 using System.Text;
 using System.Linq;
@@ -37,9 +38,12 @@ namespace 自动测试
         private System.Windows.Forms.Timer? 自动扫码定时器;
         private System.Windows.Forms.Timer? 手动测试超时定时器;
         private Button? 自动扫码切换按钮;
+        private Label? 扫码状态标签;
         private bool 自动扫码已开启;
         private bool 手动测试执行中;
+        private bool 手动超时可自动执行;
         private HashSet<int>? 手动测试目标拼版;
+        private HashSet<int>? 流程活动拼版;
 
         private void 写入自动测试日志(string 内容)
         {
@@ -121,20 +125,83 @@ namespace 自动测试
                 控件列表[i].输入框.Visible = 可见;
                 控件列表[i].标签.Visible = 可见;
                 控件列表[i].标签.Text = $"SN{i + 1}";
-                if (SN扫码按钮.TryGetValue(i + 1, out var 按钮))
-                {
-                    按钮.Visible = 可见;
-                }
                 if (!可见) 控件列表[i].输入框.Text = "";
             }
+
+            同步SN扫码按钮显示与位置();
         }
 
         public 自动测试界面()
         {
             InitializeComponent();
             初始化扫码功能控件();
+            初始化检测项表格样式();
+            统计面板.Paint += 统计面板_Paint;
+            Layout += (_, __) => 同步SN扫码按钮显示与位置();
             界面缩放器.等比例适配屏幕(this);
             FormClosing += 自动测试界面_FormClosing;
+        }
+
+        private void 统计面板_Paint(object? sender, PaintEventArgs e)
+        {
+            if (sender is not GroupBox 面板) return;
+
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            int 总数 = 累计通过 + 累计失败;
+            float ok占比 = 总数 > 0 ? (float)累计通过 / 总数 : 0f;
+
+            int 外径 = 120;
+            int 环宽 = 24;
+            int x = 18;
+            int y = 62;
+            var 外框 = new Rectangle(x, y, 外径, 外径);
+
+            using var 底色笔 = new Pen(Color.FromArgb(230, 230, 230), 环宽);
+            using var ok笔 = new Pen(Color.Lime, 环宽);
+            using var fail笔 = new Pen(Color.Red, 环宽);
+            底色笔.StartCap = 底色笔.EndCap = LineCap.Round;
+            ok笔.StartCap = ok笔.EndCap = LineCap.Round;
+            fail笔.StartCap = fail笔.EndCap = LineCap.Round;
+
+            e.Graphics.DrawArc(底色笔, 外框, -90, 360);
+
+            if (总数 > 0)
+            {
+                float ok角度 = ok占比 * 360f;
+                float fail角度 = 360f - ok角度;
+                if (ok角度 > 0.1f) e.Graphics.DrawArc(ok笔, 外框, -90, ok角度);
+                if (fail角度 > 0.1f) e.Graphics.DrawArc(fail笔, 外框, -90 + ok角度, fail角度);
+            }
+
+            string 中心文本 = 总数 > 0 ? $"{ok占比 * 100f:F1}%" : "0%";
+            using var 字体 = new Font("宋体", 14F, FontStyle.Bold);
+            using var 文字刷 = new SolidBrush(Color.FromArgb(51, 51, 51));
+            var 尺寸 = e.Graphics.MeasureString(中心文本, 字体);
+            float 文本X = x + (外径 - 尺寸.Width) / 2f;
+            float 文本Y = y + (外径 - 尺寸.Height) / 2f;
+            e.Graphics.DrawString(中心文本, 字体, 文字刷, 文本X, 文本Y);
+        }
+
+        private void 初始化检测项表格样式()
+        {
+            检测项表格.EnableHeadersVisualStyles = false;
+            检测项表格.ColumnHeadersDefaultCellStyle.BackColor = Color.White;
+            检测项表格.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(51, 51, 51);
+            检测项表格.ColumnHeadersDefaultCellStyle.Font = new Font("宋体", 18F, FontStyle.Bold);
+            检测项表格.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+            检测项表格.DefaultCellStyle.BackColor = Color.White;
+            检测项表格.DefaultCellStyle.ForeColor = Color.FromArgb(51, 51, 51);
+            检测项表格.DefaultCellStyle.Font = new Font("宋体", 14F, FontStyle.Regular);
+            检测项表格.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            检测项表格.DefaultCellStyle.SelectionBackColor = Color.FromArgb(227, 244, 255);
+            检测项表格.DefaultCellStyle.SelectionForeColor = Color.FromArgb(51, 51, 51);
+检测项表格.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+检测项表格.ColumnHeadersHeight = 44; // 这里就是标题高度
+            检测项表格.RowTemplate.Height = 44;
+            检测项表格.RowHeadersVisible = false;
+            检测项表格.AllowUserToOrderColumns = false;
         }
 
         private void 自动测试界面_FormClosing(object? sender, FormClosingEventArgs e)
@@ -145,6 +212,13 @@ namespace 自动测试
             手动测试超时定时器 = null;
             关闭所有扫码串口();
             关闭所有串口输出串口();
+        }
+
+        private void 参数设置按钮_Click(object? sender, EventArgs e)
+        {
+            日志管理器.记录(日志类别.系统操作, "打开系统设置", "", 权限等级.厂家);
+            using var 设置页面 = new 系统设置页面();
+            设置页面.ShowDialog(this);
         }
 
         private void 初始化扫码功能控件()
@@ -163,7 +237,7 @@ namespace 自动测试
                     Tag = sn序号
                 };
                 按钮.Click += SN扫码按钮_Click;
-                中部面板.Controls.Add(按钮);
+                Controls.Add(按钮);
                 按钮.BringToFront();
                 SN扫码按钮[sn序号] = 按钮;
             }
@@ -176,7 +250,17 @@ namespace 自动测试
                 Location = new Point(100, 5)
             };
             自动扫码切换按钮.Click += 自动扫码切换按钮_Click;
-            测试控制面板.Controls.Add(自动扫码切换按钮);
+            Controls.Add(自动扫码切换按钮);
+
+            扫码状态标签 = new Label
+            {
+                Name = "扫码状态标签",
+                Text = "扫码正常",
+                AutoSize = true,
+                ForeColor = Color.FromArgb(0, 176, 80),
+                Location = new Point(210, 13)
+            };
+            Controls.Add(扫码状态标签);
 
             自动扫码定时器 = new System.Windows.Forms.Timer();
             自动扫码定时器.Interval = 800;
@@ -250,17 +334,59 @@ namespace 自动测试
             }
 
             string 触发方式 = 当前配置?.扫码触发方式 ?? "手动+自动";
+            bool 屏蔽扫码 = string.Equals(触发方式, "屏蔽扫码", StringComparison.OrdinalIgnoreCase);
             bool 需要自动扫码 = string.Equals(触发方式, "自动", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(触发方式, "手动+自动", StringComparison.OrdinalIgnoreCase);
             bool 多SN模式 = 当前配置?.单独SN记录 == true;
 
             if (自动扫码切换按钮 != null)
             {
-                自动扫码切换按钮.Enabled = 需要自动扫码 && 多SN模式;
-                自动扫码切换按钮.Visible = 需要自动扫码 && 多SN模式;
+                自动扫码切换按钮.Enabled = !屏蔽扫码 && 需要自动扫码 && 多SN模式;
+                自动扫码切换按钮.Visible = !屏蔽扫码 && 需要自动扫码 && 多SN模式;
             }
 
+            if (扫码状态标签 != null)
+            {
+                扫码状态标签.Visible = true;
+                if (屏蔽扫码)
+                {
+                    扫码状态标签.Text = "扫码已屏蔽";
+                    扫码状态标签.ForeColor = Color.Gray;
+                }
+                else if (需要自动扫码)
+                {
+                    扫码状态标签.Text = 多SN模式 ? "扫码模式：自动/手动" : "扫码模式：自动(单SN)";
+                    扫码状态标签.ForeColor = Color.FromArgb(0, 176, 80);
+                }
+                else
+                {
+                    扫码状态标签.Text = "扫码模式：手动";
+                    扫码状态标签.ForeColor = Color.FromArgb(91, 155, 213);
+                }
+            }
+
+            同步SN扫码按钮显示与位置();
+
             停止自动扫码();
+        }
+
+        private void 同步SN扫码按钮显示与位置()
+        {
+            bool 屏蔽扫码 = string.Equals(当前配置?.扫码触发方式, "屏蔽扫码", StringComparison.OrdinalIgnoreCase);
+            var sn控件列表 = 获取SN控件列表();
+
+            for (int i = 0; i < sn控件列表.Count; i++)
+            {
+                int sn序号 = i + 1;
+                if (!SN扫码按钮.TryGetValue(sn序号, out var 按钮)) continue;
+
+                var 输入框 = sn控件列表[i].输入框;
+                按钮.Location = new Point(输入框.Right + 6, 输入框.Top - 1);
+                按钮.Size = new Size(55, 输入框.Height + 2);
+                按钮.Visible = 输入框.Visible;
+                按钮.Enabled = 输入框.Visible && !屏蔽扫码;
+                按钮.BringToFront();
+            }
         }
 
         private bool 开始测试前单次自动扫码()
@@ -268,6 +394,7 @@ namespace 自动测试
             if (当前配置 == null || 当前配置.单独SN记录) return true;
 
             string 触发方式 = 当前配置.扫码触发方式 ?? "手动+自动";
+            if (string.Equals(触发方式, "屏蔽扫码", StringComparison.OrdinalIgnoreCase)) return true;
             bool 需要自动扫码 = string.Equals(触发方式, "自动", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(触发方式, "手动+自动", StringComparison.OrdinalIgnoreCase);
             if (!需要自动扫码) return true;
@@ -285,6 +412,12 @@ namespace 自动测试
 
         private void 尝试扫码并填充SN(int sn序号, bool 手动触发)
         {
+            string 触发方式 = 当前配置?.扫码触发方式 ?? "手动+自动";
+            if (string.Equals(触发方式, "屏蔽扫码", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             if (!SN串口绑定.TryGetValue(sn序号, out string? 串口名) || string.IsNullOrWhiteSpace(串口名))
             {
                 if (手动触发)
@@ -821,6 +954,11 @@ namespace 自动测试
                 拼版序号 = 拼版序号.Where(x => 手动测试目标拼版.Contains(x));
             }
 
+            if (流程活动拼版 != null)
+            {
+                拼版序号 = 拼版序号.Where(x => 流程活动拼版.Contains(x));
+            }
+
             return 拼版序号.OrderBy(x => x).ToList();
         }
 
@@ -845,6 +983,7 @@ namespace 自动测试
         private void 安排手动测试超时自动执行下一项()
         {
             if (!超时勾选框.Checked || 手动测试超时定时器 == null) return;
+            if (!手动超时可自动执行) return;
             if (!Try获取手动测试超时秒(out int 秒))
             {
                 写入自动测试日志("手动测试超时设置无效：请输入大于0的秒数");
@@ -867,6 +1006,13 @@ namespace 自动测试
             if (!超时勾选框.Checked)
             {
                 停止手动测试超时计时();
+                手动超时可自动执行 = false;
+                return;
+            }
+
+            if (!手动超时可自动执行)
+            {
+                写入自动测试日志("请先点击一次手动测试，再启用超时自动执行");
                 return;
             }
 
@@ -876,6 +1022,7 @@ namespace 自动测试
         private void 手动测试超时定时器_Tick(object? sender, EventArgs e)
         {
             停止手动测试超时计时();
+            if (!手动超时可自动执行) return;
             if (测试中 || 手动测试执行中) return;
             if (当前配置 == null || 检测项表格.CurrentCell == null) return;
 
@@ -888,41 +1035,106 @@ namespace 自动测试
             var 配置 = 当前配置;
             if (配置 == null) return;
             var 检测项 = 配置.检测项列表.Where(项 => 项.启用).OrderBy(项 => 项.排序);
+            bool 启用NG结束 = 配置.NG结束启用;
+            bool 启用NG跳转 = 配置.NG跳转启用;
+            int NG跳转序号 = Math.Max(0, 配置.NG跳转序号);
 
-            foreach (var 项 in 检测项)
+            var 初始拼版 = Enumerable.Range(1, Math.Max(1, Math.Min(当前拼板数, 32))).ToHashSet();
+            if (手动测试目标拼版 != null && 手动测试目标拼版.Count > 0)
             {
-                if (token.IsCancellationRequested) break;
+                初始拼版 = 初始拼版.Where(x => 手动测试目标拼版.Contains(x)).ToHashSet();
+            }
+            流程活动拼版 = 初始拼版;
+            var NG跳转待恢复拼版 = new HashSet<int>();
 
-                try
+            try
+            {
+                foreach (var 项 in 检测项)
                 {
-                    写入自动测试日志($"执行测试项：{项.排序} {项.名称} [{项.类型}] 设定值={项.设定值}");
-                    执行检测项(项);
-                    写入自动测试日志($"完成测试项：{项.排序} {项.名称}");
-                }
-                catch (Exception 异常)
-                {
-                    写入自动测试日志($"测试项失败：{项.排序} {项.名称}，错误：{异常.Message}");
-                    日志管理器.记录(日志类别.测试操作, $"执行[{项.类型}] {项.名称}失败", 异常.Message, 权限等级.员工);
+                    if (token.IsCancellationRequested) break;
 
-                    // 产品判定FAIL（业务结果）不作为软件异常中断流程
-                    bool 是业务FAIL = 异常 is InvalidOperationException
-                        && 异常.Message.Contains("测试FAIL", StringComparison.OrdinalIgnoreCase);
-
-                    if (是业务FAIL)
+                    if (启用NG结束 && 启用NG跳转 && NG跳转序号 > 0 && 项.排序 >= NG跳转序号 && NG跳转待恢复拼版.Count > 0)
                     {
-                        写入自动测试日志($"测试项{项.排序}判定FAIL，继续执行后续测试项");
-                        continue;
+                        foreach (int 拼版号 in NG跳转待恢复拼版)
+                        {
+                            流程活动拼版!.Add(拼版号);
+                        }
+                        写入自动测试日志($"NG跳转触发：在测试项{项.排序}恢复拼版 [{string.Join(",", NG跳转待恢复拼版.OrderBy(x => x))}] 继续测试");
+                        NG跳转待恢复拼版.Clear();
                     }
 
-                    // 通讯/配置/执行故障：作为软件异常中断
-                    throw new InvalidOperationException($"测试项失败：{项.排序} {项.名称}，错误：{异常.Message}", 异常);
-                }
+                    var 执行前通过快照 = 获取本次测试拼版列表()
+                        .Where(x => !拼版通过状态.ContainsKey(x) || 拼版通过状态[x])
+                        .ToHashSet();
 
-                if (项.延时 > 0)
-                {
-                    写入自动测试日志($"延时等待：{项.延时}ms");
-                    Thread.Sleep(项.延时);
+                    try
+                    {
+                        写入自动测试日志($"执行测试项：{项.排序} {项.名称} [{项.类型}] 设定值={项.设定值}");
+                        执行检测项(项);
+                        写入自动测试日志($"完成测试项：{项.排序} {项.名称}");
+                    }
+                    catch (Exception 异常)
+                    {
+                        写入自动测试日志($"测试项失败：{项.排序} {项.名称}，错误：{异常.Message}");
+                        日志管理器.记录(日志类别.测试操作, $"执行[{项.类型}] {项.名称}失败", 异常.Message, 权限等级.员工);
+
+                        // 产品判定FAIL（业务结果）不作为软件异常中断流程
+                        bool 是业务FAIL = 异常 is InvalidOperationException
+                            && 异常.Message.Contains("测试FAIL", StringComparison.OrdinalIgnoreCase);
+
+                        if (!是业务FAIL)
+                        {
+                            // 通讯/配置/执行故障：作为软件异常中断
+                            throw new InvalidOperationException($"测试项失败：{项.排序} {项.名称}，错误：{异常.Message}", 异常);
+                        }
+
+                        写入自动测试日志($"测试项{项.排序}判定FAIL，继续执行后续测试项");
+                    }
+
+                    if (启用NG结束 && 流程活动拼版 != null && 流程活动拼版.Count > 0)
+                    {
+                        var 新失败拼版 = new List<int>();
+                        foreach (int 拼版号 in 执行前通过快照)
+                        {
+                            if (拼版通过状态.TryGetValue(拼版号, out bool 通过) && !通过)
+                            {
+                                新失败拼版.Add(拼版号);
+                            }
+                        }
+
+                        if (新失败拼版.Count > 0)
+                        {
+                            foreach (int 拼版号 in 新失败拼版)
+                            {
+                                流程活动拼版.Remove(拼版号);
+                            }
+
+                            bool 可跳转恢复 = 启用NG跳转 && NG跳转序号 > 0 && 项.排序 < NG跳转序号;
+                            if (可跳转恢复)
+                            {
+                                foreach (int 拼版号 in 新失败拼版)
+                                {
+                                    NG跳转待恢复拼版.Add(拼版号);
+                                }
+                                写入自动测试日志($"NG结束跳转：拼版[{string.Join(",", 新失败拼版.OrderBy(x => x))}] 在测试项{项.排序}后暂停，等待跳转到{NG跳转序号}");
+                            }
+                            else
+                            {
+                                写入自动测试日志($"NG结束：拼版[{string.Join(",", 新失败拼版.OrderBy(x => x))}] 在测试项{项.排序}后不再继续后续测试项");
+                            }
+                        }
+                    }
+
+                    if (项.延时 > 0)
+                    {
+                        写入自动测试日志($"延时等待：{项.延时}ms");
+                        Thread.Sleep(项.延时);
+                    }
                 }
+            }
+            finally
+            {
+                流程活动拼版 = null;
             }
 
             for (int i = 1; i <= 当前拼板数; i++)
@@ -1306,6 +1518,7 @@ namespace 自动测试
                 };
 
                 配置数据库.实例.保存测试结果(汇总记录);
+                上传MES结果(sn, 汇总结果, 汇总失败详情, 时间);
                 return;
             }
 
@@ -1326,7 +1539,79 @@ namespace 自动测试
                 };
 
                 配置数据库.实例.保存测试结果(记录);
+                string 拼版SN = 获取拼版SN(拼版号, sn);
+                上传MES结果(拼版SN, 结果, fail详情, 时间);
             }
+        }
+
+        private string 获取拼版SN(int 拼版号, string 默认SN)
+        {
+            var 列表 = 获取SN控件列表();
+            int idx = 拼版号 - 1;
+            if (idx >= 0 && idx < 列表.Count)
+            {
+                string sn = 列表[idx].输入框.Text?.Trim() ?? "";
+                if (!string.IsNullOrWhiteSpace(sn)) return sn;
+            }
+            return 默认SN;
+        }
+
+        private void 上传MES结果(string serialNo, string 结果, string fail详情, DateTime 时间)
+        {
+            if (!string.Equals(结果, "PASS", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(结果, "OK", StringComparison.OrdinalIgnoreCase))
+            {
+                写入自动测试日志($"MES跳过：仅上传OK数据，SN={serialNo} 当前结果={结果}");
+                return;
+            }
+
+            var mes = 系统配置管理.实例.MESS设置;
+            string 工位 = string.IsNullOrWhiteSpace(mes.检测工位) ? "PCB_ATE_36" : mes.检测工位;
+            string pcbVer = 从配置测试项获取MES字段(mes.PCBVer测试项名, 当前配置?.配置名称 ?? "", "PCBVer");
+            string mac = 从配置测试项获取MES字段(mes.Mac测试项名,
+                string.IsNullOrWhiteSpace(fail详情) ? "" : fail详情,
+                "Mac");
+            if (!string.IsNullOrWhiteSpace(mac) && mac.Length > 50)
+            {
+                mac = mac.Substring(0, 50);
+            }
+
+            _ = MES上传服务.尝试上传结果(
+                serialNo,
+                "OK",
+                工位,
+                pcbVer,
+                mac,
+                时间,
+                DateTime.Now,
+                写入自动测试日志);
+        }
+
+        private string 从配置测试项获取MES字段(string 测试项名, string 默认值, string 字段名)
+        {
+            if (当前配置?.检测项列表 == null || 当前配置.检测项列表.Count == 0)
+            {
+                写入自动测试日志($"未找到 {字段名} 测试项，已用默认值");
+                return 默认值;
+            }
+
+            if (string.IsNullOrWhiteSpace(测试项名))
+            {
+                写入自动测试日志($"未找到 {字段名} 测试项，已用默认值");
+                return 默认值;
+            }
+
+            var 项 = 当前配置.检测项列表.FirstOrDefault(x =>
+                string.Equals(x.名称?.Trim(), 测试项名.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            string 值 = 项?.设定值?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(值))
+            {
+                写入自动测试日志($"未找到 {字段名} 测试项，已用默认值");
+                return 默认值;
+            }
+
+            return 值;
         }
 
         private void 测试记录按钮_Click(object? sender, EventArgs e)
@@ -1492,7 +1777,8 @@ namespace 自动测试
                 var 从站列表 = 模块寄存器管理.获取模块从站地址列表(i, 模块类型);
                 if (从站列表.Count == 0) 从站列表.Add(模块寄存器管理.配置.从站地址起始 + i);
 
-                int 每从站通道数 = 前缀 == "VD" || 前缀 == "VA" ? 24 : 8;
+                int 每从站通道数 = 前缀 == "VD" || 前缀 == "VA" ? 24
+                    : (模块类型.Contains("（24）") ? 24 : 8);
                 foreach (int slave in 从站列表)
                 {
                     逻辑序号++;
@@ -1515,8 +1801,8 @@ namespace 自动测试
                 "DO" => 模块类型.StartsWith("输出模块") || 模块类型.StartsWith("继电器模块"),
                 "VD" => 模块类型 == "直流电压模块（24）",
                 "VA" => 模块类型 == "交流电压模块（24）",
-                "CD" => 模块类型.StartsWith("交直流电流模块"),
-                "CA" => 模块类型.StartsWith("交直流电流模块"),
+                "CD" => 模块类型.StartsWith("交直流电流模块") || 模块类型 == "直流电流模块（24）",
+                "CA" => 模块类型.StartsWith("交直流电流模块") || 模块类型 == "交流电流模块（24）",
                 _ => false
             };
         }
@@ -1763,34 +2049,35 @@ namespace 自动测试
             var 序号列 = new DataGridViewTextBoxColumn();
             序号列.HeaderText = "序号";
             序号列.Name = "序号列";
-            序号列.Width = 50;
+            序号列.Width = 70;
             序号列.ReadOnly = true;
 
             var 名称列 = new DataGridViewTextBoxColumn();
             名称列.HeaderText = "名称";
             名称列.Name = "名称列";
-            名称列.Width = 120;
+            名称列.Width = 170;
             名称列.ReadOnly = true;
 
             var 类型列 = new DataGridViewTextBoxColumn();
             类型列.HeaderText = "类型";
             类型列.Name = "类型列";
-            类型列.Width = 100;
+            类型列.Width = 120;
             类型列.ReadOnly = true;
 
             var 延时列 = new DataGridViewTextBoxColumn();
             延时列.HeaderText = "延时";
             延时列.Name = "延时列";
-            延时列.Width = 50;
+            延时列.Width = 70;
             延时列.ReadOnly = true;
 
             var 启用列 = new DataGridViewCheckBoxColumn();
             启用列.HeaderText = "启用";
             启用列.Name = "启用列";
-            启用列.Width = 45;
+            启用列.Width = 70;
             启用列.ReadOnly = true;
 
             检测项表格.Columns.AddRange(new DataGridViewColumn[] { 序号列, 名称列, 类型列, 延时列, 启用列 });
+            初始化检测项表格样式();
 
             检测项表格.Rows.Clear();
             foreach (var 项 in 数据.检测项列表)

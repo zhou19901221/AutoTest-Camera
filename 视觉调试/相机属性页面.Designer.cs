@@ -42,7 +42,7 @@ namespace 自动测试
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 570);
+            ClientSize = new Size(1936, 1048);
             Controls.Add(关闭按钮);
             Controls.Add(参数列表);
             Name = "相机属性页面";

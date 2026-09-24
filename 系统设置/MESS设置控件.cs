@@ -6,6 +6,7 @@ namespace 自动测试
     public partial class MESS设置控件 : UserControl
     {
         private 系统配置数据 配置数据;
+        private bool 条码枪组已提取;
 
         public MESS设置控件()
         {
@@ -25,6 +26,13 @@ namespace 自动测试
             MESS功能开启框.Checked = 配置数据.MESS设置.MESS功能开启;
             IP地址框.Text = 配置数据.MESS设置.服务器IP;
             端口框.Value = 配置数据.MESS设置.服务器端口;
+            SQL账号框.Text = 配置数据.MESS设置.SQL账号;
+            SQL密码框.Text = 配置数据.MESS设置.SQL密码;
+            SQL数据库框.Text = 配置数据.MESS设置.SQL数据库;
+            SQL数据表框.Text = 配置数据.MESS设置.SQL数据表;
+            CheckStation框.Text = 配置数据.MESS设置.检测工位;
+            PCBVer测试项名框.Text = 配置数据.MESS设置.PCBVer测试项名;
+            Mac测试项名框.Text = 配置数据.MESS设置.Mac测试项名;
             
             int 索引 = 条码枪类型框.Items.IndexOf(配置数据.MESS设置.条码枪类型);
             if (索引 >= 0) 条码枪类型框.SelectedIndex = 索引;
@@ -49,6 +57,13 @@ namespace 自动测试
             配置数据.MESS设置.MESS功能开启 = MESS功能开启框.Checked;
             配置数据.MESS设置.服务器IP = IP地址框.Text;
             配置数据.MESS设置.服务器端口 = (int)端口框.Value;
+            配置数据.MESS设置.SQL账号 = SQL账号框.Text;
+            配置数据.MESS设置.SQL密码 = SQL密码框.Text;
+            配置数据.MESS设置.SQL数据库 = SQL数据库框.Text;
+            配置数据.MESS设置.SQL数据表 = SQL数据表框.Text;
+            配置数据.MESS设置.检测工位 = CheckStation框.Text;
+            配置数据.MESS设置.PCBVer测试项名 = PCBVer测试项名框.Text;
+            配置数据.MESS设置.Mac测试项名 = Mac测试项名框.Text;
             
             配置数据.MESS设置.条码枪类型 = 条码枪类型框.Text;
             配置数据.MESS设置.条码枪数量 = (int)条码枪数量框.Value;
@@ -62,6 +77,17 @@ namespace 自动测试
             配置数据.MESS设置.端口映射[5] = (int)端口6框.Value;
             配置数据.MESS设置.端口映射[6] = (int)端口7框.Value;
             配置数据.MESS设置.端口映射[7] = (int)端口8框.Value;
+        }
+
+        public GroupBox 提取条码枪组()
+        {
+            if (!条码枪组已提取)
+            {
+                条码枪组.Parent?.Controls.Remove(条码枪组);
+                条码枪组已提取 = true;
+            }
+
+            return 条码枪组;
         }
     }
 }

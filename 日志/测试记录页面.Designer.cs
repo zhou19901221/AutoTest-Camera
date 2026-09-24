@@ -168,7 +168,7 @@ namespace 自动测试
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1200, 700);
+            ClientSize = new Size(1936, 1048);
             Controls.Add(记录表格);
             Controls.Add(筛选面板);
             Name = "测试记录页面";

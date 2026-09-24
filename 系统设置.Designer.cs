@@ -34,7 +34,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1350, 729);
+            ClientSize = new Size(1936, 1048);
             Name = "系统设置";
             Text = "系统设置";
             ResumeLayout(false);

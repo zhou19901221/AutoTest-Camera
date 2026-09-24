@@ -1,6 +1,8 @@
 ﻿﻿using MvCamCtrl.NET;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using MV_CC_PIXEL_FORMAT_PARAM = MvCamCtrl.NET.MyCamera.MV_PIXEL_CONVERT_PARAM;
 
 namespace 自动测试
@@ -15,6 +17,9 @@ namespace 自动测试
         private System.Windows.Forms.Timer 实时显示定时器 = new System.Windows.Forms.Timer();
         private bool 正在实时显示 = false;
         private MyCamera? 相机对象 = null;
+        private int 取帧处理中 = 0;
+        private volatile bool 页面关闭中 = false;
+        private readonly object 图像缓冲锁 = new object();
 
         public 视觉调试页面()
         {
@@ -106,29 +111,60 @@ namespace 自动测试
             }
         }
 
-        private void 实时显示定时器_Tick(object? sender, EventArgs e)
+        private async void 实时显示定时器_Tick(object? sender, EventArgs e)
         {
-            if (相机对象 == null) return;
+            if (页面关闭中 || 相机对象 == null) return;
+            if (Interlocked.Exchange(ref 取帧处理中, 1) == 1) return;
+
+            try
+            {
+                var 帧结果 = await Task.Run(() => 获取当前帧图像());
+                if (帧结果 == null || 页面关闭中 || IsDisposed) return;
+
+                原始宽度 = 帧结果.Value.宽度;
+                原始高度 = 帧结果.Value.高度;
+
+                var 旧图像 = 视觉显示图像.Image;
+                视觉显示图像.Image = 帧结果.Value.图像;
+                旧图像?.Dispose();
+            }
+            catch
+            {
+            }
+            finally
+            {
+                Interlocked.Exchange(ref 取帧处理中, 0);
+            }
+        }
+
+        private (Bitmap 图像, int 宽度, int 高度)? 获取当前帧图像()
+        {
+            if (相机对象 == null) return null;
 
             MyCamera.MV_FRAME_OUT 图像输出 = new MyCamera.MV_FRAME_OUT();
             int 结果 = 相机对象.MV_CC_GetImageBuffer_NET(ref 图像输出, 100);
+            if (结果 != MyCamera.MV_OK)
+            {
+                return null;
+            }
 
-            if (结果 == MyCamera.MV_OK)
+            try
             {
                 int 宽度 = (int)图像输出.stFrameInfo.nWidth;
                 int 高度 = (int)图像输出.stFrameInfo.nHeight;
-                原始宽度 = 宽度;
-                原始高度 = 高度;
                 int 图像大小 = 宽度 * 高度 * 3;
 
-                if (图像大小 > 图像缓冲大小)
+                lock (图像缓冲锁)
                 {
-                    if (图像数据指针 != nint.Zero)
+                    if (图像大小 > 图像缓冲大小)
                     {
-                        Marshal.FreeHGlobal(图像数据指针);
+                        if (图像数据指针 != nint.Zero)
+                        {
+                            Marshal.FreeHGlobal(图像数据指针);
+                        }
+                        图像数据指针 = Marshal.AllocHGlobal(图像大小);
+                        图像缓冲大小 = 图像大小;
                     }
-                    图像数据指针 = Marshal.AllocHGlobal(图像大小);
-                    图像缓冲大小 = 图像大小;
                 }
 
                 MyCamera.MV_PIXEL_CONVERT_PARAM 像素转换参数 = new MyCamera.MV_PIXEL_CONVERT_PARAM();
@@ -142,21 +178,26 @@ namespace 自动测试
                 像素转换参数.nDstBufferSize = (uint)图像大小;
 
                 结果 = 相机对象.MV_CC_ConvertPixelType_NET(ref 像素转换参数);
-                if (结果 == MyCamera.MV_OK)
+                if (结果 != MyCamera.MV_OK)
                 {
-                    byte[] 图像数据 = new byte[像素转换参数.nDstLen];
-                    Marshal.Copy(图像数据指针, 图像数据, 0, (int)像素转换参数.nDstLen);
-
-                    using (Bitmap 位图 = new Bitmap(宽度, 高度, System.Drawing.Imaging.PixelFormat.Format24bppRgb))
-                    {
-                        Rectangle 矩形 = new Rectangle(0, 0, 宽度, 高度);
-                        System.Drawing.Imaging.BitmapData 位图数据 = 位图.LockBits(矩形, System.Drawing.Imaging.ImageLockMode.WriteOnly, 位图.PixelFormat);
-                        Marshal.Copy(图像数据, 0, 位图数据.Scan0, (int)像素转换参数.nDstLen);
-                        位图.UnlockBits(位图数据);
-                        视觉显示图像.Image = new Bitmap(位图);
-                    }
+                    return null;
                 }
 
+                byte[] 图像数据 = new byte[像素转换参数.nDstLen];
+                lock (图像缓冲锁)
+                {
+                    Marshal.Copy(图像数据指针, 图像数据, 0, (int)像素转换参数.nDstLen);
+                }
+
+                var 位图 = new Bitmap(宽度, 高度, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                Rectangle 矩形 = new Rectangle(0, 0, 宽度, 高度);
+                System.Drawing.Imaging.BitmapData 位图数据 = 位图.LockBits(矩形, System.Drawing.Imaging.ImageLockMode.WriteOnly, 位图.PixelFormat);
+                Marshal.Copy(图像数据, 0, 位图数据.Scan0, (int)像素转换参数.nDstLen);
+                位图.UnlockBits(位图数据);
+                return (位图, 宽度, 高度);
+            }
+            finally
+            {
                 相机对象.MV_CC_FreeImageBuffer_NET(ref 图像输出);
             }
         }
@@ -268,6 +309,7 @@ namespace 自动测试
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            页面关闭中 = true;
             if (正在实时显示 && 相机对象 != null)
             {
                 实时显示定时器.Stop();
@@ -275,10 +317,13 @@ namespace 自动测试
                 正在实时显示 = false;
             }
 
-            if (图像数据指针 != nint.Zero)
+            lock (图像缓冲锁)
             {
-                Marshal.FreeHGlobal(图像数据指针);
-                图像数据指针 = nint.Zero;
+                if (图像数据指针 != nint.Zero)
+                {
+                    Marshal.FreeHGlobal(图像数据指针);
+                    图像数据指针 = nint.Zero;
+                }
             }
 
             实时显示定时器.Dispose();

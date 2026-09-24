@@ -22,15 +22,12 @@ namespace 自动测试
             电压模块控件1 = new 电压模块控件();
             MESS设置页 = new TabPage();
             MESS设置控件1 = new MESS设置控件();
-            其他设置页 = new TabPage();
-            其他设置控件1 = new 其他设置控件();
             保存按钮 = new Button();
             取消按钮 = new Button();
             标签导航.SuspendLayout();
             基础参数页.SuspendLayout();
             电压模块页.SuspendLayout();
             MESS设置页.SuspendLayout();
-            其他设置页.SuspendLayout();
             SuspendLayout();
             // 
             // 标签导航
@@ -38,7 +35,6 @@ namespace 自动测试
             标签导航.Controls.Add(基础参数页);
             标签导航.Controls.Add(电压模块页);
             标签导航.Controls.Add(MESS设置页);
-            标签导航.Controls.Add(其他设置页);
             标签导航.Dock = DockStyle.Top;
             标签导航.Location = new Point(0, 0);
             标签导航.Name = "标签导航";
@@ -108,26 +104,6 @@ namespace 自动测试
             MESS设置控件1.Size = new Size(1782, 923);
             MESS设置控件1.TabIndex = 0;
             // 
-            // 其他设置页
-            // 
-            其他设置页.AutoScroll = true;
-            其他设置页.Controls.Add(其他设置控件1);
-            其他设置页.Location = new Point(4, 26);
-            其他设置页.Name = "其他设置页";
-            其他设置页.Size = new Size(1782, 923);
-            其他设置页.TabIndex = 10;
-            其他设置页.Text = "其他设置";
-            其他设置页.UseVisualStyleBackColor = true;
-            // 
-            // 其他设置控件1
-            // 
-            其他设置控件1.AutoScroll = true;
-            其他设置控件1.Dock = DockStyle.Fill;
-            其他设置控件1.Location = new Point(0, 0);
-            其他设置控件1.Name = "其他设置控件1";
-            其他设置控件1.Size = new Size(1782, 923);
-            其他设置控件1.TabIndex = 0;
-            // 
             // 保存按钮
             // 
             保存按钮.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
@@ -161,7 +137,7 @@ namespace 自动测试
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(240, 240, 240);
-            ClientSize = new Size(1790, 1006);
+            ClientSize = new Size(1936, 1048);
             Controls.Add(取消按钮);
             Controls.Add(保存按钮);
             Controls.Add(标签导航);
@@ -171,7 +147,6 @@ namespace 自动测试
             基础参数页.ResumeLayout(false);
             电压模块页.ResumeLayout(false);
             MESS设置页.ResumeLayout(false);
-            其他设置页.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -183,8 +158,6 @@ namespace 自动测试
 
         private System.Windows.Forms.TabPage MESS设置页;
         private MESS设置控件 MESS设置控件1;
-        private System.Windows.Forms.TabPage 其他设置页;
-        private 其他设置控件 其他设置控件1;
         private System.Windows.Forms.Button 保存按钮;
         private System.Windows.Forms.Button 取消按钮;
     }
